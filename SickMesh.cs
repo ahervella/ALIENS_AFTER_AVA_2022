@@ -115,15 +115,17 @@ public class SickMesh : MonoBehaviour
         if (testTerrain.terrainData.Count == 0) { return; }
 
 
-
+        int offset = 0;
         for (int i = 0; i < testTerrain.height; i++)
         {
+
             for (int k = 0; k < testTerrain.width; k++)
             {
-                int vertIndex = i * width + k;
+                int vertIndex = i * height + k + offset;
                 int terrainIndex = i * testTerrain.width + k;
                 vertices[vertIndex] = testTerrain.terrainData[terrainIndex];
             }
+            offset++;
         }
 
         CreateShapes();

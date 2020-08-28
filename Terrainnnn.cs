@@ -37,7 +37,7 @@ public class Terrainnnn : MonoBehaviour
             {
                 int depthVal = int.Parse(lineInts[i]);
                 //because in terrain, read from bottom up
-                terrainData.Insert(0, (new Vector3(i, height, depthVal)));
+                terrainData.Insert(0, (new Vector3(i, depthVal, height)));
             }
 
             width = lineInts.Length;
