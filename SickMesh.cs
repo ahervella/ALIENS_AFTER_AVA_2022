@@ -43,12 +43,12 @@ public class SickMesh : MonoBehaviour
     {
         vertices = new Vector3[(height + 1) * (width + 1)];
 
-        for (int i = 0, vertIndex = 0; i <= width; i++)
+        for (int i = 0, vertIndex = 0; i <= height; i++)
         {
-            for (int k = 0; k <= height; k++)
+            for (int k = 0; k <= width; k++)
             {
                 //vertices[i * width + k] = new Vector3(i, 0, k);
-                vertices[vertIndex] = new Vector3(i, 0, k);
+                vertices[vertIndex] = new Vector3(k, 0, (height - i -1));
                 vertIndex++;
 
             }
@@ -65,9 +65,9 @@ public class SickMesh : MonoBehaviour
         int vert = 0;
         int triIndex = 0;
 
-        for (int i = 0; i < width; i++)
+        for (int i = 0; i < height; i++)
         {
-            for (int k = 0; k < height; k++)
+            for (int k = 0; k < width; k++)
             {
                 //verticies are drawn from bottom up, and moves collumn to the right
 
@@ -75,11 +75,11 @@ public class SickMesh : MonoBehaviour
                 trinagleRenPnts[triIndex] = vert;
                 trinagleRenPnts[triIndex + 1] = vert + 1;
                 //need to add 2 because moved over a column (one extra vertice per column)
-                trinagleRenPnts[triIndex + 2] = vert + height + 2; 
+                trinagleRenPnts[triIndex + 2] = vert + width + 2; 
 
                 //draws from top right to bottom left, clockwise
-                trinagleRenPnts[triIndex + 3] = vert + height + 2;
-                trinagleRenPnts[triIndex + 4] = vert + height + 1;
+                trinagleRenPnts[triIndex + 3] = vert + width + 2;
+                trinagleRenPnts[triIndex + 4] = vert + width + 1;
                 trinagleRenPnts[triIndex + 5] = vert;
                 vert++;
                 triIndex += 6;
@@ -112,7 +112,7 @@ public class SickMesh : MonoBehaviour
 
         if (testTerrain == null) { return; }
 
-        if (testTerrain.terrainData.Count == 0) { return; }
+        if (testTerrain.terrainData.Length == 0) { return; }
 
 
         int offset = 0;
@@ -121,8 +121,10 @@ public class SickMesh : MonoBehaviour
 
             for (int k = 0; k < testTerrain.width; k++)
             {
-                int vertIndex = i * height + k + offset;
-                int terrainIndex = i * testTerrain.width + k;
+                int vertIndex = i * width + k + offset;
+                int terrainIndex = (testTerrain.height - i -1) * testTerrain.width + k;
+                Debug.Log(terrainIndex);
+                Debug.Log(testTerrain.terrainData[terrainIndex]);
                 vertices[vertIndex] = testTerrain.terrainData[terrainIndex];
             }
             offset++;

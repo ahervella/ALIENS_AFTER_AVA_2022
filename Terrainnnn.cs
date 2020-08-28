@@ -11,7 +11,9 @@ public class Terrainnnn : MonoBehaviour
 
     public TextAsset terrainFile;
 
-    public List<Vector3> terrainData = new List<Vector3>();
+    List<Vector3> tempTerrainData = new List<Vector3>();
+
+    public Vector3[] terrainData;
 
     public int width = 0;
     public int height = 0;
@@ -27,21 +29,32 @@ public class Terrainnnn : MonoBehaviour
 
         StreamReader sr = new StreamReader(terrainFolderPath + terrainFile.name + ".txt");
 
+        //List<<List<string>> lines = new
+        List<string[]> lines = new List<string[]>();
+
         string currLine = "";
 
         while ((currLine = sr.ReadLine()) != null)
         {
-            string[] lineInts = currLine.Split(' ');
+            lines.Add(currLine.Split(' '));
+            
+        }
 
-            for (int i = 0; i < lineInts.Length; i++)
+
+        height = lines.Count;
+        width = lines[0].Length;
+        terrainData = new Vector3[width * height];
+
+        for (int i = 0; i < height; i++)
+        {
+            
+            for (int k = 0; k < width; k++)
             {
-                int depthVal = int.Parse(lineInts[i]);
-                //because in terrain, read from bottom up
-                terrainData.Insert(0, (new Vector3(i, depthVal, height)));
-            }
+                int heightVal = (height - i - 1);
+                int depthVal = int.Parse(lines[i][k]);
 
-            width = lineInts.Length;
-            height++;
+                terrainData[i * width + k] = new Vector3(k, depthVal, heightVal);
+            }
         }
 
     }
