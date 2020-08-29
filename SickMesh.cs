@@ -10,22 +10,29 @@ public class SickMesh : MonoBehaviour
     
 
     Mesh mesh;
-    Vector3[] vertices;
-
-    int[] trinagleRenPnts;
 
     public bool drawShapes = true;
 
+    //control point height and width
     public int height = 10;
     public int width = 5;
+    //number of points to fill between control points (can be zero too)
     public int fillPointCount = 4;
 
 
-    int[] rendTrinagleRenPnts;
+    int[] triangleRenIndices;
 
+    //actual render height and width after applying fill points
     int rendHeight;
     int rendWidth;
-    float rendMultiplyer;
+
+    //length between two control points (fill points will adjust to this)
+    public float heightUnit = 1;
+    public float widthUnit = 1;
+
+    //distance between rendered vertecies
+    float xRendVertDist;
+    float yRendVerDist;
 
     Vector3[] rendVertices;
 
@@ -39,21 +46,16 @@ public class SickMesh : MonoBehaviour
 
         rendHeight = height + (height * fillPointCount);
         rendWidth = width + (width * fillPointCount);
-        rendMultiplyer = 1f / (fillPointCount + 1);
+        xRendVertDist = widthUnit / (fillPointCount + 1);
+        yRendVerDist = heightUnit / (fillPointCount + 1);
 
-        //StartCoroutine(CreateVerticiesShapes());
-        //CreateVerticies();
         CreateRendVerticies();
         CreateRendShapes();
-        //CreateShapes();
-
-
     }
 
     private void Update()
     {
         rendUpdateMesh();
-        //UpdateMesh();
     }
 
 
@@ -65,8 +67,8 @@ public class SickMesh : MonoBehaviour
         {
             for (int k = 0; k <= rendWidth; k++)
             {
-                //vertices[i * width + k] = new Vector3(i, 0, k);
-                rendVertices[vertIndex] = new Vector3(k, 0, (rendHeight - i - 1)) * rendMultiplyer;
+                //need to do - i - 1 so that it goes top down
+                rendVertices[vertIndex] = new Vector3(k * xRendVertDist, 0, (rendHeight - i - 1) * yRendVerDist);
                 vertIndex++;
 
             }
@@ -75,28 +77,10 @@ public class SickMesh : MonoBehaviour
         }
     }
 
-    void CreateVerticies()
-    {
-        vertices = new Vector3[(height + 1) * (width + 1)];
-
-        for (int i = 0, vertIndex = 0; i <= height; i++)
-        {
-            for (int k = 0; k <= width; k++)
-            {
-                //vertices[i * width + k] = new Vector3(i, 0, k);
-                vertices[vertIndex] = new Vector3(k, 0, (height - i -1));
-                vertIndex++;
-
-            }
-
-
-        }
-
-    }
 
     void CreateRendShapes()
     {
-        rendTrinagleRenPnts = new int[rendHeight * rendWidth * 6];
+        triangleRenIndices = new int[rendHeight * rendWidth * 6];
         int vert = 0;
         int triIndex = 0;
 
@@ -106,16 +90,17 @@ public class SickMesh : MonoBehaviour
             {
                 //verticies are from right to left, and moves a row down
 
-                //draws from bottom left to top right, clockwise
-                rendTrinagleRenPnts[triIndex] = vert;
-                rendTrinagleRenPnts[triIndex + 1] = vert + 1;
+                //draws from top left to bottom right, clockwise
+                triangleRenIndices[triIndex] = vert;
+                triangleRenIndices[triIndex + 1] = vert + 1;
                 //need to add 2 because moved over a column (one extra vertice per column)
-                rendTrinagleRenPnts[triIndex + 2] = vert + rendWidth + 2;
+                triangleRenIndices[triIndex + 2] = vert + rendWidth + 2;
 
-                //draws from top right to bottom left, clockwise
-                rendTrinagleRenPnts[triIndex + 3] = vert + rendWidth + 2;
-                rendTrinagleRenPnts[triIndex + 4] = vert + rendWidth + 1;
-                rendTrinagleRenPnts[triIndex + 5] = vert;
+
+                //draws from bottom right to top left, clockwise
+                triangleRenIndices[triIndex + 3] = vert + rendWidth + 2;
+                triangleRenIndices[triIndex + 4] = vert + rendWidth + 1;
+                triangleRenIndices[triIndex + 5] = vert;
                 vert++;
                 triIndex += 6;
 
@@ -124,48 +109,9 @@ public class SickMesh : MonoBehaviour
         }
     }
 
-    void CreateShapes()
-    {
-
-        trinagleRenPnts = new int[height * width * 6];
-        int vert = 0;
-        int triIndex = 0;
-
-        for (int i = 0; i < height; i++)
-        {
-            for (int k = 0; k < width; k++)
-            {
-                //verticies are from right to left, and moves a row down
-
-                //draws from bottom left to top right, clockwise
-                trinagleRenPnts[triIndex] = vert;
-                trinagleRenPnts[triIndex + 1] = vert + 1;
-                //need to add 2 because moved over a column (one extra vertice per column)
-                trinagleRenPnts[triIndex + 2] = vert + width + 2; 
-
-                //draws from top right to bottom left, clockwise
-                trinagleRenPnts[triIndex + 3] = vert + width + 2;
-                trinagleRenPnts[triIndex + 4] = vert + width + 1;
-                trinagleRenPnts[triIndex + 5] = vert;
-                vert++;
-                triIndex += 6;
-
-            }
-            vert++;
-        }
-        
-
-
-    }
+    
 
     private void OnDrawGizmos()
-    {
-        //oldGizomsShit();
-        GizmosShit();
-    }
-
-
-    void GizmosShit()
     {
         if (rendVertices == null) { return; }
 
@@ -175,24 +121,11 @@ public class SickMesh : MonoBehaviour
         }
     }
 
-    void oldGizomsShit()
-    {
-        if (vertices == null) { return; }
-
-        for (int i = 0; i < vertices.Length; i++)
-        {
-            Gizmos.DrawSphere(vertices[i], 0.1f);
-        }
-    }
-
 
     void rendUpdateMesh()
     {
 
         
-       
-
-        //mesh.RecalculateNormals();
 
         if (testTerrain == null) { return; }
 
@@ -213,13 +146,14 @@ public class SickMesh : MonoBehaviour
                 int vertIndex = i * rendWidth + k + offset;
                 int terrainIndex = i * testTerrain.rendWidth + k;
 
-                rendVertices[vertIndex] = offSetTerrainData[terrainIndex];
+                Vector3 nonUnitAdjusted = offSetTerrainData[terrainIndex];
+                rendVertices[vertIndex] = new Vector3(widthUnit * nonUnitAdjusted.x, nonUnitAdjusted.y, heightUnit * nonUnitAdjusted.z);
             }
             offset++;
         }
 
         mesh.vertices = rendVertices;
-        if (drawShapes) { mesh.triangles = rendTrinagleRenPnts; }
+        if (drawShapes) { mesh.triangles = triangleRenIndices; }
 
         CreateRendShapes();
         mesh.RecalculateNormals();
@@ -228,37 +162,6 @@ public class SickMesh : MonoBehaviour
 
 
 
-    void UpdateMesh()
-    {
-        mesh.vertices = vertices;
-        if (drawShapes) { mesh.triangles = trinagleRenPnts; }
-        //for recalculating normals with lighting
-        mesh.RecalculateNormals();
-
-        if (testTerrain == null) { return; }
-
-        if (testTerrain.terrainData.Length == 0) { return; }
-
-
-        int offset = 0;
-        Vector3[] offSetTerrainData = testTerrain.offSetData(height - testTerrain.height);
-
-        for (int i = 0; i < testTerrain.height; i++)
-        {
-
-            for (int k = 0; k < testTerrain.width; k++)
-            {
-                int vertIndex = i * width + k + offset;
-                int terrainIndex = i * testTerrain.width + k;
-
-                vertices[vertIndex] = offSetTerrainData[terrainIndex];
-            }
-            offset++;
-        }
-
-        CreateShapes();
-        mesh.RecalculateNormals();
-    }
 }
 
 
