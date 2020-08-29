@@ -89,12 +89,17 @@ public class Terrainnnn : MonoBehaviour
             {
                 if (rendParsedData[l][ll] == null)
                 {
-                    int firstVal = int.Parse(rendParsedData[l][ll - 1]);
-                    int secondVal = int.Parse(rendParsedData[l][ll + fillPointCount]);
-                    float interval = (float)(secondVal - firstVal) / (float)(fillPointCount + 1);
+                    float firstVal = float.Parse(rendParsedData[l][ll - 1]);
+                    float secondVal = float.Parse(rendParsedData[l][ll + fillPointCount]);
+                    float diff = secondVal - firstVal;
+                    //float interval = (secondVal - firstVal) / (float)(fillPointCount + 1);
+                    float sinRadAng = (Mathf.PI) / (float)(fillPointCount + 1);
+                    
                     for (int u = 0; u < fillPointCount; u++)
                     {
-                        rendParsedData[l][ll + u] = (firstVal + interval * (u + 1)).ToString();
+                        float theta = sinRadAng * (u + 1);
+                        float curveMultiplyer = Mathf.Sin(theta - Mathf.PI / 2f) * 0.5f + 0.5f;
+                        rendParsedData[l][ll + u] = (firstVal + diff * curveMultiplyer).ToString();
                     }
 
                     ll += fillPointCount;
@@ -115,8 +120,13 @@ public class Terrainnnn : MonoBehaviour
                 {
                     float firstVal = float.Parse(rendParsedData[k - 1][jjj]);
                     float secondVal = float.Parse(rendParsedData[k + fillPointCount][jjj]);
-                    float interval = (float)(secondVal - firstVal) / (float)(fillPointCount + 1);
-                    rendParsedData[k + kk][jjj] = (firstVal + interval * (kk + 1)).ToString();
+                    float diff = secondVal - firstVal;
+                    //float interval = (secondVal - firstVal) / (float)(fillPointCount + 1);
+                    float sinRadAng = (Mathf.PI) / (float)(fillPointCount + 1);
+                    float theta = sinRadAng * (kk + 1);
+                    float curveMultiplyer = Mathf.Sin(theta - Mathf.PI / 2f) * 0.5f + 0.5f;
+
+                    rendParsedData[k + kk][jjj] = (firstVal + diff * curveMultiplyer).ToString();
                 }
             }
 
