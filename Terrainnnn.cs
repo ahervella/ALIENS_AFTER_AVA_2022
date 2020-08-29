@@ -18,6 +18,8 @@ public class Terrainnnn : MonoBehaviour
     public int width = 0;
     public int height = 0;
 
+    public float heightMultiplyer = 1;
+
     public int rendWidth = 0;
     public int rendHeight = 0;
 
@@ -150,7 +152,7 @@ public class Terrainnnn : MonoBehaviour
             for (int k = 0; k < rendParsedData[i].Length; k++)
             {
                 float heightVal = (rendHeight - i - 1);
-                float depthVal = float.Parse(rendParsedData[i][k]);
+                float depthVal = float.Parse(rendParsedData[i][k]) * heightMultiplyer;
 
                 terrainData[i * rendWidth + k] = new Vector3(k * multiplyer, depthVal, heightVal * multiplyer);
             }
@@ -169,7 +171,7 @@ public class Terrainnnn : MonoBehaviour
             for (int k = 0; k < width; k++)
             {
                 float heightVal = (height - i - 1);
-                float depthVal = float.Parse(parsedData[i][k]);
+                float depthVal = float.Parse(parsedData[i][k]) * heightMultiplyer;
 
                 terrainData[i * width + k] = new Vector3(k, depthVal, heightVal);
             }
