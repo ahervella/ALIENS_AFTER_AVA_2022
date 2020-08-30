@@ -11,6 +11,8 @@ public class Terrainnnn : MonoBehaviour
 
     public TextAsset terrainFile;
 
+    public float appearanceLikelihood;
+
     public Vector3[] terrainData;
 
     //control point heights and widths
@@ -28,7 +30,7 @@ public class Terrainnnn : MonoBehaviour
     //the direct pased data from the text file in the readable order
     List<float[]> parsedData = new List<float[]>();
 
-    private void Start()
+    private void OnEnable()
     {
         parseTerrainFile();
     }
