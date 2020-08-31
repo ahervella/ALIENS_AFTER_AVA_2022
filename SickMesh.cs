@@ -51,8 +51,6 @@ public class SickMesh : MonoBehaviour
     public Vector3[] rendVertices;
 
 
-    public Terrainnnn testTerrain;
-
     public Terrainnnn[] terrains;
 
     void Start()
@@ -64,6 +62,11 @@ public class SickMesh : MonoBehaviour
         rendWidth = width + (width * fillPointCount);
         //xRendVertDist = widthUnit / (fillPointCount + 1);
         //yRendVerDist = heightUnit / (fillPointCount + 1);
+
+        for(int i = 0; i < terrains.Length; i++)
+        {
+            terrains[i] = Instantiate(terrains[i]);
+        }
 
         createControlVertices();
         refereshRenderedPoints();
