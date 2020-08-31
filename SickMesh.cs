@@ -38,12 +38,9 @@ public class SickMesh : MonoBehaviour
     int rendWidth;
 
     //length between two control points (fill points will adjust to this)
-    //public float heightUnit = 1;
-    //public float widthUnit = 1;
+    public float heightUnit = 1;
+    public float widthUnit = 1;
 
-    //distance between rendered vertecies
-    //float xRendVertDist;
-    //float yRendVerDist;
 
     bool canGenerateOthers = true;
 
@@ -61,8 +58,6 @@ public class SickMesh : MonoBehaviour
 
         rendHeight = height + (height * fillPointCount);
         rendWidth = width + (width * fillPointCount);
-        //xRendVertDist = widthUnit / (fillPointCount + 1);
-        //yRendVerDist = heightUnit / (fillPointCount + 1);
 
         for(int i = 0; i < terrains.Length; i++)
         {
@@ -81,7 +76,7 @@ public class SickMesh : MonoBehaviour
         {
             for (int k = 0; k <= width; k++)
             {
-                vertices[vertIndex] = new Vector3(k, 0, height - i);
+                vertices[vertIndex] = new Vector3(k * widthUnit, 0, (height - i) * heightUnit);
                 vertIndex++;
             }
         }
@@ -180,10 +175,10 @@ public class SickMesh : MonoBehaviour
         for (int i = 0; i < points.Length; i++)
         {
             Vector3 point = points[i];
-            if (point.z <= height - topMargin
-                && point.z >= bottomMargin
-                && point.x <= width - rightMargin
-                && point.x >= leftMargin)
+            if (point.z <= (height - topMargin) * heightUnit
+                && point.z >= bottomMargin * heightUnit
+                && point.x <= (width - rightMargin) * widthUnit
+                && point.x >= leftMargin * widthUnit)
             {
                 Gizmos.DrawSphere(point, 0.05f);
             }
@@ -234,7 +229,7 @@ public class SickMesh : MonoBehaviour
     {
         int offset = 0;
 
-        Vector3 posOffset = new Vector3(vertices[0].x, 0, vertices[0].z - terrain.vertH() + 1);
+        Vector3 posOffset = new Vector3(vertices[0].x, 0, vertices[0].z - (terrain.vertH() * heightUnit) + heightUnit);
 
         //here not <= because terrain heights are the vertecie count
 
@@ -250,10 +245,12 @@ public class SickMesh : MonoBehaviour
 
                 int vertIndex = i * width + kOffset + offset;
                 int terrainIndex = i * terrain.vertW() + k;
-                float actualElevation = terrain.canGenerateOthers && (terrain.terrainData[terrainIndex]).y >= 0f? Mathf.Max(vertices[vertIndex].y, (terrain.terrainData[terrainIndex]).y) : (terrain.terrainData[terrainIndex]).y;
 
-                vertices[vertIndex] = (terrain.terrainData[terrainIndex] + posOffset);
-                vertices[vertIndex] = new Vector3(vertices[vertIndex].x + horzDiff, actualElevation, vertices[vertIndex].z);
+                Vector3 terrPnt = terrain.terrainData[terrainIndex];
+
+                float actualElevation = terrain.canGenerateOthers && terrPnt.y >= 0f? Mathf.Max(vertices[vertIndex].y, terrPnt.y) : terrPnt.y;
+
+                vertices[vertIndex] = new Vector3((terrPnt.x + horzDiff) * widthUnit, actualElevation, terrPnt.z * heightUnit) + posOffset;
             }
             offset++;
         }
@@ -290,7 +287,7 @@ public class SickMesh : MonoBehaviour
     bool applyTreadmillEffect()
     {
 
-        if (vertices[0].z < (height - 1))
+        if (vertices[0].z < (height - 1) * heightUnit)
         {
             Vector3[] shortenedList = new Vector3[vertices.Length - (width + 1)];
 
@@ -303,7 +300,7 @@ public class SickMesh : MonoBehaviour
             {
                 if (k <= width)
                 {
-                    vertices[k] = new Vector3(shortenedList[0].x + k, 0, shortenedList[0].z + 1);
+                    vertices[k] = new Vector3(shortenedList[0].x + k * widthUnit, 0, shortenedList[0].z + heightUnit);
                 }
                 else
                 {
@@ -321,7 +318,7 @@ public class SickMesh : MonoBehaviour
     bool applyHorizontalWrap()
     {
         //return false;
-        if (vertices[0].x > 1 || vertices[0].x < -1)
+        if (vertices[0].x > widthUnit || vertices[0].x < -widthUnit)
         {
             bool movingRight = vertices[0].x > 1;
             int modifier = movingRight ? 1 : 0;
@@ -354,7 +351,7 @@ public class SickMesh : MonoBehaviour
                     Vector3 newPnt = vertCopy[k + width * dirModifier];
 
                     //move x by one control unit left or right depending on dir
-                    vertices[k] = new Vector3(vertCopy[k].x - dirModifier, newPnt.y, newPnt.z);
+                    vertices[k] = new Vector3(vertCopy[k].x - dirModifier * widthUnit, newPnt.y, newPnt.z);
                     offset++;
                 }
                 else
