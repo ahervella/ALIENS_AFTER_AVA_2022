@@ -45,6 +45,8 @@ public class SickMesh : MonoBehaviour
     //float xRendVertDist;
     //float yRendVerDist;
 
+    bool canGenerateOthers = true;
+
 
     public Vector3[] vertices;
 
@@ -200,6 +202,7 @@ public class SickMesh : MonoBehaviour
 
     void generateTerrain()
     {
+        if (!canGenerateOthers) { return; }
         foreach (Terrainnnn terr in terrains)
         {
             float likelihoodSelector = Random.Range(0.00001f, 1f);
@@ -207,9 +210,22 @@ public class SickMesh : MonoBehaviour
             {
                 terr.startGenerateDelay();
                 addTerrain(terr);
+
+                if (!terr.canGenerateOthers)
+                {
+                    float delay = (terr.vertH() - 1) * (treadmillSpeed * 60) ;
+                    generateOthersDelay(delay);
+                }
             }
         }
         
+    }
+
+    IEnumerator generateOthersDelay(float delay)
+    {
+        canGenerateOthers = false;
+        yield return new WaitForSecondsRealtime(delay);
+        canGenerateOthers = true;
     }
 
 
@@ -234,7 +250,7 @@ public class SickMesh : MonoBehaviour
 
                 int vertIndex = i * width + kOffset + offset;
                 int terrainIndex = i * terrain.vertW() + k;
-                float actualElevation = Mathf.Max(vertices[vertIndex].y, (terrain.terrainData[terrainIndex]).y);
+                float actualElevation = terrain.canGenerateOthers && (terrain.terrainData[terrainIndex]).y >= 0f? Mathf.Max(vertices[vertIndex].y, (terrain.terrainData[terrainIndex]).y) : (terrain.terrainData[terrainIndex]).y;
 
                 vertices[vertIndex] = (terrain.terrainData[terrainIndex] + posOffset);
                 vertices[vertIndex] = new Vector3(vertices[vertIndex].x + horzDiff, actualElevation, vertices[vertIndex].z);

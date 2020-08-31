@@ -27,7 +27,9 @@ public class Terrainnnn : MonoBehaviour
 
     
     public float generateDelay = 0f;
-    public bool canGenerate = true;
+    bool canGenerate = true;
+
+    public bool canGenerateOthers = true;
 
     public bool canGen() { return canGenerate; }
 
