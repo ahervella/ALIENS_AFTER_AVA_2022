@@ -27,8 +27,10 @@ public class SickMesh : MonoBehaviour
     public int rightMargin = 0;
 
     public float treadmillSpeed = 0.05f;
+    public float horizontalWrapSpeed = 0.05f;
 
     int[] triangleRenIndices;
+
 
     //actual render height and width with repsect to a unit
     //of 1 fill shape length or width
@@ -44,7 +46,7 @@ public class SickMesh : MonoBehaviour
     //float yRendVerDist;
 
 
-    Vector3[] vertices;
+    public Vector3[] vertices;
 
     public Vector3[] rendVertices;
 
@@ -213,7 +215,7 @@ public class SickMesh : MonoBehaviour
     {
         int offset = 0;
 
-        Vector3 heightOffset = new Vector3(0, 0, vertices[0].z - terrain.vertHeight + 1);
+        Vector3 posOffset = new Vector3(vertices[0].x, 0, vertices[0].z - terrain.vertHeight + 1);
 
         //here not <= because terrain heights are the vertecie count
         for (int i = 0; i < terrain.vertHeight; i++)
@@ -222,8 +224,8 @@ public class SickMesh : MonoBehaviour
             {
                 int vertIndex = i * width + k + offset;
                 int terrainIndex = i * terrain.vertWidth + k;
-                float actualElevation = Mathf.Max(vertices[vertIndex].y, (terrain.terrainData[terrainIndex] + heightOffset).y);
-                vertices[vertIndex] = terrain.terrainData[terrainIndex] + heightOffset;
+                float actualElevation = Mathf.Max(vertices[vertIndex].y, (terrain.terrainData[terrainIndex]).y);
+                vertices[vertIndex] = (terrain.terrainData[terrainIndex] + posOffset);
                 vertices[vertIndex] = new Vector3(vertices[vertIndex].x, actualElevation, vertices[vertIndex].z);
             }
             offset++;
@@ -239,16 +241,20 @@ public class SickMesh : MonoBehaviour
 
         for (int i = 0; i < rendVertices.Length; i++)
         {
-            rendVertices[i] += new Vector3(0, 0, -treadmillSpeed);
+            rendVertices[i] += new Vector3(horizontalWrapSpeed, 0, -treadmillSpeed);
         }
 
         for (int k = 0; k < vertices.Length; k++)
         {
-            vertices[k] += new Vector3(0, 0, -treadmillSpeed);
+            vertices[k] += new Vector3(horizontalWrapSpeed, 0, -treadmillSpeed);
         }
 
         //incase points move so much that need to move rows more than once
-        while (applyTreadmillEffect()) { }
+        //fire safety here too lol
+        int safety = 0;
+        while (applyTreadmillEffect()) { safety++; if (safety > 10) { break; } }
+        safety = 0;
+        while (applyHorizontalWrap()) { safety++; if (safety > 10) { break; } }
         refereshRenderedPoints();
     }
 
@@ -270,7 +276,7 @@ public class SickMesh : MonoBehaviour
             {
                 if (k <= width)
                 {
-                    vertices[k] = new Vector3(k, 0, shortenedList[0].z + 1);
+                    vertices[k] = new Vector3(shortenedList[0].x + k, 0, shortenedList[0].z + 1);
                 }
                 else
                 {
@@ -284,6 +290,57 @@ public class SickMesh : MonoBehaviour
 
     }
 
+
+    bool applyHorizontalWrap()
+    {
+        //return false;
+        if (vertices[0].x > 1 || vertices[0].x < -1)
+        {
+            bool movingRight = vertices[0].x > 1;
+            int modifier = movingRight ? 1 : 0;
+            int invModifier = movingRight ? 0 : 1;
+            int dirModifier = movingRight ? 1 : -1;
+
+            Vector3[] shortenedList = new Vector3[vertices.Length - (height + 1)];
+
+
+            for (int i = 0, offset = 0; i < vertices.Length; i++)
+            {
+                //anything on the right most column for moving right, left col for moving left
+                
+                if ((i + modifier) % (width + 1) == 0) { offset++; continue; }
+
+                shortenedList[i - offset] = vertices[i];
+               
+            }
+
+
+            Vector3[] vertCopy = (Vector3[])vertices.Clone();
+
+            for (int k = 0, offset = 0; k < vertices.Length; k++)
+            {
+                //if moving right, want to catch when on the left most col
+                //moving left, catch the right most col
+                if ((k+ invModifier) % (width + 1) == 0)
+                {
+                    //subtract or add the index depending on col on
+                    Vector3 newPnt = vertCopy[k + width * dirModifier];
+
+                    //move x by one control unit left or right depending on dir
+                    vertices[k] = new Vector3(vertCopy[k].x - dirModifier, newPnt.y, newPnt.z);
+                    offset++;
+                }
+                else
+                {
+                    vertices[k] = shortenedList[k - offset];
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
 
 
 
