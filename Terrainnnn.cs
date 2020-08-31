@@ -16,15 +16,20 @@ public class Terrainnnn : MonoBehaviour
     public Vector3[] terrainData;
 
     //control point vertecie Heights and Widths
-    public int vertWidth = 0;
-    public int vertHeight = 0;
+    int vertWidth = 0;
+    int vertHeight = 0;
+    public int vertW() { return vertWidth; }
+    public int vertH() { return vertHeight; }
 
     //multiplyer for text file floats (so user can use large numbers
     //for precision in text file)
     public float elevationMultiplyer = 0.05f;
 
+    
+    public float generateDelay = 0f;
+    public bool canGenerate = true;
 
-
+    public bool canGen() { return canGenerate; }
 
     private void OnEnable()
     {
@@ -83,6 +88,21 @@ public class Terrainnnn : MonoBehaviour
 
     }
 
+
+    public void startGenerateDelay()
+    {
+        if ( generateDelay == 0f ) { return;  }
+
+        canGenerate = false;
+        StartCoroutine(genDelay());
+
+    }
+
+    IEnumerator genDelay()
+    {
+        yield return new WaitForSecondsRealtime(generateDelay);
+        canGenerate = true;
+    }
 
 
 

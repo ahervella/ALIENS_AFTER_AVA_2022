@@ -50,7 +50,6 @@ public class SickMesh : MonoBehaviour
 
     public Vector3[] rendVertices;
 
-
     public Terrainnnn[] terrains;
 
     void Start()
@@ -201,15 +200,16 @@ public class SickMesh : MonoBehaviour
 
     void generateTerrain()
     {
-        int terrainSelector = Mathf.FloorToInt(Random.Range(0, terrains.Length - 1));
-        float likelihoodSelector = Random.Range(0.00001f, 1f);
-
-        Terrainnnn selectedTerrain = terrains[terrainSelector];
-
-        if (likelihoodSelector <= selectedTerrain.appearanceLikelihood)
+        foreach (Terrainnnn terr in terrains)
         {
-            addTerrain(selectedTerrain);
+            float likelihoodSelector = Random.Range(0.00001f, 1f);
+            if (likelihoodSelector <= terr.appearanceLikelihood && terr.canGen())
+            {
+                terr.startGenerateDelay();
+                addTerrain(terr);
+            }
         }
+        
     }
 
 
@@ -218,18 +218,26 @@ public class SickMesh : MonoBehaviour
     {
         int offset = 0;
 
-        Vector3 posOffset = new Vector3(vertices[0].x, 0, vertices[0].z - terrain.vertHeight + 1);
+        Vector3 posOffset = new Vector3(vertices[0].x, 0, vertices[0].z - terrain.vertH() + 1);
 
         //here not <= because terrain heights are the vertecie count
-        for (int i = 0; i < terrain.vertHeight; i++)
+
+        //todo: wierd shit with 30 exact? bigger nums?
+        int startOffset = Random.Range(0, width + 1);
+
+        for (int i = 0; i < terrain.vertH(); i++)
         {
-            for (int k = 0; k < terrain.vertWidth; k++)
+            for (int k = 0; k < terrain.vertW(); k++)
             {
-                int vertIndex = i * width + k + offset;
-                int terrainIndex = i * terrain.vertWidth + k;
+                int kOffset = (startOffset + k) % (width + 1);
+                int horzDiff = kOffset - k;
+
+                int vertIndex = i * width + kOffset + offset;
+                int terrainIndex = i * terrain.vertW() + k;
                 float actualElevation = Mathf.Max(vertices[vertIndex].y, (terrain.terrainData[terrainIndex]).y);
+
                 vertices[vertIndex] = (terrain.terrainData[terrainIndex] + posOffset);
-                vertices[vertIndex] = new Vector3(vertices[vertIndex].x, actualElevation, vertices[vertIndex].z);
+                vertices[vertIndex] = new Vector3(vertices[vertIndex].x + horzDiff, actualElevation, vertices[vertIndex].z);
             }
             offset++;
         }
