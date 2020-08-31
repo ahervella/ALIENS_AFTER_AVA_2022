@@ -8,6 +8,7 @@ using UnityEngine;
 public class SickMesh : MonoBehaviour
 {
 
+    const float FPS = 60f;
 
     Mesh mesh;
 
@@ -44,6 +45,12 @@ public class SickMesh : MonoBehaviour
 
     bool canGenerateOthers = true;
 
+    int changeLaneDir = 0;
+    public float changeLaneTime = 1.5f;
+    float totalFrameCounter = 0f;
+    float framesForLaneChange;
+    float changeLaneStep;
+    float xLaneChangePositionProgress = 0f;
 
     public Vector3[] vertices;
 
@@ -59,7 +66,11 @@ public class SickMesh : MonoBehaviour
         rendHeight = height + (height * fillPointCount);
         rendWidth = width + (width * fillPointCount);
 
-        for(int i = 0; i < terrains.Length; i++)
+        framesForLaneChange = changeLaneTime * FPS;
+
+        changeLaneStep = 1f / framesForLaneChange;
+
+        for (int i = 0; i < terrains.Length; i++)
         {
             terrains[i] = Instantiate(terrains[i]);
         }
@@ -155,13 +166,17 @@ public class SickMesh : MonoBehaviour
         float sinRadAng = (Mathf.PI) / (float)(fillPointCount + 1);
         float theta = sinRadAng * (index + 1);
 
-        float curveMultiplyer = Mathf.Sin(theta - Mathf.PI / 2f) * 0.5f + 0.5f;
+        float curveMultiplyer = easingFunction(theta);
         float lerpMultiplyer = (float)(index + 1) / (float)(fillPointCount + 1);
 
         return (new Vector3(diff.x * lerpMultiplyer, diff.y * curveMultiplyer, diff.z * lerpMultiplyer) + firstRefPoint);
 
     }
 
+    float easingFunction(float theta)
+    {
+        return Mathf.Sin(theta - Mathf.PI / 2f) * 0.5f + 0.5f;
+    }
 
 
 
@@ -190,6 +205,7 @@ public class SickMesh : MonoBehaviour
     private void Update()
     {
         generateTerrain();
+        inputUpdate();
         moveMesh();
         updateMesh();
     }
@@ -208,7 +224,7 @@ public class SickMesh : MonoBehaviour
 
                 if (!terr.canGenerateOthers)
                 {
-                    float delay = (terr.vertH() - 1) * (treadmillSpeed * 60) ;
+                    float delay = (terr.vertH() - 1) * (treadmillSpeed * FPS) ;
                     generateOthersDelay(delay);
                 }
             }
@@ -260,18 +276,71 @@ public class SickMesh : MonoBehaviour
 
 
 
+    void inputUpdate()
+    {
+        int dir = 0;
+        if (Input.GetKeyDown(KeyCode.RightArrow)){ dir++; }
+        if (Input.GetKeyDown(KeyCode.LeftArrow)){ dir--; }
+
+        changeLane(dir);
+    }
+
+
+    void changeLane(int dir)
+    {
+        if (changeLaneDir != 0) { return; }
+
+        changeLaneDir = dir;
+
+
+    }
+
+
     void moveMesh()
     {
+        //for controling lane changing
 
+        float change = 0f;
+        
+        if (changeLaneDir != 0)
+        {
+            if (totalFrameCounter > framesForLaneChange)
+            {
+                changeLaneDir = 0;
+                totalFrameCounter = 0f;
+                xLaneChangePositionProgress = 0f;
+            }
+
+            else
+            {
+                totalFrameCounter++;
+
+                float theta = changeLaneStep * totalFrameCounter * Mathf.PI;
+                float progressVal = easingFunction(theta);
+
+                float currDist = Mathf.Lerp(0, widthUnit * changeLaneDir, progressVal);
+                change = currDist - xLaneChangePositionProgress;
+                xLaneChangePositionProgress = currDist;
+            }
+        }
+
+
+
+        //applying treadmill move and lane change
         for (int i = 0; i < rendVertices.Length; i++)
         {
-            rendVertices[i] += new Vector3(horizontalWrapSpeed, 0, -treadmillSpeed);
+            rendVertices[i] += new Vector3(change / (float)(fillPointCount+1), 0, -treadmillSpeed);
         }
 
+        
         for (int k = 0; k < vertices.Length; k++)
         {
-            vertices[k] += new Vector3(horizontalWrapSpeed, 0, -treadmillSpeed);
+                
+
+            vertices[k] += new Vector3(change, 0, -treadmillSpeed);
         }
+        
+
 
         //incase points move so much that need to move rows more than once
         //fire safety here too lol
@@ -365,6 +434,10 @@ public class SickMesh : MonoBehaviour
 
         return false;
     }
+
+
+
+
 
 
 
