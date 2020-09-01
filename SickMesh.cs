@@ -57,6 +57,11 @@ public class SickMesh : MonoBehaviour
     public Vector3[] rendVertices;
 
     public Terrainnnn[] terrains;
+    public List<TerrObject> terrObjects;
+
+    //list for value because could generate more than one instance before control point
+    //index applies treadmill effect
+    public Dictionary<int, List<TerrObject>> currTerrObjsDict = new Dictionary<int, List<TerrObject>>();
 
     void Start()
     {
@@ -76,7 +81,7 @@ public class SickMesh : MonoBehaviour
         }
 
         createControlVertices();
-        refereshRenderedPoints();
+        refreshRenderedPoints();
     }
 
     void createControlVertices()
@@ -96,7 +101,7 @@ public class SickMesh : MonoBehaviour
 
 
 
-    void refereshRenderedPoints()
+    void refreshRenderedPoints()
     {
         int rvHeight = height + fillPointCount * (height);
         int rvWidth = width + fillPointCount * (width);
@@ -205,6 +210,7 @@ public class SickMesh : MonoBehaviour
     private void Update()
     {
         generateTerrain();
+        generateTerrObjs();
         inputUpdate();
         moveMesh();
         updateMesh();
@@ -230,6 +236,18 @@ public class SickMesh : MonoBehaviour
             }
         }
         
+    }
+
+    void generateTerrObjs()
+    {
+        foreach (TerrObject terrObj in terrObjects)
+        {
+            float likelihoodSelector = Random.Range(0.00001f, 1f);
+            if (likelihoodSelector <= terrObj.appearanceLikelihood)
+            {
+                addTerrObj(terrObj);
+            }
+        }
     }
 
     IEnumerator generateOthersDelay(float delay)
@@ -271,10 +289,84 @@ public class SickMesh : MonoBehaviour
             offset++;
         }
 
-        refereshRenderedPoints();
+        refreshTerrObjDict();
+        refreshRenderedPoints();
     }
 
 
+    void refreshTerrObjDict()
+    {
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            if (currTerrObjsDict.ContainsKey(i))
+            {
+                for (int k = 0; k < currTerrObjsDict[i].Count; k++)
+                {
+                    TerrObject terrObject = currTerrObjsDict[i][k];
+                    Vector3 ogPos = terrObject.transform.position;
+                    Vector3 firstRef = vertices[i];
+                    Vector3 secondRef = firstRef;
+
+                    float zPosDiff = ogPos.z - firstRef.z;
+
+
+                    //behind vertices[i].z point
+                    if (zPosDiff > 0 && (i - width - 1) >= 0)
+                    {
+                        //get ref point behind
+                        secondRef = vertices[i - width - 1];
+                    }
+                    //in front
+                    else if (zPosDiff < 0 && (i + width + 1) < vertices.Length )
+                    {
+                        secondRef = vertices[i + width + 1];
+                    }
+
+                    float actualYPosDiff = 0;
+                    if (secondRef.y != firstRef.y)
+                    {
+                        float theta = zPosDiff / (secondRef.z - firstRef.z);
+                        float yDiff = secondRef.y - firstRef.y;
+                        actualYPosDiff = yDiff * easingFunction(theta);
+                    }
+
+                    currTerrObjsDict[i][k].transform.position = new Vector3(ogPos.x, firstRef.y + actualYPosDiff + hitBoxElevOffset(terrObject), ogPos.z);
+                }
+            }
+        }
+    }
+
+
+    void addTerrObj(TerrObject terrObj)
+    {
+        int index = Random.Range(0, width + 1);
+
+        //if its not a hazard, meaning it doesnt have to be in a designated lane, can be anywhere in the horz.
+        float horizOffset = terrObj.objType == TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(widthUnit) /2f, widthUnit/2f) : 0f;
+        float vertOffset = terrObj.objType == TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(heightUnit) / 2f, heightUnit / 2f) : 0f;
+        float flipMultiplyer = terrObj.canFlip ? Mathf.Sign(vertOffset) : 1;
+
+        TerrObject terrObjInst = Instantiate(terrObj);
+
+        terrObjInst.gameObject.GetComponent<SpriteRenderer>().flipX = flipMultiplyer > 0? false : true;
+
+        Vector3 pos = vertices[index] + new Vector3(horizOffset, hitBoxElevOffset(terrObj), vertOffset);
+
+        terrObjInst.transform.position = pos;
+        //currTerrObjs.Add(terrObjInst);
+        if (!currTerrObjsDict.ContainsKey(index))
+        {
+            currTerrObjsDict.Add(index, new List<TerrObject>());
+        }
+
+        currTerrObjsDict[index].Add(terrObjInst);
+    }
+
+
+    float hitBoxElevOffset(TerrObject terrObj)
+    {
+        return terrObj.hitBox.size.y / 2f * terrObj.transform.localScale.y;
+    }
 
     void inputUpdate()
     {
@@ -301,7 +393,7 @@ public class SickMesh : MonoBehaviour
         //for controling lane changing
 
         float change = 0f;
-        
+
         if (changeLaneDir != 0)
         {
             if (totalFrameCounter > framesForLaneChange)
@@ -329,17 +421,26 @@ public class SickMesh : MonoBehaviour
         //applying treadmill move and lane change
         for (int i = 0; i < rendVertices.Length; i++)
         {
-            rendVertices[i] += new Vector3(change / (float)(fillPointCount+1), 0, -treadmillSpeed);
+            rendVertices[i] += new Vector3(change / (float)(fillPointCount + 1), 0, -treadmillSpeed);
         }
 
-        
+
         for (int k = 0; k < vertices.Length; k++)
         {
-                
+
 
             vertices[k] += new Vector3(change, 0, -treadmillSpeed);
         }
-        
+
+
+        foreach (int key in currTerrObjsDict.Keys)
+        {
+            for (int t = 0; t < currTerrObjsDict[key].Count; t++)
+            {
+                currTerrObjsDict[key][t].transform.position += new Vector3(change, 0, -treadmillSpeed);
+            }
+            
+        }
 
 
         //incase points move so much that need to move rows more than once
@@ -348,7 +449,7 @@ public class SickMesh : MonoBehaviour
         while (applyTreadmillEffect()) { safety++; if (safety > 10) { break; } }
         safety = 0;
         while (applyHorizontalWrap()) { safety++; if (safety > 10) { break; } }
-        refereshRenderedPoints();
+        refreshRenderedPoints();
     }
 
 
@@ -359,6 +460,8 @@ public class SickMesh : MonoBehaviour
         if (vertices[0].z < (height - 1) * heightUnit)
         {
             Vector3[] shortenedList = new Vector3[vertices.Length - (width + 1)];
+
+            Vector3[] prevVertices = (Vector3[])vertices.Clone();
 
             for (int i = 0; i < shortenedList.Length; i++)
             {
@@ -376,6 +479,47 @@ public class SickMesh : MonoBehaviour
                     vertices[k] = shortenedList[k - width - 1];
                 }
             }
+
+
+
+            //now adjust index (which are the keys for the dictionary) so that they
+            //change by one row
+
+            List<int> terrKeys2Remove = new List<int>();
+
+            foreach (int key in currTerrObjsDict.Keys)
+            {
+
+                if (key >= vertices.Length - (width+1))
+                {
+                    terrKeys2Remove.Add(key);
+                    for (int t = 0; t < currTerrObjsDict[key].Count; t++)
+                    {
+                        Destroy(currTerrObjsDict[key][t].gameObject);
+                    }
+                    
+                }
+            }
+
+            foreach (int key in terrKeys2Remove)
+            {
+                currTerrObjsDict.Remove(key);
+            }
+
+            Dictionary<int, List<TerrObject>> copy = new Dictionary<int, List<TerrObject>>();
+
+            foreach (int key in currTerrObjsDict.Keys)
+            {
+                int nextRowIndex = key + width + 1;
+                copy.Add(nextRowIndex, new List<TerrObject>());
+                for (int t = 0; t < currTerrObjsDict[key].Count; t++)
+                {
+                    copy[nextRowIndex].Add(currTerrObjsDict[key][t]);
+                }
+            }
+
+            currTerrObjsDict = copy;
+
             return true;
         }
 
@@ -386,7 +530,6 @@ public class SickMesh : MonoBehaviour
 
     bool applyHorizontalWrap()
     {
-        //return false;
         if (vertices[0].x > widthUnit || vertices[0].x < -widthUnit)
         {
             bool movingRight = vertices[0].x > 1;
