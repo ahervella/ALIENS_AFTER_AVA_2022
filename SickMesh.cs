@@ -343,10 +343,11 @@ public class SickMesh : MonoBehaviour
 
         //if its not a hazard, meaning it doesnt have to be in a designated lane, can be anywhere in the horz.
         float horizOffset = terrObj.objType == TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(widthUnit) /2f, widthUnit/2f) : 0f;
-        float vertOffset = terrObj.objType == TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(heightUnit) / 2f, heightUnit / 2f) : 0f;
-        float flipMultiplyer = terrObj.canFlip ? Mathf.Sign(vertOffset) : 1;
+        float vertOffset = Random.Range(-(heightUnit) / 2f, heightUnit / 2f);//TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(heightUnit) / 2f, heightUnit / 2f) : 0f;
+        float flipMultiplyer = terrObj.canFlip ? Random.Range(0, 2) * 2 - 1 : 1;
 
         TerrObject terrObjInst = Instantiate(terrObj);
+        terrObjInst.RandomizeSpriteType();
 
         terrObjInst.gameObject.GetComponent<SpriteRenderer>().flipX = flipMultiplyer > 0? false : true;
 
@@ -365,7 +366,7 @@ public class SickMesh : MonoBehaviour
 
     float hitBoxElevOffset(TerrObject terrObj)
     {
-        return terrObj.hitBox.size.y / 2f * terrObj.transform.localScale.y;
+        return (terrObj.hitBox.size.y / 2f * terrObj.transform.localScale.y) * (1f -  terrObj.elevationOffsetPerc);
     }
 
     void inputUpdate()
