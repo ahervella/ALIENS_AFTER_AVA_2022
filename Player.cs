@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : TerrObject
+public class Player : MonoBehaviour
 {
     int lives;
 
@@ -10,7 +10,6 @@ public class Player : TerrObject
     // Start is called before the first frame update
     void Start()
     {
-        objType = OBJ_TYPE.PLAYER;
     }
 
     // Update is called once per frame
@@ -25,7 +24,7 @@ public class Player : TerrObject
         TerrObject terrObj = coll.gameObject.GetComponent<TerrObject>();
         if (terrObj == null) { return;  }
 
-        if (terrObj.objType != OBJ_TYPE.ENEMY && terrObj.objType == OBJ_TYPE.STATIC_HAZ) { return; }
+        if (terrObj.objType != TerrObject.OBJ_TYPE.ENEMY && terrObj.objType == TerrObject.OBJ_TYPE.STATIC_HAZ) { return; }
 
         Debug.Log("IM HIT!!!!");
     }

@@ -7,7 +7,7 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class TerrObject : MonoBehaviour
 {
-    public enum OBJ_TYPE { STATIC, STATIC_HAZ, ENEMY, PLAYER};
+    public enum OBJ_TYPE { STATIC, STATIC_HAZ, ENEMY};
 
     public OBJ_TYPE objType = OBJ_TYPE.STATIC;
 
@@ -19,6 +19,9 @@ public class TerrObject : MonoBehaviour
     string animIndex;
 
     public BoxCollider hitBox;
+
+    public int hitBoxUnitWidth = 1;
+
     public bool canFlip = true;
 
     public float appearanceLikelihood = 0.2f;
@@ -36,9 +39,8 @@ public class TerrObject : MonoBehaviour
 
         animIndex = animOC.animationClips[0].name;
 
-        Debug.Log(animOC[animIndex]);
-
         hitBox = gameObject.GetComponent<BoxCollider>();
+        
     }
 
     public void RandomizeSpriteType()
