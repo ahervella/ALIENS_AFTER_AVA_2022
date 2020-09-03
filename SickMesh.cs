@@ -60,6 +60,9 @@ public class SickMesh : MonoBehaviour
     public Terrainnnn[] terrains;
     public List<TerrObject> terrObjects;
 
+    public Player player;
+
+
     //list for value because could generate more than one instance before control point
     //index applies treadmill effect
     public Dictionary<int, List<TerrObject>> currTerrObjsDict = new Dictionary<int, List<TerrObject>>();
@@ -80,6 +83,8 @@ public class SickMesh : MonoBehaviour
         {
             terrains[i] = Instantiate(terrains[i]);
         }
+
+        player.transform.position = new Vector3((width / 2) * widthUnit, player.hitBox.size.y / 2f * player.transform.localScale.y, player.transform.position.z);//bottomMargin * heightUnit);
 
         createControlVertices();
         refreshRenderedPoints();
@@ -204,6 +209,10 @@ public class SickMesh : MonoBehaviour
                 Gizmos.DrawSphere(point, 0.05f);
             }
         }
+
+        float x = player.transform.position.x;
+        float z = player.transform.position.z;
+        Gizmos.DrawCube(new Vector3(x, getElevationAtPos(x, z), z), new Vector3(0.1f, 0.1f, 0.1f)) ;
     }
 
 
@@ -304,6 +313,19 @@ public class SickMesh : MonoBehaviour
                 for (int k = 0; k < currTerrObjsDict[i].Count; k++)
                 {
                     TerrObject terrObject = currTerrObjsDict[i][k];
+                    
+                    Vector3 terrObjPos = terrObject.transform.position;
+
+                    //TODO: can optimize this method if provide indices as prev done below
+                    float elevVal = getElevationAtPos(terrObjPos.x, terrObjPos.z);
+
+                    currTerrObjsDict[i][k].transform.position = new Vector3(terrObjPos.x, hitBoxElevOffset(terrObject) + elevVal, terrObjPos.z);
+
+                    
+
+                    //old way:
+
+                    /*
                     Vector3 ogPos = terrObject.transform.position;
                     Vector3 firstRef = vertices[i];
                     Vector3 secondRef = firstRef;
@@ -326,15 +348,78 @@ public class SickMesh : MonoBehaviour
                     float actualYPosDiff = 0;
                     if (secondRef.y != firstRef.y)
                     {
-                        float theta = zPosDiff / (secondRef.z - firstRef.z);
+                        float theta = (zPosDiff / (secondRef.z - firstRef.z)) * Mathf.PI;
                         float yDiff = secondRef.y - firstRef.y;
                         actualYPosDiff = yDiff * easingFunction(theta);
                     }
 
                     currTerrObjsDict[i][k].transform.position = new Vector3(ogPos.x, firstRef.y + actualYPosDiff + hitBoxElevOffset(terrObject), ogPos.z);
+                    */
+
                 }
             }
         }
+    }
+
+
+    float getElevationAtPos(float xVal, float zVal)
+    {
+        //xVal = xVal / widthUnit;
+        //zVal = zVal / heightUnit;
+
+        Vector3 refNE = Vector3.zero;
+        Vector3 refSE = Vector3.zero;
+        Vector3 refSW = Vector3.zero;
+        Vector3 refNW = Vector3.zero;
+
+        int indexN = 0;
+        int indexS = 0;
+        
+        for (int i = 0; i < height; i++)
+        {
+            Vector3 currFirstRef = vertices[i * (width + 1)];
+            Vector3 currSecondRef = vertices[(i + 1) * (width + 1)];
+
+            if (zVal <= currFirstRef.z && zVal > currSecondRef.z)
+            {
+                indexN = i * (width + 1);
+                indexS = (i + 1) * (width + 1);
+
+                break;
+            }
+        }
+
+
+        for (int k = 0; k < width; k++)
+        {
+            Vector3 currFirstRef = vertices[k];
+            Vector3 currSecondRef = vertices[k+1];
+            if (xVal >= currFirstRef.x && xVal < currSecondRef.x)
+            {
+                refNW = vertices[indexN + k];
+                refNE = vertices[indexN + k + 1];
+                refSW = vertices[indexS + k];
+                refSE = vertices[indexS + k + 1];
+                break;
+            }
+        }
+
+
+        float diffNWlev = refNE.y - refNW.y;
+        float diffSWlev = refSE.y - refSW.y;
+        float diffX = (xVal - refNW.x) / widthUnit ;
+        float diffY = (refNW.z - zVal) / heightUnit;
+
+        float thetaX = diffX * Mathf.PI;
+        float thetaY = diffY * Mathf.PI;
+
+        float midPt1Y = easingFunction(thetaX) * diffNWlev + refNW.y;
+        float midPt2Y = easingFunction(thetaX) * diffSWlev + refSW.y;
+
+        float diffFinal = midPt2Y - midPt1Y;
+
+        return easingFunction(thetaY) * diffFinal + midPt1Y;
+
     }
 
 
@@ -479,6 +564,12 @@ public class SickMesh : MonoBehaviour
             }
             
         }
+
+        float playerXVal = player.transform.position.x;
+        float playerZVal = player.transform.position.z;
+
+        float elevOffset = player.hitBox.size.y / 2f * player.transform.localScale.y;
+        player.transform.position = new Vector3(playerXVal, getElevationAtPos(playerXVal, playerZVal) + elevOffset, playerZVal);
 
 
         //incase points move so much that need to move rows more than once

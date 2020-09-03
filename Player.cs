@@ -2,14 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(BoxCollider))]
+[RequireComponent(typeof(SpriteRenderer))]
 public class Player : MonoBehaviour
 {
-    int lives;
+    public int lives;
+
+    protected Animator anim;
+    protected AnimatorOverrideController animOC;
+
+    public BoxCollider hitBox;
 
 
     // Start is called before the first frame update
-    void Start()
+    void OnEnable()
     {
+        hitBox = gameObject.GetComponent<BoxCollider>();
     }
 
     // Update is called once per frame
