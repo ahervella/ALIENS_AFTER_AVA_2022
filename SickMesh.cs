@@ -52,6 +52,7 @@ public class SickMesh : MonoBehaviour
     float changeLaneStep;
     float xLaneChangePositionProgress = 0f;
 
+
     public Vector3[] vertices;
 
     public Vector3[] rendVertices;
@@ -341,9 +342,12 @@ public class SickMesh : MonoBehaviour
     {
         int index = Random.Range(0, width + 1);
 
-        //if its not a hazard, meaning it doesnt have to be in a designated lane, can be anywhere in the horz.
-        float horizOffset = terrObj.objType == TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(widthUnit) /2f, widthUnit/2f) : 0f;
         float vertOffset = Random.Range(-(heightUnit) / 2f, heightUnit / 2f);//TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(heightUnit) / 2f, heightUnit / 2f) : 0f;
+
+        if (terrObj.objType == TerrObject.OBJ_TYPE.STATIC_HAZ && !canAddToThisLane(index, vertOffset)) { return; }
+
+        //if its not a hazard, meaning it doesnt have to be in a designated lane, can be anywhere in the horz.
+        float horizOffset = terrObj.objType == TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(widthUnit) / 2f, widthUnit / 2f) : 0f;
         float flipMultiplyer = terrObj.canFlip ? Random.Range(0, 2) * 2 - 1 : 1;
 
         TerrObject terrObjInst = Instantiate(terrObj);
@@ -361,6 +365,36 @@ public class SickMesh : MonoBehaviour
         }
 
         currTerrObjsDict[index].Add(terrObjInst);
+    }
+
+
+    bool canAddToThisLane(int laneIndex, float vertOffset)
+    {
+
+        for (int currIndex = laneIndex; currIndex < vertices.Length; currIndex  += (width + 1))
+        {
+            if (currTerrObjsDict.ContainsKey(currIndex))
+            {
+
+                for (int i = 0; i < currTerrObjsDict[currIndex].Count; i++)
+                {
+                    TerrObject terrObj = currTerrObjsDict[currIndex][i];
+
+                    float diffDist2TO = (vertices[laneIndex].z + vertOffset) - (terrObj.transform.position.z);
+
+                    if (diffDist2TO < terrObj.minHeightUnitsForNextHaz * heightUnit)
+                    {
+                        return false;
+                    } 
+
+                }
+
+            }
+        }
+
+        return true;
+        
+
     }
 
 
@@ -544,11 +578,11 @@ public class SickMesh : MonoBehaviour
             for (int i = 0, offset = 0; i < vertices.Length; i++)
             {
                 //anything on the right most column for moving right, left col for moving left
-                
+
                 if ((i + modifier) % (width + 1) == 0) { offset++; continue; }
 
                 shortenedList[i - offset] = vertices[i];
-               
+
             }
 
 
@@ -558,7 +592,7 @@ public class SickMesh : MonoBehaviour
             {
                 //if moving right, want to catch when on the left most col
                 //moving left, catch the right most col
-                if ((k+ invModifier) % (width + 1) == 0)
+                if ((k + invModifier) % (width + 1) == 0)
                 {
                     //subtract or add the index depending on col on
                     Vector3 newPnt = vertCopy[k + width * dirModifier];
@@ -572,6 +606,32 @@ public class SickMesh : MonoBehaviour
                     vertices[k] = shortenedList[k - offset];
                 }
             }
+
+
+
+            Dictionary<int, List<TerrObject>> currTerrObjsCopy = new Dictionary<int, List<TerrObject>>();
+
+
+            //now adjust terr objects
+
+            foreach (int key in currTerrObjsDict.Keys)
+            {
+                // 0 (or multiple of width + 1) mod (width + 1) = 0, modifier == 0 when moving left
+                // (width + 1) - 1 mod (width + 1) = (width + 1) - 1, modifier == 1 when moving right
+                int newIndex = (key) % (width + 1) == width * modifier ? key - width * dirModifier : key + dirModifier;
+                float offset = (key) % (width + 1) == width * modifier ? -(width + 1) * widthUnit * dirModifier : 0;
+
+                currTerrObjsCopy.Add(newIndex, new List<TerrObject>());
+
+                for (int i = 0; i < currTerrObjsDict[key].Count; i++)
+                {
+                    currTerrObjsDict[key][i].transform.position += new Vector3(offset, 0, 0);
+                    currTerrObjsCopy[newIndex].Add(currTerrObjsDict[key][i]);
+                }
+            }
+
+            currTerrObjsDict = currTerrObjsCopy;
+
 
             return true;
         }

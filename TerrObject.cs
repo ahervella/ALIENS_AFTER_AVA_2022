@@ -25,6 +25,8 @@ public class TerrObject : MonoBehaviour
 
     public float elevationOffsetPerc = 0f;
 
+    public float minHeightUnitsForNextHaz = 0f;
+
     // Start is called before the first frame update
     void OnEnable()
     {
