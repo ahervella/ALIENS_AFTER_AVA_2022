@@ -5,20 +5,15 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(BoxCollider))]
 [RequireComponent(typeof(SpriteRenderer))]
-public class TerrObject : MonoBehaviour
+public class TerrObject : RunnerGameObject
 {
     public enum OBJ_TYPE { STATIC, STATIC_HAZ, ENEMY};
 
+    //public enum ACTION { JUMP, ROLL, SPRINT}
+
     public OBJ_TYPE objType = OBJ_TYPE.STATIC;
 
-    public AnimationClip[] animClips;
-
-    protected Animator anim;
-    protected AnimatorOverrideController animOC;
-
-    string animIndex;
-
-    public BoxCollider hitBox;
+    public PLAYER_STATE actionNeeded;
 
     public int hitBoxUnitWidth = 1;
 
@@ -30,18 +25,6 @@ public class TerrObject : MonoBehaviour
 
     public float minHeightUnitsForNextHaz = 0f;
 
-    // Start is called before the first frame update
-    void OnEnable()
-    {
-        anim = gameObject.GetComponent<Animator>();
-        animOC = new AnimatorOverrideController(anim.runtimeAnimatorController);
-        anim.runtimeAnimatorController = animOC;
-
-        animIndex = animOC.animationClips[0].name;
-
-        hitBox = gameObject.GetComponent<BoxCollider>();
-        
-    }
 
     public void RandomizeSpriteType()
     {

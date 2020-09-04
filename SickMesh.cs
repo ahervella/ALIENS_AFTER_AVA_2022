@@ -15,6 +15,8 @@ public class SickMesh : MonoBehaviour
     public bool drawShapes = true;
     public bool drawPoints = true;
     public bool drawOnlyControlPoints = false;
+    public bool hideTerrObjs = false;
+    public bool doNotGenerateShit = false;
 
     //control point height and width
     public int height = 10;
@@ -60,7 +62,7 @@ public class SickMesh : MonoBehaviour
     public Terrainnnn[] terrains;
     public List<TerrObject> terrObjects;
 
-    public Player player;
+    public RunnerPlayer player;
 
 
     //list for value because could generate more than one instance before control point
@@ -209,15 +211,11 @@ public class SickMesh : MonoBehaviour
                 Gizmos.DrawSphere(point, 0.05f);
             }
         }
-
-        float x = player.transform.position.x;
-        float z = player.transform.position.z;
-        Gizmos.DrawCube(new Vector3(x, getElevationAtPos(x, z), z), new Vector3(0.1f, 0.1f, 0.1f)) ;
     }
 
 
 
-    private void Update()
+    private void FixedUpdate()
     {
         generateTerrain();
         generateTerrObjs();
@@ -229,6 +227,8 @@ public class SickMesh : MonoBehaviour
 
     void generateTerrain()
     {
+        if (doNotGenerateShit) { return; }
+
         if (!canGenerateOthers) { return; }
         foreach (Terrainnnn terr in terrains)
         {
@@ -250,6 +250,8 @@ public class SickMesh : MonoBehaviour
 
     void generateTerrObjs()
     {
+        if (hideTerrObjs) { return; }
+
         foreach (TerrObject terrObj in terrObjects)
         {
             float likelihoodSelector = Random.Range(0.00001f, 1f);
@@ -493,20 +495,51 @@ public class SickMesh : MonoBehaviour
 
     void inputUpdate()
     {
-        int dir = 0;
-        if (Input.GetKeyDown(KeyCode.RightArrow)){ dir++; }
-        if (Input.GetKeyDown(KeyCode.LeftArrow)){ dir--; }
+        if (!player.canChangeState()) { return; }
 
-        changeLane(dir);
+        int dodgeDir = 0;
+        float dodgeDelay = 0f;
+
+        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            dodgeDir++;
+            dodgeDelay = player.dodge(false);
+        }
+
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            dodgeDir--;
+            dodgeDelay = player.dodge(true);
+        }
+
+
+        if (dodgeDir != 0)
+        {
+            StartCoroutine(changeLane(dodgeDir, dodgeDelay));
+            return;
+        }
+
+
+
+        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.Space))
+        {
+            player.jump();
+        }
+
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            player.roll();
+        }
+
+
     }
 
 
-    void changeLane(int dir)
+    IEnumerator changeLane(int dir, float delayTime)
     {
-        if (changeLaneDir != 0) { return; }
+        yield return new WaitForSecondsRealtime(delayTime);
 
         changeLaneDir = dir;
-
 
     }
 
