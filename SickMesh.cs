@@ -216,7 +216,7 @@ public class SickMesh : MonoBehaviour
 
 
 
-    private void FixedUpdate()
+    private void Update()
     {
         generateTerrain();
         generateTerrObjs();
@@ -496,10 +496,10 @@ public class SickMesh : MonoBehaviour
 
     void inputUpdate()
     {
+        RunnerGameObject.PLAYER_STATE action = playerControls.getAction(Time.deltaTime);
+
         if (!player.canChangeState()) { return; }
 
-
-        RunnerGameObject.PLAYER_STATE action = playerControls.getAction(Time.deltaTime);
 
         float dodgeDelay = 0f;
 

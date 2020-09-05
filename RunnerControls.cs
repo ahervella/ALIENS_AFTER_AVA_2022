@@ -15,11 +15,22 @@ public class RunnerControls : MonoBehaviour
     int mashTapCounter = 0;
     float mashTapTimer = 0f;
 
+    public static event System.Action<TouchData> OnTouchAction = delegate { };
+
+    public GestureDrawer gestureDrawer;
+
+    public struct TouchData
+    {
+        Vector2 startPos;
+        Vector2 endPos;
+        RunnerGameObject.PLAYER_STATE state;
+    }
+
     class TouchTracker
     {
         public enum GESTURE { NONE, UP, DOWN, LEFT, RIGHT}
         const float MAX_GESTURE_TIME = 0.75f;
-        const float MIN_GESTURE_MOVEMENT = 100f;
+        const float MIN_GESTURE_MOVEMENT = 50f;
 
 
         int id;
@@ -28,19 +39,28 @@ public class RunnerControls : MonoBehaviour
         float totalTime;
         Vector2 totalDist;
 
+        bool finishedTouch = false;
+
         public TouchTracker(int id, Vector2 initPos)
         {
             this.id = id;
             this.initPos = initPos;
         }
 
-        public GESTURE addTimeDist(float deltaTime, Vector2 newPos)
+        public GESTURE addTimeDist(float deltaTime, Vector2 newPos, GestureDrawer gestureDrawer)
         {
+            if (finishedTouch) { return GESTURE.NONE; }
+
             totalTime += deltaTime;
             totalDist = newPos - initPos;
 
+            
+
             if (totalDist.magnitude >= MIN_GESTURE_MOVEMENT)
             {
+                gestureDrawer.renderShit(initPos, newPos);
+                finishedTouch = true;
+
                 if (Mathf.Abs(totalDist.x) > Mathf.Abs(totalDist.y))
                 {
                     return totalDist.x > 0 ? GESTURE.RIGHT : GESTURE.LEFT;
@@ -49,7 +69,11 @@ public class RunnerControls : MonoBehaviour
                 {
                     return totalDist.y > 0 ? GESTURE.UP : GESTURE.DOWN;
                 }
+
+                
             }
+
+            if (totalTime > MAX_GESTURE_TIME) { finishedTouch = true; }
 
             return GESTURE.NONE;
         }
@@ -119,24 +143,32 @@ public class RunnerControls : MonoBehaviour
         {
             TouchTracker.GESTURE prevResult = result;
 
+            Debug.Log(touch.phase);
+
             if (!touchDict.ContainsKey(touch.fingerId) && touch.phase == TouchPhase.Began)
             {
                 mashTapCounter++;
                 mashTapTimer = 0;
+                /*
+                Debug.Log(touch.phase);
+                Debug.Log(touch.fingerId);
+                Debug.Log(touch.position);
+                */
                 touchDict.Add(touch.fingerId, new TouchTracker(touch.fingerId, touch.position));
             }
 
-            if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+            if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Ended)
             {
+                //Debug.Log(touch.phase);
+                //Debug.Log(touch.fingerId);
+                result = touchDict[touch.fingerId].addTimeDist(Time.fixedDeltaTime, touch.position, gestureDrawer);
                 touchDict.Remove(touch.fingerId);
 
-                result = touchDict[touch.fingerId].addTimeDist(Time.fixedDeltaTime, touch.position);
-               
             }
 
             else
             {
-                result = touchDict[touch.fingerId].addTimeDist(Time.fixedDeltaTime, touch.position);
+                result = touchDict[touch.fingerId].addTimeDist(Time.fixedDeltaTime, touch.position, gestureDrawer);
             }
 
             //basically so that it gets the first gesture it finds of all the touches as the overall result

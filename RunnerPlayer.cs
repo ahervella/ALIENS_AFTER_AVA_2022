@@ -171,10 +171,15 @@ public class RunnerPlayer : RunnerGameObject
         
         int currStateRA = animRA.GetCurrentAnimatorStateInfo(0).fullPathHash;
         float startNormTimeRA = getNormTimeFromFrame(animRADict[RAstring.ToString()], animRA, startFrame);
-
+        /*
         anim.PlayInFixedTime(currState, 0, startNormTime);
         animLA.PlayInFixedTime(currStateLA, 0, startNormTimeLA);
         animRA.PlayInFixedTime(currStateRA, 0, startNormTimeRA);
+        */
+
+        anim.Play(currState, 0, startNormTime);
+        animLA.Play(currStateLA, 0, startNormTimeLA);
+        animRA.Play(currStateRA, 0, startNormTimeRA);
 
 
         //fuccccck this was such a bitch, need this specifically end of frame
