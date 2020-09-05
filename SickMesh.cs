@@ -63,6 +63,7 @@ public class SickMesh : MonoBehaviour
     public List<TerrObject> terrObjects;
 
     public RunnerPlayer player;
+    public RunnerControls playerControls;
 
 
     //list for value because could generate more than one instance before control point
@@ -497,40 +498,38 @@ public class SickMesh : MonoBehaviour
     {
         if (!player.canChangeState()) { return; }
 
-        int dodgeDir = 0;
+
+        RunnerGameObject.PLAYER_STATE action = playerControls.getAction(Time.deltaTime);
+
         float dodgeDelay = 0f;
 
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        switch (action)
         {
-            dodgeDir++;
-            dodgeDelay = player.dodge(false);
+            case RunnerGameObject.PLAYER_STATE.DODGE_L:
+                dodgeDelay = player.dodge(false);
+                StartCoroutine(changeLane(1, dodgeDelay));
+                return;
+
+            case RunnerGameObject.PLAYER_STATE.DODGE_R:
+                dodgeDelay = player.dodge(true);
+                StartCoroutine(changeLane(-1, dodgeDelay));
+                return;
+
+            case RunnerGameObject.PLAYER_STATE.JUMP:
+                player.jump();
+                return;
+
+            case RunnerGameObject.PLAYER_STATE.ROLL:
+                player.roll();
+                return;
+
+            case RunnerGameObject.PLAYER_STATE.SPRINT:
+                //player.sprint();
+                return;
+
+            default:
+                return;
         }
-
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            dodgeDir--;
-            dodgeDelay = player.dodge(true);
-        }
-
-
-        if (dodgeDir != 0)
-        {
-            StartCoroutine(changeLane(dodgeDir, dodgeDelay));
-            return;
-        }
-
-
-
-        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.Space))
-        {
-            player.jump();
-        }
-
-        if (Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            player.roll();
-        }
-
 
     }
 
