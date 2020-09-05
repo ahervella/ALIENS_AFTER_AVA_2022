@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class RunnerControls : MonoBehaviour
 {
-    const float SINGLE_MASH_TAP_TIME_CAP = 0.15f;
-    const int TAPS_NEEDED_FOR_MASH = 4;
+    const float SINGLE_MASH_TAP_TIME_CAP = 0.25f;
+    const int TAPS_NEEDED_FOR_MASH = 3;
 
     Dictionary<int, TouchTracker> touchDict = new Dictionary<int, TouchTracker>();
 
@@ -83,10 +83,14 @@ public class RunnerControls : MonoBehaviour
 
     public RunnerGameObject.PLAYER_STATE getAction(float deltaTime)
     {
+        //update mash tapping stuff if made it this far
+        if (mashTapCounter > 0) {mashTapTimer += deltaTime; }
+        if (mashKeyCounter > 0) { mashKeyTimer += deltaTime; }
+
         RunnerGameObject.PLAYER_STATE keyResult = getKeyAction();
         if (keyResult != RunnerGameObject.PLAYER_STATE.NONE) { return keyResult; }
 
-        RunnerGameObject.PLAYER_STATE touchResult = getTouchAction(deltaTime);
+        RunnerGameObject.PLAYER_STATE touchResult = getTouchAction();
         if (touchResult != RunnerGameObject.PLAYER_STATE.NONE) { return touchResult; }
 
         return RunnerGameObject.PLAYER_STATE.NONE;
@@ -110,6 +114,7 @@ public class RunnerControls : MonoBehaviour
         }
 
         if (mashKeyTimer >= SINGLE_MASH_TAP_TIME_CAP) { mashKeyTimer = 0; mashKeyCounter = 0; }
+
 
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
@@ -135,7 +140,7 @@ public class RunnerControls : MonoBehaviour
     }
 
 
-    RunnerGameObject.PLAYER_STATE getTouchAction(float deltaTime)
+    RunnerGameObject.PLAYER_STATE getTouchAction()
     {
         TouchTracker.GESTURE result = TouchTracker.GESTURE.NONE;
 
@@ -143,27 +148,21 @@ public class RunnerControls : MonoBehaviour
         {
             TouchTracker.GESTURE prevResult = result;
 
-            Debug.Log(touch.phase);
+            
 
             if (!touchDict.ContainsKey(touch.fingerId) && touch.phase == TouchPhase.Began)
             {
                 mashTapCounter++;
                 mashTapTimer = 0;
-                /*
-                Debug.Log(touch.phase);
-                Debug.Log(touch.fingerId);
-                Debug.Log(touch.position);
-                */
                 touchDict.Add(touch.fingerId, new TouchTracker(touch.fingerId, touch.position));
             }
 
             if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Ended)
             {
-                //Debug.Log(touch.phase);
-                //Debug.Log(touch.fingerId);
                 result = touchDict[touch.fingerId].addTimeDist(Time.fixedDeltaTime, touch.position, gestureDrawer);
                 touchDict.Remove(touch.fingerId);
 
+                Debug.Log(touch.fingerId);
             }
 
             else
@@ -180,10 +179,7 @@ public class RunnerControls : MonoBehaviour
         if (result != TouchTracker.GESTURE.NONE) { mashTapCounter = 0; mashTapTimer = 0; }
 
         //if there were enough taps done correctly, its a sprint!
-        if (mashTapCounter >= TAPS_NEEDED_FOR_MASH) { return RunnerGameObject.PLAYER_STATE.SPRINT; }
-
-        //update mash tapping stuff if made it this far
-        if (mashTapCounter > 0) { mashTapTimer += deltaTime; }
+        if (mashTapCounter >= TAPS_NEEDED_FOR_MASH) { mashTapCounter = 0; return RunnerGameObject.PLAYER_STATE.SPRINT; }
 
         if (mashTapTimer >= SINGLE_MASH_TAP_TIME_CAP) { mashTapTimer = 0; mashTapCounter = 0; }
 

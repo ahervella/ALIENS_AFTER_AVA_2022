@@ -524,7 +524,7 @@ public class SickMesh : MonoBehaviour
                 return;
 
             case RunnerGameObject.PLAYER_STATE.SPRINT:
-                //player.sprint();
+                player.sprint();
                 return;
 
             default:

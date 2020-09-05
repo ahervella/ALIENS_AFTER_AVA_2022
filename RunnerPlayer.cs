@@ -6,11 +6,15 @@ using UnityEngine;
 public class RunnerPlayer : RunnerGameObject
 {
     const int DODGE_FRAME_DELAY = 1;
+    const float SPRINT_TIME = 1.5f;
+    const float SPRINT_COOL_DOWN_TIME = 3f;
     //const int JUMP_FRAME_DELAY = 2;
 
     public int lives;
 
     bool canChange = true;
+    bool canSprint = true;
+    Coroutine sprintTimer;
     public bool canChangeState() { return canChange; }
 
     bool hasRock = false;
@@ -93,6 +97,8 @@ public class RunnerPlayer : RunnerGameObject
         if (animClip.name == PLAYER_STATE.JUMP.ToString())
         {
             switchAnimState(PLAYER_STATE.LAND_G);
+            //controls feel better this way
+            canChange = true;
         }
 
         else if (animClip.name == PLAYER_STATE.DODGE_R.ToString()
@@ -100,14 +106,20 @@ public class RunnerPlayer : RunnerGameObject
         {
             switchAnimState(PLAYER_STATE.RUN, 7);
             canChange = true;
+            if (!canSprint) { StartCoroutine(sprintCoolDown()); }
         }
 
         else
         {
             switchAnimState(PLAYER_STATE.RUN);
             canChange = true;
+
+            if (!canSprint) { StartCoroutine(sprintCoolDown()); }
         }
     }
+
+
+
 
     public float dodge(bool dodgeRight)
     {
@@ -135,7 +147,6 @@ public class RunnerPlayer : RunnerGameObject
         switchAnimState(PLAYER_STATE.JUMP);
         canChange = false;
 
-        //return getNormTimeFromFrame(animDict[PLAYER_STATE.JUMP.ToString()], anim, JUMP_FRAME_DELAY);
     }
 
     public void roll()
@@ -143,6 +154,30 @@ public class RunnerPlayer : RunnerGameObject
         switchAnimState(PLAYER_STATE.ROLL);
         canChange = false;
     }
+
+    public void sprint()
+    {
+        if (!canSprint) { return; }
+        switchAnimState(PLAYER_STATE.SPRINT);
+        sprintTimer = StartCoroutine(sprintInitTimer());
+    }
+
+    IEnumerator sprintInitTimer()
+    {
+        canSprint = false;
+        yield return new WaitForSecondsRealtime(SPRINT_TIME);
+        switchAnimState(PLAYER_STATE.RUN);
+        StartCoroutine(sprintCoolDown());
+    }
+
+    IEnumerator sprintCoolDown()
+    {
+        yield return new WaitForSecondsRealtime(SPRINT_COOL_DOWN_TIME);
+        canSprint = true;
+    }
+
+
+
 
     void switchAnimState(PLAYER_STATE state, int startFrame = 0)
     {
