@@ -15,15 +15,31 @@ public class RunnerControls : MonoBehaviour
     int mashTapCounter = 0;
     float mashTapTimer = 0f;
 
-    public static event System.Action<TouchData> OnTouchAction = delegate { };
+    public static event System.Action<InputData> OnInputAction = delegate { };
 
-    public GestureDrawer gestureDrawer;
-
-    public struct TouchData
+    public struct InputData
     {
-        Vector2 startPos;
-        Vector2 endPos;
-        RunnerGameObject.PLAYER_STATE state;
+        private Vector2 startPos;
+        private Vector2 endPos;
+        private RunnerGameObject.PLAYER_STATE state;
+
+        public InputData(RunnerGameObject.PLAYER_STATE state, Vector2 startPos, Vector2 endPos)
+        {
+            this.startPos = startPos;
+            this.endPos = endPos;
+            this.state = state;
+        }
+
+        public InputData(RunnerGameObject.PLAYER_STATE state)
+        {
+            this.startPos = Vector2.zero;
+            this.endPos = Vector2.zero;
+            this.state = state;
+        }
+
+        public Vector2 getStartPos() { return startPos; }
+        public Vector2 getEndPos() { return endPos; }
+        public RunnerGameObject.PLAYER_STATE getState() { return state; }
     }
 
     class TouchTracker
@@ -35,11 +51,14 @@ public class RunnerControls : MonoBehaviour
 
         int id;
         //Touch touch;
-        Vector2 initPos;
+        public Vector2 initPos;
+        public Vector2 finalPos;
+
         float totalTime;
         Vector2 totalDist;
 
         bool finishedTouch = false;
+        public GESTURE finalGesture = GESTURE.NONE;
 
         public TouchTracker(int id, Vector2 initPos)
         {
@@ -47,59 +66,70 @@ public class RunnerControls : MonoBehaviour
             this.initPos = initPos;
         }
 
-        public GESTURE addTimeDist(float deltaTime, Vector2 newPos, GestureDrawer gestureDrawer)
+        public void addTimeDist(float deltaTime, Vector2 newPos)
         {
-            if (finishedTouch) { return GESTURE.NONE; }
+            if (finishedTouch) { return; }
 
             totalTime += deltaTime;
             totalDist = newPos - initPos;
+            finalPos = newPos;
 
-            
+
 
             if (totalDist.magnitude >= MIN_GESTURE_MOVEMENT)
             {
-                gestureDrawer.renderShit(initPos, newPos);
-                finishedTouch = true;
 
                 if (Mathf.Abs(totalDist.x) > Mathf.Abs(totalDist.y))
                 {
-                    return totalDist.x > 0 ? GESTURE.RIGHT : GESTURE.LEFT;
+                    finalGesture = totalDist.x > 0 ? GESTURE.RIGHT : GESTURE.LEFT;
                 }
                 else
                 {
-                    return totalDist.y > 0 ? GESTURE.UP : GESTURE.DOWN;
+                    finalGesture = totalDist.y > 0 ? GESTURE.UP : GESTURE.DOWN;
                 }
 
                 
+                finishedTouch = true;
+                return;
             }
+
 
             if (totalTime > MAX_GESTURE_TIME) { finishedTouch = true; }
 
-            return GESTURE.NONE;
+            //return GESTURE.NONE;
         }
     }
 
 
 
-    public RunnerGameObject.PLAYER_STATE getAction(float deltaTime)
+    private void Update()
     {
         //update mash tapping stuff if made it this far
-        if (mashTapCounter > 0) {mashTapTimer += deltaTime; }
-        if (mashKeyCounter > 0) { mashKeyTimer += deltaTime; }
+        if (mashTapCounter > 0) {mashTapTimer += Time.deltaTime; }
+        if (mashTapTimer >= SINGLE_MASH_TAP_TIME_CAP) { mashTapTimer = 0; mashTapCounter = 0; }
 
-        RunnerGameObject.PLAYER_STATE keyResult = getKeyAction();
-        if (keyResult != RunnerGameObject.PLAYER_STATE.NONE) { return keyResult; }
+        if (mashKeyCounter > 0) { mashKeyTimer += Time.deltaTime; }
+        if (mashKeyTimer >= SINGLE_MASH_TAP_TIME_CAP) { mashKeyTimer = 0; mashKeyCounter = 0; }
 
-        RunnerGameObject.PLAYER_STATE touchResult = getTouchAction();
-        if (touchResult != RunnerGameObject.PLAYER_STATE.NONE) { return touchResult; }
+        InputData touchInputData = getTouchInputData();
+        if (touchInputData.getState() != RunnerGameObject.PLAYER_STATE.NONE)
+        {
+            OnInputAction(touchInputData);
+        }
 
-        return RunnerGameObject.PLAYER_STATE.NONE;
+        InputData keyInputData = getKeyInputData();
+        if (keyInputData.getState() != RunnerGameObject.PLAYER_STATE.NONE)
+        {
+            OnInputAction(keyInputData);
+        }
     }
 
 
 
-    RunnerGameObject.PLAYER_STATE getKeyAction()
+    InputData getKeyInputData()
     {
+        RunnerGameObject.PLAYER_STATE keyState = RunnerGameObject.PLAYER_STATE.NONE;
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
             mashKeyCounter++;
@@ -109,45 +139,44 @@ public class RunnerControls : MonoBehaviour
             {
                 mashKeyCounter = 0;
                 mashKeyTimer = 0;
-                return RunnerGameObject.PLAYER_STATE.SPRINT;
+                return new InputData(RunnerGameObject.PLAYER_STATE.SPRINT);
             }
         }
 
-        if (mashKeyTimer >= SINGLE_MASH_TAP_TIME_CAP) { mashKeyTimer = 0; mashKeyCounter = 0; }
+        
 
 
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
-            return RunnerGameObject.PLAYER_STATE.DODGE_L;
+            keyState = RunnerGameObject.PLAYER_STATE.DODGE_L;
         }
 
-        if (Input.GetKeyDown(KeyCode.RightArrow))
+        else if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            return RunnerGameObject.PLAYER_STATE.DODGE_R;
+            keyState = RunnerGameObject.PLAYER_STATE.DODGE_R;
         }
 
-        if (Input.GetKeyDown(KeyCode.UpArrow))
+        else if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            return RunnerGameObject.PLAYER_STATE.JUMP;
+            keyState = RunnerGameObject.PLAYER_STATE.JUMP;
         }
 
-        if (Input.GetKeyDown(KeyCode.DownArrow))
+        else if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            return RunnerGameObject.PLAYER_STATE.ROLL;
+            keyState = RunnerGameObject.PLAYER_STATE.ROLL;
         }
 
-        return RunnerGameObject.PLAYER_STATE.NONE;
+        return new InputData(keyState);
     }
 
 
-    RunnerGameObject.PLAYER_STATE getTouchAction()
+    InputData getTouchInputData()
     {
-        TouchTracker.GESTURE result = TouchTracker.GESTURE.NONE;
+        //TouchTracker.GESTURE result = TouchTracker.GESTURE.NONE;
+        TouchTracker touchTracker = null;
 
         foreach (Touch touch in Input.touches)
         {
-            TouchTracker.GESTURE prevResult = result;
-
             
 
             if (!touchDict.ContainsKey(touch.fingerId) && touch.phase == TouchPhase.Began)
@@ -155,11 +184,14 @@ public class RunnerControls : MonoBehaviour
                 mashTapCounter++;
                 mashTapTimer = 0;
                 touchDict.Add(touch.fingerId, new TouchTracker(touch.fingerId, touch.position));
+                continue;
             }
+
+            TouchTracker currTouchTracker = touchDict[touch.fingerId];
 
             if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Ended)
             {
-                result = touchDict[touch.fingerId].addTimeDist(Time.fixedDeltaTime, touch.position, gestureDrawer);
+                currTouchTracker.addTimeDist(Time.fixedDeltaTime, touch.position);
                 touchDict.Remove(touch.fingerId);
 
                 Debug.Log(touch.fingerId);
@@ -167,41 +199,56 @@ public class RunnerControls : MonoBehaviour
 
             else
             {
-                result = touchDict[touch.fingerId].addTimeDist(Time.fixedDeltaTime, touch.position, gestureDrawer);
+                currTouchTracker.addTimeDist(Time.fixedDeltaTime, touch.position);
             }
 
-            //basically so that it gets the first gesture it finds of all the touches as the overall result
-            if (prevResult != TouchTracker.GESTURE.NONE) { result = prevResult; }
+            //cache the first touch traker that is not NONE for a gesture
+            if (touchTracker == null || touchTracker.finalGesture != TouchTracker.GESTURE.NONE) { touchTracker = currTouchTracker; }
 
         }
+
+
+        if (touchTracker == null) { return new InputData(RunnerGameObject.PLAYER_STATE.NONE); }
 
         //if there was a gesture, reset all mashTap tracking stuff
-        if (result != TouchTracker.GESTURE.NONE) { mashTapCounter = 0; mashTapTimer = 0; }
+        if (touchTracker.finalGesture != TouchTracker.GESTURE.NONE) { mashTapCounter = 0; mashTapTimer = 0; }
 
         //if there were enough taps done correctly, its a sprint!
-        if (mashTapCounter >= TAPS_NEEDED_FOR_MASH) { mashTapCounter = 0; return RunnerGameObject.PLAYER_STATE.SPRINT; }
+        if (mashTapCounter >= TAPS_NEEDED_FOR_MASH)
+        {
+            mashTapTimer = 0;
+            mashTapCounter = 0;
+            return new InputData(RunnerGameObject.PLAYER_STATE.SPRINT, touchTracker.initPos, touchTracker.finalPos);
+        }
 
-        if (mashTapTimer >= SINGLE_MASH_TAP_TIME_CAP) { mashTapTimer = 0; mashTapCounter = 0; }
+        
 
 
+        RunnerGameObject.PLAYER_STATE state = RunnerGameObject.PLAYER_STATE.NONE;
 
-        switch (result)
+        switch (touchTracker.finalGesture)
         {
             case TouchTracker.GESTURE.UP:
-                return RunnerGameObject.PLAYER_STATE.JUMP;
+                state = RunnerGameObject.PLAYER_STATE.JUMP;
+                break;
 
             case TouchTracker.GESTURE.DOWN:
-                return RunnerGameObject.PLAYER_STATE.ROLL;
+                state = RunnerGameObject.PLAYER_STATE.ROLL;
+                break;
 
             case TouchTracker.GESTURE.LEFT:
-                return RunnerGameObject.PLAYER_STATE.DODGE_L;
+                state = RunnerGameObject.PLAYER_STATE.DODGE_L;
+                break;
 
             case TouchTracker.GESTURE.RIGHT:
-                return RunnerGameObject.PLAYER_STATE.DODGE_R;
+                state = RunnerGameObject.PLAYER_STATE.DODGE_R;
+                break;
 
             default:
-                return RunnerGameObject.PLAYER_STATE.NONE;
+                break;
         }
+
+        return new InputData(state, touchTracker.initPos, touchTracker.finalPos);
 
         
     }

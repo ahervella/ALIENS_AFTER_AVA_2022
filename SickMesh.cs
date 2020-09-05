@@ -63,7 +63,6 @@ public class SickMesh : MonoBehaviour
     public List<TerrObject> terrObjects;
 
     public RunnerPlayer player;
-    public RunnerControls playerControls;
 
 
     //list for value because could generate more than one instance before control point
@@ -91,6 +90,8 @@ public class SickMesh : MonoBehaviour
 
         createControlVertices();
         refreshRenderedPoints();
+
+        RunnerControls.OnInputAction += inputUpdate;
     }
 
     void createControlVertices()
@@ -220,7 +221,7 @@ public class SickMesh : MonoBehaviour
     {
         generateTerrain();
         generateTerrObjs();
-        inputUpdate();
+        //inputUpdate();
         moveMesh();
         updateMesh();
     }
@@ -494,16 +495,18 @@ public class SickMesh : MonoBehaviour
         return (terrObj.hitBox.size.y / 2f * terrObj.transform.localScale.y) * (1f -  terrObj.elevationOffsetPerc);
     }
 
-    void inputUpdate()
+
+
+    void inputUpdate(RunnerControls.InputData inputAction)
     {
-        RunnerGameObject.PLAYER_STATE action = playerControls.getAction(Time.deltaTime);
+        //RunnerGameObject.PLAYER_STATE action = playerControls.getAction(Time.deltaTime);
 
         if (!player.canChangeState()) { return; }
 
 
         float dodgeDelay = 0f;
 
-        switch (action)
+        switch (inputAction.getState())
         {
             case RunnerGameObject.PLAYER_STATE.DODGE_L:
                 dodgeDelay = player.dodge(false);

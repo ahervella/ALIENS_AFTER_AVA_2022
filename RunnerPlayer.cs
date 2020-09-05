@@ -14,7 +14,8 @@ public class RunnerPlayer : RunnerGameObject
 
     bool canChange = true;
     bool canSprint = true;
-    Coroutine sprintTimer;
+    Coroutine sprintCoroutine;
+    Coroutine sprintCoolDownCoroutine;
     public bool canChangeState() { return canChange; }
 
     bool hasRock = false;
@@ -93,12 +94,21 @@ public class RunnerPlayer : RunnerGameObject
 
     void onAnimEnd(AnimationClip animClip)
     {
-
         if (animClip.name == PLAYER_STATE.JUMP.ToString())
         {
             switchAnimState(PLAYER_STATE.LAND_G);
             //controls feel better this way
             canChange = true;
+            if (!canSprint && sprintCoolDownCoroutine == null)
+            {
+                sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
+            }
+        }
+
+        else if (animClip.name == PLAYER_STATE.LAND_G.ToString())
+        {
+            canChange = true;
+            switchAnimState(PLAYER_STATE.RUN);
         }
 
         else if (animClip.name == PLAYER_STATE.DODGE_R.ToString()
@@ -106,15 +116,20 @@ public class RunnerPlayer : RunnerGameObject
         {
             switchAnimState(PLAYER_STATE.RUN, 7);
             canChange = true;
-            if (!canSprint) { StartCoroutine(sprintCoolDown()); }
+            if (!canSprint && sprintCoolDownCoroutine == null)
+            {
+                sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
+            }
         }
 
         else
         {
             switchAnimState(PLAYER_STATE.RUN);
             canChange = true;
-
-            if (!canSprint) { StartCoroutine(sprintCoolDown()); }
+            if (!canSprint && sprintCoolDownCoroutine == null)
+            {
+                sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
+            }
         }
     }
 
@@ -127,16 +142,14 @@ public class RunnerPlayer : RunnerGameObject
 
         if (dodgeRight)
         {
-            switchAnimState(PLAYER_STATE.DODGE_R);
+            defaultInitAction(PLAYER_STATE.DODGE_R);
             delayFromDodge = getNormTimeFromFrame(animDict[PLAYER_STATE.DODGE_R.ToString()], anim, DODGE_FRAME_DELAY);
         }
         else
         {
-            switchAnimState(PLAYER_STATE.DODGE_L);
+            defaultInitAction(PLAYER_STATE.DODGE_L);
             delayFromDodge = getNormTimeFromFrame(animDict[PLAYER_STATE.DODGE_L.ToString()], anim, DODGE_FRAME_DELAY);
         }
-
-        canChange = false;
 
         return delayFromDodge;
 
@@ -144,22 +157,22 @@ public class RunnerPlayer : RunnerGameObject
 
     public void jump()
     {
-        switchAnimState(PLAYER_STATE.JUMP);
-        canChange = false;
+        defaultInitAction(PLAYER_STATE.JUMP);
 
     }
 
     public void roll()
     {
-        switchAnimState(PLAYER_STATE.ROLL);
-        canChange = false;
+        defaultInitAction(PLAYER_STATE.ROLL);
     }
+
+
 
     public void sprint()
     {
-        if (!canSprint) { return; }
+        if (!canSprint || !canChange) { return; }
         switchAnimState(PLAYER_STATE.SPRINT);
-        sprintTimer = StartCoroutine(sprintInitTimer());
+        sprintCoroutine = StartCoroutine(sprintInitTimer());
     }
 
     IEnumerator sprintInitTimer()
@@ -167,28 +180,35 @@ public class RunnerPlayer : RunnerGameObject
         canSprint = false;
         yield return new WaitForSecondsRealtime(SPRINT_TIME);
         switchAnimState(PLAYER_STATE.RUN);
-        StartCoroutine(sprintCoolDown());
+        sprintCoroutine = null;
+        sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
     }
 
     IEnumerator sprintCoolDown()
     {
         yield return new WaitForSecondsRealtime(SPRINT_COOL_DOWN_TIME);
         canSprint = true;
+        sprintCoolDownCoroutine = null;
     }
 
 
 
 
+    void defaultInitAction(PLAYER_STATE state)
+    {
+        switchAnimState(state);
+        canChange = false;
+        if (sprintCoroutine != null) { StopCoroutine(sprintCoroutine); sprintCoroutine = null; }
+    }
+
     void switchAnimState(PLAYER_STATE state, int startFrame = 0)
     {
-
         currState = state;
         StartCoroutine(switchAnim(state, startFrame));
     }
 
     IEnumerator switchAnim(PLAYER_STATE state, int startFrame = 0)
     {
-        //animOC[animIndex] = animDict[state.ToString()];
         int currState = anim.GetCurrentAnimatorStateInfo(0).fullPathHash;
         float startNormTime = getNormTimeFromFrame(animDict[state.ToString()], anim, startFrame);
         
@@ -196,7 +216,6 @@ public class RunnerPlayer : RunnerGameObject
 
         string LAstring = "LA_" + state.ToString();
         LAstring = gunBullets > 0 ? LAstring + "_GUN" : LAstring;
-        //animLAOC[animLAIndex] = animLADict[LAstring];
         int currStateLA = animLA.GetCurrentAnimatorStateInfo(0).fullPathHash;
         float startNormTimeLA = getNormTimeFromFrame(animLADict[LAstring.ToString()], animLA, startFrame);
         
