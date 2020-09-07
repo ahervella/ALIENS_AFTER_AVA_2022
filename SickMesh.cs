@@ -181,17 +181,14 @@ public class SickMesh : MonoBehaviour
         float sinRadAng = (Mathf.PI) / (float)(fillPointCount + 1);
         float theta = sinRadAng * (index + 1);
 
-        float curveMultiplyer = easingFunction(theta);
+        float curveMultiplyer = RunnerGameObject.easingFunction(theta);
         float lerpMultiplyer = (float)(index + 1) / (float)(fillPointCount + 1);
 
         return (new Vector3(diff.x * lerpMultiplyer, diff.y * curveMultiplyer, diff.z * lerpMultiplyer) + firstRefPoint);
 
     }
 
-    float easingFunction(float theta)
-    {
-        return Mathf.Sin(theta - Mathf.PI / 2f) * 0.5f + 0.5f;
-    }
+
 
 
 
@@ -417,12 +414,12 @@ public class SickMesh : MonoBehaviour
         float thetaX = diffX * Mathf.PI;
         float thetaY = diffY * Mathf.PI;
 
-        float midPt1Y = easingFunction(thetaX) * diffNWlev + refNW.y;
-        float midPt2Y = easingFunction(thetaX) * diffSWlev + refSW.y;
+        float midPt1Y = RunnerGameObject.easingFunction(thetaX) * diffNWlev + refNW.y;
+        float midPt2Y = RunnerGameObject.easingFunction(thetaX) * diffSWlev + refSW.y;
 
         float diffFinal = midPt2Y - midPt1Y;
 
-        return easingFunction(thetaY) * diffFinal + midPt1Y;
+        return RunnerGameObject.easingFunction(thetaY) * diffFinal + midPt1Y;
 
     }
 
@@ -566,7 +563,7 @@ public class SickMesh : MonoBehaviour
                 totalFrameCounter++;
 
                 float theta = changeLaneStep * totalFrameCounter * Mathf.PI;
-                float progressVal = easingFunction(theta);
+                float progressVal = RunnerGameObject.easingFunction(theta);
 
                 float currDist = Mathf.Lerp(0, widthUnit * changeLaneDir, progressVal);
                 change = currDist - xLaneChangePositionProgress;

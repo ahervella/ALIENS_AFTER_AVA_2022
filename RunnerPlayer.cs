@@ -151,49 +151,6 @@ public class RunnerPlayer : RunnerGameObject
 
         onAnimationEnded(animState);
 
-        return;
-
-        if (animClip.name == PLAYER_STATE.JUMP.ToString())
-        {
-            switchAnimState(PLAYER_STATE.LAND_G);
-            //controls feel better this way
-            canChange = true;
-            if (!canSprint && sprintCoolDownCoroutine == null)
-            {
-                sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
-            }
-
-           
-        }
-
-        else if (animClip.name == PLAYER_STATE.LAND_G.ToString())
-        {
-            canChange = true;
-            switchAnimState(PLAYER_STATE.RUN);
-        }
-
-        else if (animClip.name == PLAYER_STATE.DODGE_R.ToString()
-            || animClip.name == PLAYER_STATE.ROLL.ToString())
-        {
-            switchAnimState(PLAYER_STATE.RUN, 7);
-            canChange = true;
-            if (!canSprint && sprintCoolDownCoroutine == null)
-            {
-                sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
-            }
-        }
-
-        else
-        {
-            switchAnimState(PLAYER_STATE.RUN);
-            canChange = true;
-            if (!canSprint && sprintCoolDownCoroutine == null)
-            {
-                sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
-            }
-        }
-
-        onAnimationEnded(PLAYER_STATE.JUMP);
     }
 
 
@@ -249,9 +206,11 @@ public class RunnerPlayer : RunnerGameObject
 
     IEnumerator sprintCoolDown()
     {
+        onAnimationEnded(PLAYER_STATE.SPRINT);
         yield return new WaitForSecondsRealtime(SPRINT_COOL_DOWN_TIME);
         canSprint = true;
         sprintCoolDownCoroutine = null;
+        
     }
 
 

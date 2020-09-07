@@ -19,6 +19,11 @@ public class RunnerGameObject : MonoBehaviour
     protected string animIndex;
 
 
+    public static float easingFunction(float theta)
+    {
+        return Mathf.Sin(theta - Mathf.PI / 2f) * 0.5f + 0.5f;
+    }
+
     void OnEnable()
     {
         anim = gameObject.GetComponent<Animator>();

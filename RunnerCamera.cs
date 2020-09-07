@@ -2,73 +2,110 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Camera))]
 public class RunnerCamera : MonoBehaviour
 {
     public Transform playerRef;
+    Camera cam;
 
-    public float smoothSpeed = 0.125f;
-    public Quaternion rotationFromForward = new Quaternion(0.102783814f, 0, 0, 0.99470371f);
-    public Vector3 offset;
-    public float jumpOffset = -0.1f;
-    public float jumpRotOffset = 10f;
+    public float smoothSpeed;
 
-    public float rollOffset;
-    public float rollRotOffset;
+    public float SphericalEaseTime;
+
+    //Vector3(11.798996,0,0)
+    public Vector3 startRotOffset;
+
+    //Vector3(-0.569999993,1.38999999,-6.0999999)
+    public Vector3 startPosOffset;
+
+    public float startFOVOffset;
 
 
+    public List<ActionOffset> actionOffset = new List<ActionOffset>();
+    Dictionary<RunnerGameObject.PLAYER_STATE, ActionOffset> actionOffsetDict = new Dictionary<RunnerGameObject.PLAYER_STATE, ActionOffset>();
+
+    Vector3 targetPosOffset;
+    Vector3 targetRotOffset;
+    public float targetFOVOffset;
+
+    float deltaTimeTotal = 0f;
+
+    [System.Serializable]
+    public struct ActionOffset
+    {
+        public RunnerGameObject.PLAYER_STATE state;
+        public Vector3 posOffset;
+        public Vector3 rotOffset;
+        public float FOVOffset;
+    }
 
     private void Start()
     {
         RunnerPlayer.onAnimationStarted += animStart;
         RunnerPlayer.onAnimationEnded += animEnd;
+
+        cam = GetComponent<Camera>();
+
+        targetPosOffset = startPosOffset;
+        targetRotOffset = startRotOffset;
+        targetFOVOffset = startFOVOffset;
+
+        foreach (ActionOffset actionOS in actionOffset)
+        {
+            actionOffsetDict.Add(actionOS.state, actionOS);
+        }
     }
 
     private void FixedUpdate()
     {
-        transform.position = Vector3.Lerp(transform.position, playerRef.position + offset, smoothSpeed);
-        transform.rotation = Quaternion.Lerp(transform.rotation, rotationFromForward, smoothSpeed);
+        float actualDelta = smoothSpeed;
+
+        //spherical ease on starting and stopping anims
+        if (deltaTimeTotal < SphericalEaseTime)
+        {
+            deltaTimeTotal += Time.deltaTime; //* actionSmoothMultiplyer;
+            deltaTimeTotal = Mathf.Min(deltaTimeTotal, SphericalEaseTime);
+
+            actualDelta = RunnerGameObject.easingFunction(deltaTimeTotal / SphericalEaseTime * Mathf.PI);
+        }
+        
+        
+        //because player position is const changing, rot is not
+        transform.position = Vector3.Lerp(transform.position, targetPosOffset + playerRef.position, actualDelta);
+        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(targetRotOffset), actualDelta);
+        cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFOVOffset, actualDelta);
     }
 
 
-    //TODO: make these switch statements? + apply spherical tween to lerp, maybe make the universal utilities class in RunnerGameObject?
 
     private void animStart(RunnerPlayer.PLAYER_STATE state)
     {
-        if (state == RunnerGameObject.PLAYER_STATE.JUMP)
-        {
-            Vector3 rot2Euler = rotationFromForward.eulerAngles;
-            rotationFromForward = Quaternion.Euler(rot2Euler.x - jumpRotOffset, rot2Euler.y, rot2Euler.z);
+        offsetChange(state, true);
 
-            offset += new Vector3(0, jumpOffset, 0);
-        }
-
-
-        if (state == RunnerGameObject.PLAYER_STATE.ROLL)
-        {
-            Vector3 rot2Euler = rotationFromForward.eulerAngles;
-            rotationFromForward = Quaternion.Euler(rot2Euler.x - rollRotOffset, rot2Euler.y, rot2Euler.z);
-
-            offset += new Vector3(0, rollOffset, 0);
-        }
     }
 
     private void animEnd(RunnerPlayer.PLAYER_STATE state)
     {
-        if (state == RunnerGameObject.PLAYER_STATE.JUMP)
-        {
-            Vector3 rot2Euler = rotationFromForward.eulerAngles;
-            rotationFromForward = Quaternion.Euler(rot2Euler.x + jumpRotOffset, rot2Euler.y, rot2Euler.z);
+        offsetChange(state, false);
 
-            offset -= new Vector3(0, jumpOffset, 0);
-        }
+    }
 
-        if (state == RunnerGameObject.PLAYER_STATE.ROLL)
-        {
-            Vector3 rot2Euler = rotationFromForward.eulerAngles;
-            rotationFromForward = Quaternion.Euler(rot2Euler.x + rollRotOffset, rot2Euler.y, rot2Euler.z);
+    private void offsetChange(RunnerPlayer.PLAYER_STATE state, bool startingAnim)
+    {
+        if (!actionOffsetDict.ContainsKey(state)) { return; }
 
-            offset -= new Vector3(0, rollOffset, 0);
-        }
+        Vector3 posOffset = actionOffsetDict[state].posOffset;
+        Vector3 rotOffset = actionOffsetDict[state].rotOffset;
+        float FOVOffset = actionOffsetDict[state].FOVOffset;
+
+        int applyMod = startingAnim ? 1 : 0;
+
+        targetRotOffset = startRotOffset + rotOffset * applyMod;
+        targetPosOffset = startPosOffset + posOffset * applyMod;
+        targetFOVOffset = startFOVOffset + FOVOffset * applyMod;
+
+        //apply spherical ease on starting and stopping anim;
+        deltaTimeTotal = 0f;
     }
 
 }
