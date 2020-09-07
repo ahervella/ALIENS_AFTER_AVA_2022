@@ -41,6 +41,8 @@ public class RunnerPlayer : RunnerGameObject
 
     PLAYER_STATE currState = PLAYER_STATE.RUN;
 
+    public static event System.Action<PLAYER_STATE> onAnimationStarted = delegate { };
+    public static event System.Action<PLAYER_STATE> onAnimationEnded = delegate { };
 
     // Update is called once per frame
     private void Start()
@@ -94,6 +96,63 @@ public class RunnerPlayer : RunnerGameObject
 
     void onAnimEnd(AnimationClip animClip)
     {
+        PLAYER_STATE animState = PLAYER_STATE.NONE;
+
+        foreach (PLAYER_STATE st in System.Enum.GetValues(typeof(PLAYER_STATE)))
+        {
+            if (animClip.name == st.ToString())
+            {
+                animState = st;
+                break;
+            }
+        }
+
+
+        switch (animState)
+        {
+            case PLAYER_STATE.JUMP:
+                switchAnimState(PLAYER_STATE.LAND_G);
+                //controls feel better this way
+                canChange = true;
+                if (!canSprint && sprintCoolDownCoroutine == null)
+                {
+                    sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
+                }
+                break;
+
+
+            case PLAYER_STATE.LAND_G:
+                canChange = true;
+                switchAnimState(PLAYER_STATE.RUN);
+                break;
+
+
+            case PLAYER_STATE.DODGE_R:
+            case PLAYER_STATE.ROLL:
+                switchAnimState(PLAYER_STATE.RUN, 7);
+                canChange = true;
+                if (!canSprint && sprintCoolDownCoroutine == null)
+                {
+                    sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
+                }
+                break;
+
+
+            default:
+                switchAnimState(PLAYER_STATE.RUN);
+                canChange = true;
+                if (!canSprint && sprintCoolDownCoroutine == null)
+                {
+                    sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
+                }
+                break;
+        }
+
+
+        onAnimationEnded(animState);
+
+        return;
+
         if (animClip.name == PLAYER_STATE.JUMP.ToString())
         {
             switchAnimState(PLAYER_STATE.LAND_G);
@@ -103,6 +162,8 @@ public class RunnerPlayer : RunnerGameObject
             {
                 sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
             }
+
+           
         }
 
         else if (animClip.name == PLAYER_STATE.LAND_G.ToString())
@@ -131,6 +192,8 @@ public class RunnerPlayer : RunnerGameObject
                 sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
             }
         }
+
+        onAnimationEnded(PLAYER_STATE.JUMP);
     }
 
 
@@ -209,6 +272,9 @@ public class RunnerPlayer : RunnerGameObject
 
     IEnumerator switchAnim(PLAYER_STATE state, int startFrame = 0)
     {
+        onAnimationStarted(state);
+
+
         int currState = anim.GetCurrentAnimatorStateInfo(0).fullPathHash;
         float startNormTime = getNormTimeFromFrame(animDict[state.ToString()], anim, startFrame);
         
