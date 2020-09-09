@@ -43,6 +43,7 @@ public class RunnerPlayer : RunnerGameObject
 
     public static event System.Action<PLAYER_STATE> onAnimationStarted = delegate { };
     public static event System.Action<PLAYER_STATE> onAnimationEnded = delegate { };
+    public static event System.Action<bool, float> changeTreamillSpeed = delegate { };
 
     // Update is called once per frame
     private void Start()
@@ -78,21 +79,80 @@ public class RunnerPlayer : RunnerGameObject
     }
 
 
+
     private void OnTriggerEnter(Collider coll)
     {
         TerrObject terrObj = coll.gameObject.GetComponent<TerrObject>();
         if (terrObj == null) { return;  }
 
-        if (terrObj.objType != TerrObject.OBJ_TYPE.ENEMY && terrObj.objType == TerrObject.OBJ_TYPE.STATIC_HAZ) { return; }
-
-
-        if (terrObj.actionNeeded != currState)
+        if (terrObj.objType != TerrObject.OBJ_TYPE.STATIC && terrObj.actionNeeded != currState)
         {
+            looseLife(terrObj);
             Debug.Log("IM HIT!!!!");
         }
-
-        
     }
+
+
+
+    private void looseLife(TerrObject hazObject)
+    {
+        if (currState == PLAYER_STATE.DEATH1
+            || currState == PLAYER_STATE.HURT_F
+            || currState == PLAYER_STATE.HURT_L
+            || currState == PLAYER_STATE.HURT_T)
+        {
+            return;
+        }
+
+
+
+        lives--;
+
+        PLAYER_STATE state = PLAYER_STATE.NONE;
+
+        switch (hazObject.actionNeeded)
+        {
+            case PLAYER_STATE.NONE:
+                state = PLAYER_STATE.HURT_F;
+                break;
+
+            case PLAYER_STATE.ROLL:
+                state = PLAYER_STATE.HURT_T;
+                break;
+
+            case PLAYER_STATE.JUMP:
+                state = PLAYER_STATE.HURT_L;
+                break;
+        }
+
+        defaultInitAction(state);
+
+    }
+
+
+
+
+    //controled by event in animation
+    
+
+
+    void treadmillOff(int changeTimeInFrames) { treadmillSpeedChange(false, changeTimeInFrames); }
+
+    void treadmillOn(int changeTimeInFrames) { treadmillSpeedChange(true, changeTimeInFrames); }
+
+    void treadmillSpeedChange(bool treadmillOn, int changeTimeInFrames)//, int changeTimeInFrames)
+    {
+        float changeTime = getTimeFromFrames(animDict[currState.ToString()], changeTimeInFrames);
+        //for smoother animation treadmill speed change
+        changeTime = gameIsOver() ? changeTime * 4 : changeTime;
+        changeTreamillSpeed(treadmillOn, changeTime);
+    }
+
+    bool gameIsOver()
+    {
+        return lives < 0;
+    }
+
 
     void onAnimEnd(AnimationClip animClip)
     {
@@ -107,9 +167,18 @@ public class RunnerPlayer : RunnerGameObject
             }
         }
 
+        if (gameIsOver() && animState != PLAYER_STATE.DEATH1)
+        {
+            initDeath();
+            onAnimationEnded(animState);
+            return;
+        }
 
         switch (animState)
         {
+            case PLAYER_STATE.DEATH1:
+                    return;
+
             case PLAYER_STATE.JUMP:
                 switchAnimState(PLAYER_STATE.LAND_G);
                 //controls feel better this way
@@ -154,6 +223,10 @@ public class RunnerPlayer : RunnerGameObject
     }
 
 
+    public void initDeath()
+    {
+        switchAnimState(PLAYER_STATE.DEATH1);
+    }
 
 
     public float dodge(bool dodgeRight)
@@ -234,22 +307,24 @@ public class RunnerPlayer : RunnerGameObject
         onAnimationStarted(state);
 
 
-        int currState = anim.GetCurrentAnimatorStateInfo(0).fullPathHash;
-        float startNormTime = getNormTimeFromFrame(animDict[state.ToString()], anim, startFrame);
-        
-        
+        string stateString = state.ToString();
 
-        string LAstring = "LA_" + state.ToString();
+
+        int currState = anim.GetCurrentAnimatorStateInfo(0).fullPathHash;
+        float startNormTime = getNormTimeFromFrame(animDict[stateString], anim, startFrame);
+
+
+        string LAstring = "LA_" + stateString;
         LAstring = gunBullets > 0 ? LAstring + "_GUN" : LAstring;
         int currStateLA = animLA.GetCurrentAnimatorStateInfo(0).fullPathHash;
-        float startNormTimeLA = getNormTimeFromFrame(animLADict[LAstring.ToString()], animLA, startFrame);
+        float startNormTimeLA = getNormTimeFromFrame(animLADict[LAstring], animLA, startFrame);
         
 
-        string RAstring = "RA_" + state.ToString();
+        string RAstring = "RA_" + stateString;
         RAstring = hasRock ? RAstring + "_ROCK" : RAstring;
         
         int currStateRA = animRA.GetCurrentAnimatorStateInfo(0).fullPathHash;
-        float startNormTimeRA = getNormTimeFromFrame(animRADict[RAstring.ToString()], animRA, startFrame);
+        float startNormTimeRA = getNormTimeFromFrame(animRADict[RAstring], animRA, startFrame);
         /*
         anim.PlayInFixedTime(currState, 0, startNormTime);
         animLA.PlayInFixedTime(currStateLA, 0, startNormTimeLA);
@@ -266,7 +341,7 @@ public class RunnerPlayer : RunnerGameObject
         yield return new WaitForEndOfFrame();
 
 
-        animOC[animIndex] = animDict[state.ToString()];
+        animOC[animIndex] = animDict[stateString];
         animLAOC[animLAIndex] = animLADict[LAstring];
         animRAOC[animRAIndex] = animRADict[RAstring];
 
@@ -278,6 +353,11 @@ public class RunnerPlayer : RunnerGameObject
         float animLength = animClip.length;
         float animFrameRate = animClip.frameRate;
         return (int)(normTime * animLength * animFrameRate);
+    }
+
+    float getTimeFromFrames(AnimationClip animClip, int frameCount)
+    {
+        return animClip.frameRate / RunnerGameObject.getGameFPS() * frameCount;
     }
 
     float getNormTimeFromFrame(AnimationClip animClip, Animator animator, int frame)

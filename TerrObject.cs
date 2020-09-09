@@ -13,7 +13,7 @@ public class TerrObject : RunnerGameObject
 
     public OBJ_TYPE objType = OBJ_TYPE.STATIC;
 
-    public PLAYER_STATE actionNeeded;
+    public PLAYER_STATE actionNeeded = PLAYER_STATE.NONE;
 
     public int hitBoxUnitWidth = 1;
 

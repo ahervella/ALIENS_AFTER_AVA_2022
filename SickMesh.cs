@@ -8,7 +8,7 @@ using UnityEngine;
 public class SickMesh : MonoBehaviour
 {
 
-    const float FPS = 60f;
+    
 
     Mesh mesh;
 
@@ -30,6 +30,11 @@ public class SickMesh : MonoBehaviour
     public int rightMargin = 0;
 
     public float treadmillSpeed = 0.05f;
+    float TMSlowDownTime = 0;
+    float currTMSpeed;
+    float targetTMSpeed;
+    float TMTimeTotal = 0;
+
     public float horizontalWrapSpeed = 0.05f;
 
     int[] triangleRenIndices;
@@ -77,7 +82,7 @@ public class SickMesh : MonoBehaviour
         rendHeight = height + (height * fillPointCount);
         rendWidth = width + (width * fillPointCount);
 
-        framesForLaneChange = changeLaneTime * FPS;
+        framesForLaneChange = changeLaneTime * RunnerGameObject.getGameFPS();
 
         changeLaneStep = 1f / framesForLaneChange;
 
@@ -88,10 +93,14 @@ public class SickMesh : MonoBehaviour
 
         player.transform.position = new Vector3((width / 2) * widthUnit, player.hitBox.size.y / 2f * player.transform.localScale.y, player.transform.position.z);//bottomMargin * heightUnit);
 
+        currTMSpeed = treadmillSpeed;
+        targetTMSpeed = treadmillSpeed;
+
         createControlVertices();
         refreshRenderedPoints();
 
         RunnerControls.OnInputAction += inputUpdate;
+        RunnerPlayer.changeTreamillSpeed += changeTMSpeed;
     }
 
     void createControlVertices()
@@ -216,9 +225,11 @@ public class SickMesh : MonoBehaviour
 
     private void Update()
     {
+        updateTreadmillSpeed();
         generateTerrain();
         generateTerrObjs();
         //inputUpdate();
+        
         moveMesh();
         updateMesh();
     }
@@ -231,17 +242,22 @@ public class SickMesh : MonoBehaviour
         if (!canGenerateOthers) { return; }
         foreach (Terrainnnn terr in terrains)
         {
-            float likelihoodSelector = Random.Range(0.00001f, 1f);
-            if (likelihoodSelector <= terr.appearanceLikelihood && terr.canGen())
+
+            if (trueFromLikelihood(terr.appearanceLikelihood) && terr.canGen())
             {
                 terr.startGenerateDelay();
                 addTerrain(terr);
 
+                // Need to figure out new way to do so with changing treadmill speed, or if want at all now with no water
+                /*
                 if (!terr.canGenerateOthers)
                 {
-                    float delay = (terr.vertH() - 1) * (treadmillSpeed * FPS) ;
+
+                    float delay = (terr.vertH() - 1) * heightUnit / currTMSpeed ;
                     generateOthersDelay(delay);
                 }
+
+                */
             }
         }
         
@@ -253,13 +269,24 @@ public class SickMesh : MonoBehaviour
 
         foreach (TerrObject terrObj in terrObjects)
         {
-            float likelihoodSelector = Random.Range(0.00001f, 1f);
-            if (likelihoodSelector <= terrObj.appearanceLikelihood)
+
+            if (trueFromLikelihood(terrObj.appearanceLikelihood))
             {
                 addTerrObj(terrObj);
             }
         }
     }
+
+
+    bool trueFromLikelihood(float appearanceLikelihood)
+    {
+        float likelihoodSelector = Random.Range(0.00001f, 1f);
+        float speedFactor = currTMSpeed / treadmillSpeed;
+        speedFactor = currTMSpeed < 0.01f ? -1 : speedFactor;
+
+        return likelihoodSelector < appearanceLikelihood * speedFactor;
+    }
+
 
     IEnumerator generateOthersDelay(float delay)
     {
@@ -432,8 +459,11 @@ public class SickMesh : MonoBehaviour
 
         if (terrObj.objType == TerrObject.OBJ_TYPE.STATIC_HAZ && !canAddToThisLane(index, vertOffset)) { return; }
 
-        
-        terrObj.hitBox.size = new Vector3(terrObj.hitBoxUnitWidth * widthUnit / terrObj.transform.localScale.x, terrObj.hitBox.size.y, terrObj.hitBox.size.z);
+
+        //TODO: future if using log with middle roll, sides jump, need to change this
+        //for now just assuming all terrObj are 1 width in hitbox, and skinny ( /4) so that doesn't hit on changing lanes too soon
+        terrObj.hitBox.size = new Vector3(widthUnit / terrObj.transform.localScale.x / 4f, terrObj.hitBox.size.y, terrObj.hitBox.size.z);
+        //terrObj.hitBox.size = new Vector3(terrObj.hitBoxUnitWidth * widthUnit / terrObj.transform.localScale.x, terrObj.hitBox.size.y, terrObj.hitBox.size.z);
 
         //if its not a hazard, meaning it doesnt have to be in a designated lane, can be anywhere in the horz.
         float horizOffset = terrObj.objType == TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(widthUnit) / 2f, widthUnit / 2f) : 0f;
@@ -543,6 +573,28 @@ public class SickMesh : MonoBehaviour
     }
 
 
+    void updateTreadmillSpeed()
+    {
+        if (TMTimeTotal < TMSlowDownTime)
+        {
+            TMTimeTotal = Mathf.Min(TMSlowDownTime, TMTimeTotal + Time.deltaTime);
+
+            float actualDelta = RunnerGameObject.easingFunction(TMTimeTotal / TMSlowDownTime * Mathf.PI);
+            currTMSpeed = Mathf.Lerp(currTMSpeed, targetTMSpeed, actualDelta);
+
+        }
+    }
+
+    void changeTMSpeed(bool treadmillOn, float changeTime)
+    {
+        TMTimeTotal = 0f;
+        TMSlowDownTime = changeTime;
+        targetTMSpeed = treadmillOn? treadmillSpeed : 0f;
+
+    }
+
+
+
     void moveMesh()
     {
         //for controling lane changing
@@ -576,15 +628,13 @@ public class SickMesh : MonoBehaviour
         //applying treadmill move and lane change
         for (int i = 0; i < rendVertices.Length; i++)
         {
-            rendVertices[i] += new Vector3(change / (float)(fillPointCount + 1), 0, -treadmillSpeed);
+            rendVertices[i] += new Vector3(change / (float)(fillPointCount + 1), 0, -currTMSpeed);
         }
 
 
         for (int k = 0; k < vertices.Length; k++)
         {
-
-
-            vertices[k] += new Vector3(change, 0, -treadmillSpeed);
+            vertices[k] += new Vector3(change, 0, -currTMSpeed);
         }
 
 
@@ -592,7 +642,7 @@ public class SickMesh : MonoBehaviour
         {
             for (int t = 0; t < currTerrObjsDict[key].Count; t++)
             {
-                currTerrObjsDict[key][t].transform.position += new Vector3(change, 0, -treadmillSpeed);
+                currTerrObjsDict[key][t].transform.position += new Vector3(change, 0, -currTMSpeed);
             }
             
         }

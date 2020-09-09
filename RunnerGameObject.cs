@@ -7,7 +7,9 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class RunnerGameObject : MonoBehaviour
 {
-    public enum PLAYER_STATE { RUN, JUMP, LAND_G, DODGE_L, DODGE_R, ROLL, NONE, SPRINT}
+    const float GAME_FPS = 60f;
+
+    public enum PLAYER_STATE { RUN, JUMP, LAND_G, DODGE_L, DODGE_R, ROLL, NONE, SPRINT, DEATH1, HURT_F, HURT_T, HURT_L}
 
     public BoxCollider hitBox;
 
@@ -21,8 +23,11 @@ public class RunnerGameObject : MonoBehaviour
 
     public static float easingFunction(float theta)
     {
-        return Mathf.Sin(theta - Mathf.PI / 2f) * 0.5f + 0.5f;
+        float result = Mathf.Sin(theta - Mathf.PI / 2f) * 0.5f + 0.5f;
+        return result < 0.0001 ? 0 : result;
     }
+
+    public static float getGameFPS() { return GAME_FPS; }
 
     void OnEnable()
     {
