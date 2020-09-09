@@ -59,6 +59,7 @@ public class SickMesh : MonoBehaviour
     float changeLaneStep;
     float xLaneChangePositionProgress = 0f;
 
+    public float distBehindPlayer2ZeroAlpha;
 
     public Vector3[] vertices;
 
@@ -231,6 +232,7 @@ public class SickMesh : MonoBehaviour
         //inputUpdate();
         
         moveMesh();
+        updateTerrObjAlpha();
         updateMesh();
     }
 
@@ -817,7 +819,28 @@ public class SickMesh : MonoBehaviour
 
 
 
+    void updateTerrObjAlpha()
+    {
+        foreach (int key in currTerrObjsDict.Keys)
+        {
+            for (int t = 0; t < currTerrObjsDict[key].Count; t++)
+            {
+                TerrObject currTO = currTerrObjsDict[key][t];
+                float diff = player.transform.position.z - currTO.transform.position.z;
 
+                if (diff > 0f)
+                {
+                    SpriteRenderer sr = currTO.GetComponent<SpriteRenderer>();
+                    float multiplyer = (distBehindPlayer2ZeroAlpha - diff) / distBehindPlayer2ZeroAlpha;
+                    multiplyer = multiplyer < 0 ? 0f : multiplyer;
+
+                    /*currTerrObjsDict[key][t].GetComponent< SpriteRenderer >()*/sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, multiplyer * sr.color.a);
+                }
+                //currTerrObjsDict[key][t].transform.position += new Vector3(change, 0, -currTMSpeed);
+            }
+
+        }
+    }
 
 
 

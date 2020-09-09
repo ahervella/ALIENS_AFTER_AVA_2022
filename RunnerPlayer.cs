@@ -144,7 +144,7 @@ public class RunnerPlayer : RunnerGameObject
     {
         float changeTime = getTimeFromFrames(animDict[currState.ToString()], changeTimeInFrames);
         //for smoother animation treadmill speed change
-        changeTime = gameIsOver() ? changeTime * 4 : changeTime;
+        changeTime = gameIsOver() && treadmillOn && currState != PLAYER_STATE.DEATH1? changeTime * 4 : changeTime;
         changeTreamillSpeed(treadmillOn, changeTime);
     }
 
