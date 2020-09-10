@@ -8,9 +8,18 @@ public class RunnerPlayer : RunnerGameObject
     const int DODGE_FRAME_DELAY = 1;
     const float SPRINT_TIME = 1.5f;
     const float SPRINT_COOL_DOWN_TIME = 3f;
+    const float SPRINT_SPEED_PERCENT_BOOST = 0.3f;
+    const float minCollideDist = 1f;
+
+    //List<TerrObject> checkClipObjs = new List<TerrObject>();
+
     //const int JUMP_FRAME_DELAY = 2;
 
-    public int lives;
+    public int startingLives;
+    int lives;
+
+    public float lifeRecoverTime;
+    float lifeRecoverTotalTime = 0f;
 
     bool canChange = true;
     bool canSprint = true;
@@ -43,11 +52,15 @@ public class RunnerPlayer : RunnerGameObject
 
     public static event System.Action<PLAYER_STATE> onAnimationStarted = delegate { };
     public static event System.Action<PLAYER_STATE> onAnimationEnded = delegate { };
-    public static event System.Action<bool, float> changeTreamillSpeed = delegate { };
+    public static event System.Action<bool, float, float> changeTreamillSpeed = delegate { };
+    public static event System.Action<float, int, bool> changeCamRedTint = delegate { };
 
     // Update is called once per frame
     private void Start()
     {
+
+        lives = startingLives;
+
         foreach (AnimationClip animClip in animClips)
         {
             animDict.Add(animClip.name, animClip);
@@ -85,6 +98,8 @@ public class RunnerPlayer : RunnerGameObject
         TerrObject terrObj = coll.gameObject.GetComponent<TerrObject>();
         if (terrObj == null) { return;  }
 
+        //if (terrObj2Far2Collide()) { return; }
+
         if (terrObj.objType != TerrObject.OBJ_TYPE.STATIC && terrObj.actionNeeded != currState)
         {
             looseLife(terrObj);
@@ -92,6 +107,22 @@ public class RunnerPlayer : RunnerGameObject
         }
     }
 
+    //Attempt at basically raycasting for fast moving objects
+    /*
+    bool terrObj2Far2Collide(TerrObject terrObj)
+    {
+
+        if (terrObj.transform.position.z - transform.position.z <= minCollideDist)
+        {
+            return false;
+        }
+        else
+        {
+            checkClipObjs.Add(terrObj);
+            return true;
+        }
+    }
+    */
 
 
     private void looseLife(TerrObject hazObject)
@@ -107,6 +138,29 @@ public class RunnerPlayer : RunnerGameObject
 
 
         lives--;
+        lifeRecoverTotalTime = 0f;
+
+        if (gameIsOver())
+        {
+            changeCamRedTint(2f, 1, true);
+        }
+        else
+        {
+            switch (lives)
+            {
+                case 2:
+                    changeCamRedTint(2f, 3, false);
+                    break;
+
+                case 1:
+                    changeCamRedTint(1.5f, 5, false);
+                    break;
+
+                case 0:
+                    changeCamRedTint(1f, 10, false);
+                    break;
+            }
+        }
 
         PLAYER_STATE state = PLAYER_STATE.NONE;
 
@@ -129,23 +183,35 @@ public class RunnerPlayer : RunnerGameObject
 
     }
 
+    
+    private void FixedUpdate()
+    {
+        if (lives >= startingLives) { return; }
 
+        lifeRecoverTotalTime += Time.deltaTime;
 
+        if (lifeRecoverTotalTime >= lifeRecoverTime)
+        {
+            lives++;
+            lifeRecoverTotalTime = 0f;
+        }
+    }
+    
 
     //controled by event in animation
-    
+
 
 
     void treadmillOff(int changeTimeInFrames) { treadmillSpeedChange(false, changeTimeInFrames); }
 
     void treadmillOn(int changeTimeInFrames) { treadmillSpeedChange(true, changeTimeInFrames); }
 
-    void treadmillSpeedChange(bool treadmillOn, int changeTimeInFrames)//, int changeTimeInFrames)
+    void treadmillSpeedChange(bool treadmillOn, int changeTimeInFrames, float speedMultiplyer = 1f)//, int changeTimeInFrames)
     {
         float changeTime = getTimeFromFrames(animDict[currState.ToString()], changeTimeInFrames);
         //for smoother animation treadmill speed change
         changeTime = gameIsOver() && treadmillOn && currState != PLAYER_STATE.DEATH1? changeTime * 4 : changeTime;
-        changeTreamillSpeed(treadmillOn, changeTime);
+        changeTreamillSpeed(treadmillOn, changeTime, speedMultiplyer);
     }
 
     bool gameIsOver()
@@ -265,6 +331,7 @@ public class RunnerPlayer : RunnerGameObject
     {
         if (!canSprint || !canChange) { return; }
         switchAnimState(PLAYER_STATE.SPRINT);
+        treadmillSpeedChange(true, 6, 1f + SPRINT_SPEED_PERCENT_BOOST);
         sprintCoroutine = StartCoroutine(sprintInitTimer());
     }
 
@@ -280,10 +347,11 @@ public class RunnerPlayer : RunnerGameObject
     IEnumerator sprintCoolDown()
     {
         onAnimationEnded(PLAYER_STATE.SPRINT);
+        treadmillSpeedChange(true, 6);
         yield return new WaitForSecondsRealtime(SPRINT_COOL_DOWN_TIME);
         canSprint = true;
         sprintCoolDownCoroutine = null;
-        
+
     }
 
 

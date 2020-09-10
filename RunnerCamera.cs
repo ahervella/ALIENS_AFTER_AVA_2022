@@ -6,6 +6,17 @@ using UnityEngine;
 public class RunnerCamera : MonoBehaviour
 {
     public Transform playerRef;
+
+    Color CLEAR_TINT = new Color(1, 1, 1, 0);
+    Color RED_TINT = new Color(1, 0, 0, 0);
+
+    public Material camTintMat;
+
+    float tintDeltaTimeTotal = 0f;
+    float tintLoopTime;
+    int tintLoopCount = 1;
+    bool tintIsDead = false;
+
     Camera cam;
 
     public float smoothSpeed;
@@ -43,6 +54,7 @@ public class RunnerCamera : MonoBehaviour
     {
         RunnerPlayer.onAnimationStarted += animStart;
         RunnerPlayer.onAnimationEnded += animEnd;
+        RunnerPlayer.changeCamRedTint += setFlashing;
 
         cam = GetComponent<Camera>();
 
@@ -54,6 +66,8 @@ public class RunnerCamera : MonoBehaviour
         {
             actionOffsetDict.Add(actionOS.state, actionOS);
         }
+
+        camTintMat.SetColor("_Color", CLEAR_TINT);
     }
 
     private void FixedUpdate()
@@ -74,6 +88,9 @@ public class RunnerCamera : MonoBehaviour
         transform.position = Vector3.Lerp(transform.position, targetPosOffset + playerRef.position, actualDelta);
         transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(targetRotOffset), actualDelta);
         cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFOVOffset, actualDelta);
+
+
+        flashRedTint();
     }
 
 
@@ -108,4 +125,49 @@ public class RunnerCamera : MonoBehaviour
         deltaTimeTotal = 0f;
     }
 
+
+    void setFlashing(float loopDuration, int loopCount, bool isDead)
+    {
+
+        tintLoopTime = loopDuration * loopCount;
+        tintLoopCount = loopCount;
+        tintDeltaTimeTotal = 0f;
+        tintIsDead = isDead;
+
+
+    }
+    
+
+    void flashRedTint()
+    {
+        if (tintDeltaTimeTotal >= tintLoopTime) { return; }
+
+        tintDeltaTimeTotal = Mathf.Min(tintLoopTime, tintDeltaTimeTotal + Time.fixedDeltaTime);
+
+        float singleHalfLoopTime = tintLoopTime / (float)(tintLoopCount * 2);
+        int halfLoopsDone = Mathf.FloorToInt(tintDeltaTimeTotal / singleHalfLoopTime);
+        Debug.Log("///////////////");
+        Debug.Log(halfLoopsDone);
+        Debug.Log(tintDeltaTimeTotal);
+        Debug.Log(tintLoopCount);
+        
+        float delta = (tintDeltaTimeTotal - (singleHalfLoopTime * halfLoopsDone)) / singleHalfLoopTime;
+
+        Color src = halfLoopsDone % 2 == 0 ? CLEAR_TINT : RED_TINT;
+        Color end = halfLoopsDone % 2 == 0 ? RED_TINT : CLEAR_TINT;
+
+        if (tintIsDead)
+        {
+            delta = tintDeltaTimeTotal / tintLoopTime;
+            src = CLEAR_TINT;
+            end = RED_TINT;
+
+        }
+
+        
+
+        Color colVal = Color.Lerp(src, end, delta);
+
+        camTintMat.SetColor("_Color", colVal);
+    }
 }

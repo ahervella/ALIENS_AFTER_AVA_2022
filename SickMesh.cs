@@ -30,6 +30,8 @@ public class SickMesh : MonoBehaviour
     public int rightMargin = 0;
 
     public float treadmillSpeed = 0.05f;
+    public float startingTreadmillSpeed;
+    public float treadmillAccel;
     float TMSlowDownTime = 0;
     float currTMSpeed;
     float targetTMSpeed;
@@ -96,6 +98,7 @@ public class SickMesh : MonoBehaviour
 
         currTMSpeed = treadmillSpeed;
         targetTMSpeed = treadmillSpeed;
+        startingTreadmillSpeed = treadmillSpeed;
 
         createControlVertices();
         refreshRenderedPoints();
@@ -284,9 +287,10 @@ public class SickMesh : MonoBehaviour
     {
         float likelihoodSelector = Random.Range(0.00001f, 1f);
         float speedFactor = currTMSpeed / treadmillSpeed;
+        float accelFactor = treadmillSpeed / startingTreadmillSpeed;
         speedFactor = currTMSpeed < 0.01f ? -1 : speedFactor;
 
-        return likelihoodSelector < appearanceLikelihood * speedFactor;
+        return likelihoodSelector < appearanceLikelihood * speedFactor * accelFactor;
     }
 
 
@@ -462,16 +466,21 @@ public class SickMesh : MonoBehaviour
         if (terrObj.objType == TerrObject.OBJ_TYPE.STATIC_HAZ && !canAddToThisLane(index, vertOffset)) { return; }
 
 
-        //TODO: future if using log with middle roll, sides jump, need to change this
-        //for now just assuming all terrObj are 1 width in hitbox, and skinny ( /4) so that doesn't hit on changing lanes too soon
-        terrObj.hitBox.size = new Vector3(widthUnit / terrObj.transform.localScale.x / 4f, terrObj.hitBox.size.y, terrObj.hitBox.size.z);
-        //terrObj.hitBox.size = new Vector3(terrObj.hitBoxUnitWidth * widthUnit / terrObj.transform.localScale.x, terrObj.hitBox.size.y, terrObj.hitBox.size.z);
+
 
         //if its not a hazard, meaning it doesnt have to be in a designated lane, can be anywhere in the horz.
         float horizOffset = terrObj.objType == TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(widthUnit) / 2f, widthUnit / 2f) : 0f;
         float flipMultiplyer = terrObj.canFlip ? Random.Range(0, 2) * 2 - 1 : 1;
 
         TerrObject terrObjInst = Instantiate(terrObj);
+
+        float speedMultiplyer = treadmillSpeed / startingTreadmillSpeed;
+
+        //TODO: future if using log with middle roll, sides jump, need to change this
+        //for now just assuming all terrObj are 1 width in hitbox, and skinny ( /4) so that doesn't hit on changing lanes too soon
+        terrObjInst.hitBox.size = new Vector3(widthUnit / terrObjInst.transform.localScale.x / 4f, terrObjInst.hitBox.size.y, terrObjInst.hitBox.size.z * 4 * speedMultiplyer);
+        //terrObj.hitBox.size = new Vector3(terrObj.hitBoxUnitWidth * widthUnit / terrObj.transform.localScale.x, terrObj.hitBox.size.y, terrObj.hitBox.size.z);
+
         terrObjInst.RandomizeSpriteType();
 
         terrObjInst.gameObject.GetComponent<SpriteRenderer>().flipX = flipMultiplyer > 0? false : true;
@@ -577,6 +586,17 @@ public class SickMesh : MonoBehaviour
 
     void updateTreadmillSpeed()
     {
+        //increase speed for game difficulty
+        
+        //incase of death and still
+        if (targetTMSpeed > 0.0001f)
+        {
+            treadmillSpeed += treadmillAccel * Time.deltaTime;
+            currTMSpeed += treadmillAccel * Time.deltaTime;
+        }
+
+        if (treadmillSpeed % 0.01 < 0.01) { Debug.Log(currTMSpeed); }
+
         if (TMTimeTotal < TMSlowDownTime)
         {
             TMTimeTotal = Mathf.Min(TMSlowDownTime, TMTimeTotal + Time.deltaTime);
@@ -587,12 +607,12 @@ public class SickMesh : MonoBehaviour
         }
     }
 
-    void changeTMSpeed(bool treadmillOn, float changeTime)
+    void changeTMSpeed(bool treadmillOn, float changeTime, float speedMultiplyer)
     {
         TMTimeTotal = 0f;
         TMSlowDownTime = changeTime;
-        targetTMSpeed = treadmillOn? treadmillSpeed : 0f;
-
+        targetTMSpeed = treadmillOn? treadmillSpeed * speedMultiplyer : 0f;
+        
     }
 
 
