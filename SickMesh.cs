@@ -69,6 +69,7 @@ public class SickMesh : MonoBehaviour
 
     public Terrainnnn[] terrains;
     public List<TerrObject> terrObjects;
+    List<RunnerThrowable> throwables = new List<RunnerThrowable>();
 
     public RunnerPlayer player;
 
@@ -105,6 +106,8 @@ public class SickMesh : MonoBehaviour
 
         RunnerControls.OnInputAction += inputUpdate;
         RunnerPlayer.changeTreamillSpeed += changeTMSpeed;
+        RunnerThrowable.throwableGenerated += addThrowable;
+        RunnerThrowable.throwableDestroyed += removeThrowable;
     }
 
     void createControlVertices()
@@ -568,6 +571,10 @@ public class SickMesh : MonoBehaviour
                 player.sprint();
                 return;
 
+            case RunnerGameObject.PLAYER_STATE.THROW_R:
+                player.throwRock();
+                return;
+
             default:
                 return;
         }
@@ -595,7 +602,7 @@ public class SickMesh : MonoBehaviour
             currTMSpeed += treadmillAccel * Time.deltaTime;
         }
 
-        if (treadmillSpeed % 0.01 < 0.01) { Debug.Log(currTMSpeed); }
+        //if (treadmillSpeed % 0.01 < 0.01) { Debug.Log(currTMSpeed); }
 
         if (TMTimeTotal < TMSlowDownTime)
         {
@@ -615,6 +622,12 @@ public class SickMesh : MonoBehaviour
         
     }
 
+
+
+
+    void addThrowable(RunnerThrowable throwable) { throwables.Add(throwable); }
+
+    void removeThrowable(RunnerThrowable throwable) { throwables.Remove(throwable); }
 
 
     void moveMesh()
@@ -667,6 +680,13 @@ public class SickMesh : MonoBehaviour
                 currTerrObjsDict[key][t].transform.position += new Vector3(change, 0, -currTMSpeed);
             }
             
+        }
+
+        //won't need to worry about wrapping for thrown objects b/c doesn't make sense to
+        //cause they moving too fast anyways
+        foreach(RunnerThrowable throwable in throwables)
+        {
+            throwable.transform.position += new Vector3(change, 0, 0);
         }
 
         float playerXVal = player.transform.position.x;

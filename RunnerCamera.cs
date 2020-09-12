@@ -146,10 +146,6 @@ public class RunnerCamera : MonoBehaviour
 
         float singleHalfLoopTime = tintLoopTime / (float)(tintLoopCount * 2);
         int halfLoopsDone = Mathf.FloorToInt(tintDeltaTimeTotal / singleHalfLoopTime);
-        Debug.Log("///////////////");
-        Debug.Log(halfLoopsDone);
-        Debug.Log(tintDeltaTimeTotal);
-        Debug.Log(tintLoopCount);
         
         float delta = (tintDeltaTimeTotal - (singleHalfLoopTime * halfLoopsDone)) / singleHalfLoopTime;
 

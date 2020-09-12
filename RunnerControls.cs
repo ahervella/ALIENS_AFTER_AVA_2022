@@ -166,6 +166,11 @@ public class RunnerControls : MonoBehaviour
             keyState = RunnerGameObject.PLAYER_STATE.ROLL;
         }
 
+        else if (Input.GetKeyDown(KeyCode.R))
+        {
+            keyState = RunnerGameObject.PLAYER_STATE.THROW_R;
+        }
+
         return new InputData(keyState);
     }
 
