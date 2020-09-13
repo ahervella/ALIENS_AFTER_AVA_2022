@@ -481,7 +481,7 @@ public class SickMesh : MonoBehaviour
 
         //TODO: future if using log with middle roll, sides jump, need to change this
         //for now just assuming all terrObj are 1 width in hitbox, and skinny ( /4) so that doesn't hit on changing lanes too soon
-        terrObjInst.hitBox.size = new Vector3(widthUnit / terrObjInst.transform.localScale.x / 4f, terrObjInst.hitBox.size.y, terrObjInst.hitBox.size.z * 4 * speedMultiplyer);
+        terrObjInst.hitBox.size = new Vector3(calcHitBoxSizeX( terrObjInst.transform.localScale.x), terrObjInst.hitBox.size.y, terrObjInst.hitBox.size.z * 4 * speedMultiplyer);
         //terrObj.hitBox.size = new Vector3(terrObj.hitBoxUnitWidth * widthUnit / terrObj.transform.localScale.x, terrObj.hitBox.size.y, terrObj.hitBox.size.z);
 
         terrObjInst.RandomizeSpriteType();
@@ -528,6 +528,12 @@ public class SickMesh : MonoBehaviour
         return true;
         
 
+    }
+
+
+    float calcHitBoxSizeX(float xScale = 1)
+    {
+        return widthUnit / 4f;
     }
 
 
@@ -625,7 +631,10 @@ public class SickMesh : MonoBehaviour
 
 
 
-    void addThrowable(RunnerThrowable throwable) { throwables.Add(throwable); }
+    void addThrowable(RunnerThrowable throwable) {
+        BoxCollider hitBox = throwable.GetComponent<BoxCollider>();
+        hitBox.size = new Vector3(hitBox.size.x, hitBox.size.y, hitBox.size.z);
+        throwables.Add(throwable); }
 
     void removeThrowable(RunnerThrowable throwable) { throwables.Remove(throwable); }
 
