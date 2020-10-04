@@ -12,6 +12,7 @@ public class RunnerControls : MonoBehaviour
     int mashKeyCounter = 0;
     float mashKeyTimer = 0f;
 
+    TouchTracker.TAP_REGION mashTapRegion = TouchTracker.TAP_REGION.NONE;
     int mashTapCounter = 0;
     float mashTapTimer = 0f;
 
@@ -45,6 +46,8 @@ public class RunnerControls : MonoBehaviour
     class TouchTracker
     {
         public enum GESTURE { NONE, UP, DOWN, LEFT, RIGHT}
+        public enum TAP_REGION { NONE, LEFT, RIGHT, CENTER }
+
         const float MAX_GESTURE_TIME = 0.75f;
         const float MIN_GESTURE_MOVEMENT = 50f;
 
@@ -59,11 +62,26 @@ public class RunnerControls : MonoBehaviour
 
         bool finishedTouch = false;
         public GESTURE finalGesture = GESTURE.NONE;
+        public TAP_REGION tapRegion = TAP_REGION.NONE;
 
         public TouchTracker(int id, Vector2 initPos)
         {
             this.id = id;
             this.initPos = initPos;
+            float xRatio = initPos.x / Camera.current.scaledPixelWidth;
+
+            if (xRatio > 0.66f)
+            {
+                tapRegion = TAP_REGION.RIGHT;
+            }
+            else if(xRatio > 0.33f)
+            {
+                tapRegion = TAP_REGION.CENTER;
+            }
+            else
+            {
+                tapRegion = TAP_REGION.LEFT;
+            }
         }
 
         public void addTimeDist(float deltaTime, Vector2 newPos)
@@ -106,10 +124,10 @@ public class RunnerControls : MonoBehaviour
     {
         //update mash tapping stuff if made it this far
         if (mashTapCounter > 0) {mashTapTimer += Time.deltaTime; }
-        if (mashTapTimer >= SINGLE_MASH_TAP_TIME_CAP) { mashTapTimer = 0; mashTapCounter = 0; }
+        if (mashTapTimer >= SINGLE_MASH_TAP_TIME_CAP) { resetTapShit(); }
 
         if (mashKeyCounter > 0) { mashKeyTimer += Time.deltaTime; }
-        if (mashKeyTimer >= SINGLE_MASH_TAP_TIME_CAP) { mashKeyTimer = 0; mashKeyCounter = 0; }
+        if (mashKeyTimer >= SINGLE_MASH_TAP_TIME_CAP) { resetKeyShit(); }
 
         InputData touchInputData = getTouchInputData();
         if (touchInputData.getState() != RunnerGameObject.PLAYER_STATE.NONE)
@@ -124,9 +142,19 @@ public class RunnerControls : MonoBehaviour
         }
     }
 
+    private void resetKeyShit()
+    {
+        mashKeyTimer = 0; mashKeyCounter = 0;
+    }
+
+    private void resetTapShit()
+    {
+        mashTapTimer = 0; mashTapCounter = 0;
+        mashTapRegion = TouchTracker.TAP_REGION.NONE;
+    }
 
 
-    InputData getKeyInputData()
+    private InputData getKeyInputData()
     {
         RunnerGameObject.PLAYER_STATE keyState = RunnerGameObject.PLAYER_STATE.NONE;
 
@@ -137,8 +165,7 @@ public class RunnerControls : MonoBehaviour
 
             if (mashKeyCounter >= TAPS_NEEDED_FOR_MASH)
             {
-                mashKeyCounter = 0;
-                mashKeyTimer = 0;
+                resetKeyShit();
                 return new InputData(RunnerGameObject.PLAYER_STATE.SPRINT);
             }
         }
@@ -175,9 +202,8 @@ public class RunnerControls : MonoBehaviour
     }
 
 
-    InputData getTouchInputData()
+    private InputData getTouchInputData()
     {
-        //TouchTracker.GESTURE result = TouchTracker.GESTURE.NONE;
         TouchTracker touchTracker = null;
 
         foreach (Touch touch in Input.touches)
@@ -186,9 +212,23 @@ public class RunnerControls : MonoBehaviour
 
             if (!touchDict.ContainsKey(touch.fingerId) && touch.phase == TouchPhase.Began)
             {
-                mashTapCounter++;
-                mashTapTimer = 0;
-                touchDict.Add(touch.fingerId, new TouchTracker(touch.fingerId, touch.position));
+                TouchTracker newTouch = new TouchTracker(touch.fingerId, touch.position);
+                touchDict.Add(touch.fingerId, newTouch);
+
+                if (mashTapRegion != TouchTracker.TAP_REGION.NONE && newTouch.tapRegion != mashTapRegion)
+                {
+                    resetTapShit();
+                }
+                else
+                {
+                    mashTapCounter++;
+                    mashTapTimer = 0;
+                }
+                Debug.Log("Tapped!");
+                Debug.Log(mashTapCounter);
+                Debug.Log(mashTapTimer);
+
+                mashTapRegion = newTouch.tapRegion;
                 continue;
             }
 
@@ -207,27 +247,38 @@ public class RunnerControls : MonoBehaviour
                 currTouchTracker.addTimeDist(Time.fixedDeltaTime, touch.position);
             }
 
-            //cache the first touch traker that is not NONE for a gesture
-            if (touchTracker == null || touchTracker.finalGesture != TouchTracker.GESTURE.NONE) { touchTracker = currTouchTracker; }
+            //cache the at least one touchTraker, or the last that isn't NONE
+            if (touchTracker == null || currTouchTracker.finalGesture != TouchTracker.GESTURE.NONE) { touchTracker = currTouchTracker; }
 
         }
 
 
-        if (touchTracker == null) { return new InputData(RunnerGameObject.PLAYER_STATE.NONE); }
-
         //if there was a gesture, reset all mashTap tracking stuff
-        if (touchTracker.finalGesture != TouchTracker.GESTURE.NONE) { mashTapCounter = 0; mashTapTimer = 0; }
+        if (touchTracker.finalGesture != TouchTracker.GESTURE.NONE) { resetTapShit(); }
 
         //if there were enough taps done correctly, its a sprint!
         if (mashTapCounter >= TAPS_NEEDED_FOR_MASH)
         {
-            mashTapTimer = 0;
-            mashTapCounter = 0;
-            return new InputData(RunnerGameObject.PLAYER_STATE.SPRINT, touchTracker.initPos, touchTracker.finalPos);
+            RunnerGameObject.PLAYER_STATE regionResultState = RunnerGameObject.PLAYER_STATE.SPRINT;
+            switch (mashTapRegion)
+            {
+                case TouchTracker.TAP_REGION.CENTER:
+                    break;
+
+                case TouchTracker.TAP_REGION.LEFT:
+                    regionResultState = RunnerGameObject.PLAYER_STATE.FIRE;
+                    break;
+
+                case TouchTracker.TAP_REGION.RIGHT:
+                    regionResultState = RunnerGameObject.PLAYER_STATE.THROW_R;
+                    break;
+            }
+
+            resetTapShit();
+            return new InputData(regionResultState, touchTracker.initPos, touchTracker.finalPos);
         }
 
-        
-
+        if (touchTracker == null) { return new InputData(RunnerGameObject.PLAYER_STATE.NONE); }
 
         RunnerGameObject.PLAYER_STATE state = RunnerGameObject.PLAYER_STATE.NONE;
 
