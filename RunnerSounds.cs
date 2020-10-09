@@ -32,10 +32,14 @@ public class RunnerSounds : MonoBehaviour
 
     //any time anyone wants to play a sound from anywhere
     //use this method (with the current DJ)
-    public void playSound(AudioClip audioClip)
+    public void playSound(AudioClip audioClip, float vol = 1, float pitch = 1, float volVariation = 0, float pitchVariation = 0)
     {
-        //getAudioSource.
-        playSoundFromSource(audioClip, getAudioSource());
+        AudioSource CurrentSource = getAudioSource();
+
+        CurrentSource.volume = vol + vol * (Random.Range(-volVariation, volVariation))/100;
+        CurrentSource.pitch = pitch + pitch * (Random.Range(-pitchVariation, pitchVariation)) / 100;
+        CurrentSource.clip = audioClip;
+        CurrentSource.Play();
     }
 
     //get the first available record player
@@ -56,11 +60,5 @@ public class RunnerSounds : MonoBehaviour
         audioSources.Add(currSource);
 
         return currSource;
-    }
-
-    //the DJs routine to for playing a sound given they have chosen a sound and a record player
-    private void playSoundFromSource(AudioClip audioClip, AudioSource audioSource)
-    {
-        //load, and funk stuff and play the sound hereee
     }
 }
