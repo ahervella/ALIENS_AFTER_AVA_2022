@@ -219,6 +219,12 @@ public class RunnerPlayer : RunnerGameObject
         return lives < 0;
     }
 
+    void playAnimSound(AudioClip animSound)
+    {
+        RunnerSounds.Current.playSound(animSound);
+    }
+
+    
 
     void onAnimEnd(AnimationClip animClip)
     {
