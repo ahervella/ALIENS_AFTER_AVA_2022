@@ -32,21 +32,33 @@ public class RunnerSounds : MonoBehaviour
 
     //any time anyone wants to play a sound from anywhere
     //use this method (with the current DJ)
-    public void playSound(AudioClip audioClip, float vol = 1, float pitch = 1, float volVariation = 0, float pitchVariation = 0)
+    public void playSound(SoundWrapper sw)
     {
-        AudioSource CurrentSource = getAudioSource();
+        AudioSource CurrentSource = getAudioSource(sw.gameObject, sw.isOneShot);
 
-        CurrentSource.volume = vol + vol * (Random.Range(-volVariation, volVariation))/100;
-        CurrentSource.pitch = pitch + pitch * (Random.Range(-pitchVariation, pitchVariation)) / 100;
-        CurrentSource.clip = audioClip;
+        CurrentSource.volume = sw.vol + sw.vol * (Random.Range(-sw.volVariation, sw.volVariation))/100;
+        CurrentSource.pitch = sw.pitch + sw.pitch * (Random.Range(-sw.pitchVariation, sw.pitchVariation)) / 100;
+        if (sw.isRandom)
+        {
+            CurrentSource.clip = sw.audioClips[Random.Range(0, sw.audioClips.Count - 1)];
+            sw.audioClips.Remove(CurrentSource.clip);
+            sw.audioClips.Add(CurrentSource.clip);
+        }
+        else
+        {
+            // :/
+            Debug.Log(sw.name + " IS NOT RANDOM >>:(");
+        }
+        
         CurrentSource.Play();
+
     }
 
     //get the first available record player
-    private AudioSource getAudioSource()
+    private AudioSource getAudioSource(GameObject obj, bool useOneShot)
     {
         AudioSource currSource;
-
+        /*
         for (int i = 0; i < audioSources.Count; i++)
         {
             currSource = audioSources[i];
@@ -58,7 +70,16 @@ public class RunnerSounds : MonoBehaviour
 
         currSource = gameObject.AddComponent<AudioSource>();
         audioSources.Add(currSource);
+        */
+
+        currSource = obj.GetComponent<AudioSource>();
+
+        if (currSource == null || (!useOneShot && currSource.isPlaying))
+        {
+            currSource = obj.AddComponent<AudioSource>();
+        }
 
         return currSource;
+        
     }
 }

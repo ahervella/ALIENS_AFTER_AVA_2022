@@ -221,7 +221,7 @@ public class RunnerPlayer : RunnerGameObject
 
     void playAnimSound(SoundWrapper sw)
     {
-        RunnerSounds.Current.playSound(sw.audioClip, sw.vol, sw.pitch, sw.volVariation, sw.pitchVariation);
+        RunnerSounds.Current.playSound(sw);
     }
 
     
