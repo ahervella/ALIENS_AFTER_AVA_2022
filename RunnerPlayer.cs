@@ -48,13 +48,17 @@ public class RunnerPlayer : RunnerGameObject
     Dictionary<string, AnimationClip> animRADict = new Dictionary<string, AnimationClip>();
 
 
+    public RunnerThrowable[] throwables;
+    Dictionary<RunnerThrowable.THROW_TYPE, RunnerThrowable> throwablesDict = new Dictionary<RunnerThrowable.THROW_TYPE, RunnerThrowable>();
+
     PLAYER_STATE currState = PLAYER_STATE.RUN;
 
     public static event System.Action<PLAYER_STATE> onAnimationStarted = delegate { };
     public static event System.Action<PLAYER_STATE> onAnimationEnded = delegate { };
     public static event System.Action<bool, float, float> changeTreamillSpeed = delegate { };
     public static event System.Action<float, int, bool> changeCamRedTint = delegate { };
-
+    //public static event System.Action<TerrObject> removeTerrObj
+ 
     // Update is called once per frame
     private void Start()
     {
@@ -76,6 +80,11 @@ public class RunnerPlayer : RunnerGameObject
             animRADict.Add(animRAClip.name, animRAClip);
         }
 
+
+        foreach (RunnerThrowable throwable in throwables)
+        {
+            throwablesDict.Add(throwable.throwType, throwable);
+        }
 
         animLA = LA.GetComponent<Animator>();
         animRA = RA.GetComponent<Animator>();
@@ -100,11 +109,35 @@ public class RunnerPlayer : RunnerGameObject
 
         //if (terrObj2Far2Collide()) { return; }
 
+        if (terrObj.objType == TerrObject.OBJ_TYPE.ROCK)
+        {
+            if (terrObj.actionNeeded == currState)
+            {
+                grabbedRock(terrObj);
+            }
+            return;
+        }
+
         if (terrObj.objType != TerrObject.OBJ_TYPE.STATIC && terrObj.actionNeeded != currState)
         {
+            
             looseLife(terrObj);
             Debug.Log("IM HIT!!!!");
         }
+
+        
+    }
+
+    void grabbedRock(TerrObject rockObj)
+    {
+        if (hasRock) { return; }
+
+        Debug.Log("GOT ROCK!");
+
+        hasRock = true;
+
+        //make rock "disappear"
+        rockObj.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
     }
 
     //Attempt at basically raycasting for fast moving objects
@@ -362,6 +395,13 @@ public class RunnerPlayer : RunnerGameObject
 
 
 
+    public void throwRock()
+    {
+        if (!hasRock) { return; }
+        defaultInitAction(PLAYER_STATE.THROW_R);
+        hasRock = false;
+    }
+
 
     void defaultInitAction(PLAYER_STATE state)
     {
@@ -387,18 +427,21 @@ public class RunnerPlayer : RunnerGameObject
         int currState = anim.GetCurrentAnimatorStateInfo(0).fullPathHash;
         float startNormTime = getNormTimeFromFrame(animDict[stateString], anim, startFrame);
 
+        
+
 
         string LAstring = "LA_" + stateString;
-        LAstring = gunBullets > 0 ? LAstring + "_GUN" : LAstring;
+        LAstring = gunBullets > 0 && state != PLAYER_STATE.THROW_G? LAstring + "_GUN" : LAstring;
         int currStateLA = animLA.GetCurrentAnimatorStateInfo(0).fullPathHash;
         float startNormTimeLA = getNormTimeFromFrame(animLADict[LAstring], animLA, startFrame);
         
 
         string RAstring = "RA_" + stateString;
-        RAstring = hasRock ? RAstring + "_ROCK" : RAstring;
+        RAstring = hasRock && state != PLAYER_STATE.THROW_R? RAstring + "_ROCK" : RAstring;
         
         int currStateRA = animRA.GetCurrentAnimatorStateInfo(0).fullPathHash;
         float startNormTimeRA = getNormTimeFromFrame(animRADict[RAstring], animRA, startFrame);
+
         /*
         anim.PlayInFixedTime(currState, 0, startNormTime);
         animLA.PlayInFixedTime(currStateLA, 0, startNormTimeLA);
@@ -419,6 +462,13 @@ public class RunnerPlayer : RunnerGameObject
         animLAOC[animLAIndex] = animLADict[LAstring];
         animRAOC[animRAIndex] = animRADict[RAstring];
 
+    }
+
+
+
+    public void generateThrowable(RunnerThrowable.THROW_TYPE throwType)
+    {
+        throwablesDict[throwType].Instantiate(transform);
     }
 
     int getCurrFrame(AnimationClip animClip, Animator animator)

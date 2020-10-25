@@ -69,6 +69,7 @@ public class SickMesh : MonoBehaviour
 
     public Terrainnnn[] terrains;
     public List<TerrObject> terrObjects;
+    List<RunnerThrowable> throwables = new List<RunnerThrowable>();
 
     public RunnerPlayer player;
 
@@ -105,6 +106,8 @@ public class SickMesh : MonoBehaviour
 
         RunnerControls.OnInputAction += inputUpdate;
         RunnerPlayer.changeTreamillSpeed += changeTMSpeed;
+        RunnerThrowable.throwableGenerated += addThrowable;
+        RunnerThrowable.throwableDestroyed += removeThrowable;
     }
 
     void createControlVertices()
@@ -478,7 +481,7 @@ public class SickMesh : MonoBehaviour
 
         //TODO: future if using log with middle roll, sides jump, need to change this
         //for now just assuming all terrObj are 1 width in hitbox, and skinny ( /4) so that doesn't hit on changing lanes too soon
-        terrObjInst.hitBox.size = new Vector3(widthUnit / terrObjInst.transform.localScale.x / 4f, terrObjInst.hitBox.size.y, terrObjInst.hitBox.size.z * 4 * speedMultiplyer);
+        terrObjInst.hitBox.size = new Vector3(calcHitBoxSizeX( terrObjInst.transform.localScale.x), terrObjInst.hitBox.size.y, terrObjInst.hitBox.size.z * 4 * speedMultiplyer);
         //terrObj.hitBox.size = new Vector3(terrObj.hitBoxUnitWidth * widthUnit / terrObj.transform.localScale.x, terrObj.hitBox.size.y, terrObj.hitBox.size.z);
 
         terrObjInst.RandomizeSpriteType();
@@ -528,6 +531,12 @@ public class SickMesh : MonoBehaviour
     }
 
 
+    float calcHitBoxSizeX(float xScale = 1)
+    {
+        return widthUnit / 4f;
+    }
+
+
     float hitBoxElevOffset(TerrObject terrObj)
     {
         return (terrObj.hitBox.size.y / 2f * terrObj.transform.localScale.y) * (1f -  terrObj.elevationOffsetPerc);
@@ -568,6 +577,10 @@ public class SickMesh : MonoBehaviour
                 player.sprint();
                 return;
 
+            case RunnerGameObject.PLAYER_STATE.THROW_R:
+                player.throwRock();
+                return;
+
             default:
                 return;
         }
@@ -595,7 +608,7 @@ public class SickMesh : MonoBehaviour
             currTMSpeed += treadmillAccel * Time.deltaTime;
         }
 
-        if (treadmillSpeed % 0.01 < 0.01) { Debug.Log(currTMSpeed); }
+        //if (treadmillSpeed % 0.01 < 0.01) { Debug.Log(currTMSpeed); }
 
         if (TMTimeTotal < TMSlowDownTime)
         {
@@ -615,6 +628,15 @@ public class SickMesh : MonoBehaviour
         
     }
 
+
+
+
+    void addThrowable(RunnerThrowable throwable) {
+        BoxCollider hitBox = throwable.GetComponent<BoxCollider>();
+        hitBox.size = new Vector3(hitBox.size.x, hitBox.size.y, hitBox.size.z);
+        throwables.Add(throwable); }
+
+    void removeThrowable(RunnerThrowable throwable) { throwables.Remove(throwable); }
 
 
     void moveMesh()
@@ -667,6 +689,13 @@ public class SickMesh : MonoBehaviour
                 currTerrObjsDict[key][t].transform.position += new Vector3(change, 0, -currTMSpeed);
             }
             
+        }
+
+        //won't need to worry about wrapping for thrown objects b/c doesn't make sense to
+        //cause they moving too fast anyways
+        foreach(RunnerThrowable throwable in throwables)
+        {
+            throwable.transform.position += new Vector3(change, 0, 0);
         }
 
         float playerXVal = player.transform.position.x;
