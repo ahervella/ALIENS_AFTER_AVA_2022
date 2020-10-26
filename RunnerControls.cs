@@ -248,13 +248,13 @@ public class RunnerControls : MonoBehaviour
             }
 
             //cache the at least one touchTraker, or the last that isn't NONE
-            if (touchTracker == null || currTouchTracker.finalGesture != TouchTracker.GESTURE.NONE) { touchTracker = currTouchTracker; }
+            if (touchTracker == null && currTouchTracker.finalGesture != TouchTracker.GESTURE.NONE) { touchTracker = currTouchTracker; }
 
         }
 
 
         //if there was a gesture, reset all mashTap tracking stuff
-        if (touchTracker.finalGesture != TouchTracker.GESTURE.NONE) { resetTapShit(); }
+        if (touchTracker != null && touchTracker.finalGesture != TouchTracker.GESTURE.NONE) { resetTapShit(); }
 
         //if there were enough taps done correctly, its a sprint!
         if (mashTapCounter >= TAPS_NEEDED_FOR_MASH)
@@ -275,7 +275,10 @@ public class RunnerControls : MonoBehaviour
             }
 
             resetTapShit();
-            return new InputData(regionResultState, touchTracker.initPos, touchTracker.finalPos);
+            if (touchTracker != null)
+            {
+                return new InputData(regionResultState, touchTracker.initPos, touchTracker.finalPos);
+            }
         }
 
         if (touchTracker == null) { return new InputData(RunnerGameObject.PLAYER_STATE.NONE); }

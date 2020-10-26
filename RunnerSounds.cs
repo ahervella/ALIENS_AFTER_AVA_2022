@@ -8,33 +8,50 @@ public class RunnerSounds : MonoBehaviour
     //DJs record players (only increases if needed for now)
     List<AudioSource> audioSources = new List<AudioSource>();
 
+    
     //the single reference to the only DJ ever
-    static public RunnerSounds Current
+    static public RunnerSounds Current = null;
+
+    private void Awake()
+    {
+        if (Current == null)
+        {
+            Current = this;
+        }
+        else if (Current != this)
+        {
+            Destroy(gameObject);
+        }
+    }
+    /*
+    static public GameObject Current
     {
         get
         {
             //if the DJ wasn't born, give birth
             //and they will be the "Current" DJ
-            if (Current == null)
+            if (current == null)
             {
-                Current = new RunnerSounds();
+                current = this;//new RunnerSounds();
             }
 
             //either way should have a living DJ by
             //the time we get here, so return them
-            return Current;
+            return current;
         }
 
         //only within this class are we allowed to
         //say who the current DJ can be
-        private set { Current = value; }
+        private set { current = value; }
     }
+    */
+
 
     //any time anyone wants to play a sound from anywhere
     //use this method (with the current DJ)
-    public void playSound(SoundWrapper sw)
+    public void playSound(SoundWrapper sw, GameObject soundObject)
     {
-        AudioSource CurrentSource = getAudioSource(sw.gameObject, sw.isOneShot);
+        AudioSource CurrentSource = getAudioSource(soundObject, sw.isOneShot);
 
         CurrentSource.volume = sw.vol + sw.vol * (Random.Range(-sw.volVariation, sw.volVariation))/100;
         CurrentSource.pitch = sw.pitch + sw.pitch * (Random.Range(-sw.pitchVariation, sw.pitchVariation)) / 100;
@@ -83,3 +100,4 @@ public class RunnerSounds : MonoBehaviour
         
     }
 }
+
