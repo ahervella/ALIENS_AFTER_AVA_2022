@@ -235,7 +235,6 @@ public class SickMesh : MonoBehaviour
         updateTreadmillSpeed();
         generateTerrain();
         generateTerrObjs();
-        //inputUpdate();
         
         moveMesh();
         updateTerrObjAlpha();
@@ -579,6 +578,10 @@ public class SickMesh : MonoBehaviour
 
             case RunnerGameObject.PLAYER_STATE.THROW_R:
                 player.throwRock();
+                return;
+
+            case RunnerGameObject.PLAYER_STATE.FIRE:
+                player.fireGun();
                 return;
 
             default:

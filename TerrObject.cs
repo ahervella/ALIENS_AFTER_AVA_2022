@@ -7,7 +7,7 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class TerrObject : RunnerGameObject
 {
-    public enum OBJ_TYPE { STATIC, STATIC_HAZ, ROCK, ENEMY, THROWABLE};
+    public enum OBJ_TYPE { STATIC, STATIC_HAZ, ROCK, TEMP_GUN, ENEMY, THROWABLE};
 
     //public enum ACTION { JUMP, ROLL, SPRINT}
 

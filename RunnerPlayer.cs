@@ -11,6 +11,7 @@ public class RunnerPlayer : RunnerGameObject
     const float SPRINT_SPEED_PERCENT_BOOST = 0.3f;
     const float minCollideDist = 1f;
 
+    const int AMO_SIZE = 4;
     //List<TerrObject> checkClipObjs = new List<TerrObject>();
 
     //const int JUMP_FRAME_DELAY = 2;
@@ -67,6 +68,11 @@ public class RunnerPlayer : RunnerGameObject
 
         foreach (AnimationClip animClip in animClips)
         {
+            //we still want the torso run animation for firing a gun
+            if (animClip.name == "FIRE")
+            {
+                animDict.Add("RUN", animClip);
+            }
             animDict.Add(animClip.name, animClip);
         }
 
@@ -118,6 +124,14 @@ public class RunnerPlayer : RunnerGameObject
             return;
         }
 
+        if (terrObj.objType == TerrObject.OBJ_TYPE.TEMP_GUN)
+        {
+            if (terrObj.actionNeeded == currState)
+            {
+                grabbedTempGun(terrObj);
+            }
+        }
+
         if (terrObj.objType != TerrObject.OBJ_TYPE.STATIC && terrObj.actionNeeded != currState)
         {
             
@@ -138,6 +152,17 @@ public class RunnerPlayer : RunnerGameObject
 
         //make rock "disappear"
         rockObj.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+    }
+
+    void grabbedTempGun(TerrObject tempGunObj)
+    {
+        if (gunBullets > 0) { return; }
+
+        Debug.Log("GOT GUN!");
+
+        gunBullets = AMO_SIZE;
+
+        tempGunObj.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
     }
 
     //Attempt at basically raycasting for fast moving objects
@@ -400,6 +425,21 @@ public class RunnerPlayer : RunnerGameObject
         if (!hasRock) { return; }
         defaultInitAction(PLAYER_STATE.THROW_R);
         hasRock = false;
+    }
+
+    public void fireGun()
+    {
+        if (gunBullets <= 0) { return; }
+
+        gunBullets--;
+
+        if (gunBullets == 1)
+        {
+            defaultInitAction(PLAYER_STATE.THROW_G);
+            return;
+        }
+
+        defaultInitAction(PLAYER_STATE.FIRE);
     }
 
 
