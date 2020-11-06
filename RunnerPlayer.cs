@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -28,8 +28,10 @@ public class RunnerPlayer : RunnerGameObject
     Coroutine sprintCoolDownCoroutine;
     public bool canChangeState() { return canChange; }
 
-    bool hasRock = false;
+    public bool HasRock { get; set; } = false;
     int gunBullets = 0;
+
+    public bool IsInvincible { get; set; } = false;
 
     Dictionary<string, AnimationClip> animDict = new Dictionary<string, AnimationClip>();
 
@@ -116,8 +118,6 @@ public class RunnerPlayer : RunnerGameObject
         TerrObject terrObj = coll.gameObject.GetComponent<TerrObject>();
         if (terrObj == null) { return;  }
 
-        //if (terrObj2Far2Collide()) { return; }
-
         if (terrObj.objType == TerrObject.OBJ_TYPE.ROCK)
         {
             if (terrObj.actionNeeded == currState)
@@ -136,6 +136,11 @@ public class RunnerPlayer : RunnerGameObject
             return;
         }
 
+        if (IsInvincible)
+        {
+            return;
+        }
+
         if (terrObj.objType != TerrObject.OBJ_TYPE.STATIC && terrObj.actionNeeded != currState)
         {
             
@@ -148,11 +153,11 @@ public class RunnerPlayer : RunnerGameObject
 
     void grabbedRock(TerrObject rockObj)
     {
-        if (hasRock) { return; }
+        if (HasRock) { return; }
 
         Debug.Log("GOT ROCK!");
 
-        hasRock = true;
+        HasRock = true;
 
         //make rock "disappear"
         rockObj.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
@@ -432,9 +437,9 @@ public class RunnerPlayer : RunnerGameObject
 
     public void throwRock()
     {
-        if (!hasRock) { return; }
+        if (!HasRock) { return; }
         defaultInitAction(PLAYER_STATE.THROW_R);
-        hasRock = false;
+        HasRock = false;
     }
 
     public void fireGun()
@@ -487,8 +492,7 @@ public class RunnerPlayer : RunnerGameObject
         
 
         string RAstring = "RA_" + stateString;
-        //TODO: make anim for firing with rock
-        RAstring = hasRock && state != PLAYER_STATE.THROW_R && state != PLAYER_STATE.FIRE ? RAstring + "_ROCK" : RAstring;
+        RAstring = HasRock && state != PLAYER_STATE.THROW_R? RAstring + "_ROCK" : RAstring;
         
         int currStateRA = animRA.GetCurrentAnimatorStateInfo(0).fullPathHash;
         float startNormTimeRA = getNormTimeFromFrame(animRADict[RAstring], animRA, startFrame);
