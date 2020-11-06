@@ -30,7 +30,7 @@ public class SickMesh : MonoBehaviour
     public int rightMargin = 0;
 
     public float treadmillSpeed = 0.05f;
-    public float startingTreadmillSpeed;
+    private float startingTreadmillSpeed;
     public float treadmillAccel;
     float TMSlowDownTime = 0;
     float currTMSpeed;
