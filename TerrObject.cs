@@ -7,6 +7,8 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class TerrObject : RunnerGameObject
 {
+    public static event System.Action<TerrObject> terrObjDestroyed = delegate { };
+
     public enum OBJ_TYPE { STATIC, STATIC_HAZ, ROCK, TEMP_GUN, ENEMY, THROWABLE};
 
     //public enum ACTION { JUMP, ROLL, SPRINT}
@@ -30,5 +32,10 @@ public class TerrObject : RunnerGameObject
     {
         int index = Random.Range(0, animClips.Length);
         animOC[animIndex] = animClips[index];
+    }
+
+    private void OnDestroy()
+    {
+        terrObjDestroyed(this);
     }
 }
