@@ -55,19 +55,28 @@ public class RunnerSounds : MonoBehaviour
 
         CurrentSource.volume = sw.vol + sw.vol * (Random.Range(-sw.volVariation, sw.volVariation))/100;
         CurrentSource.pitch = sw.pitch + sw.pitch * (Random.Range(-sw.pitchVariation, sw.pitchVariation)) / 100;
+        AudioClip clip = null;
         if (sw.isRandom)
         {
-            CurrentSource.clip = sw.audioClips[Random.Range(0, sw.audioClips.Count - 1)];
-            sw.audioClips.Remove(CurrentSource.clip);
-            sw.audioClips.Add(CurrentSource.clip);
+            clip = sw.audioClips[Random.Range(0, sw.audioClips.Count - 1)];
+            sw.audioClips.Remove(clip);
+            sw.audioClips.Add(clip);
         }
         else
         {
             // :/
             Debug.Log(sw.name + " IS NOT RANDOM >>:(");
         }
-        
-        CurrentSource.Play();
+
+        if (sw.isOneShot)
+        {
+            CurrentSource.PlayOneShot(clip);
+        }
+        else
+        {
+            CurrentSource.clip = clip;
+            CurrentSource.Play();
+        }
 
     }
 
@@ -95,9 +104,8 @@ public class RunnerSounds : MonoBehaviour
         {
             currSource = obj.AddComponent<AudioSource>();
         }
-
-        return currSource;
         
+        return currSource;
     }
 }
 
