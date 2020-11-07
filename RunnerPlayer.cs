@@ -11,7 +11,7 @@ public class RunnerPlayer : RunnerGameObject
     const float SPRINT_SPEED_PERCENT_BOOST = 0.3f;
     const float minCollideDist = 1f;
 
-    const int AMO_SIZE = 4;
+    public const int AMO_SIZE = 4;
     //List<TerrObject> checkClipObjs = new List<TerrObject>();
 
     //const int JUMP_FRAME_DELAY = 2;
@@ -29,7 +29,7 @@ public class RunnerPlayer : RunnerGameObject
     public bool canChangeState() { return canChange; }
 
     public bool HasRock { get; set; } = false;
-    int gunBullets = 0;
+    public int GunBullets { get; set; } = 0;
 
     public bool IsInvincible { get; set; } = false;
 
@@ -103,6 +103,7 @@ public class RunnerPlayer : RunnerGameObject
         animLA.runtimeAnimatorController = animLAOC;
         animLAIndex = animLAOC.animationClips[0].name;
         RunnerGunFire.onGunFireAnimEnd += gunFireAnimEnded;
+        RunnerGunFire.onGunFired += generateThrowable;
 
         animRAOC = new AnimatorOverrideController(animRA.runtimeAnimatorController);
         animRA.runtimeAnimatorController = animRAOC;
@@ -165,11 +166,11 @@ public class RunnerPlayer : RunnerGameObject
 
     void grabbedTempGun(TerrObject tempGunObj)
     {
-        if (gunBullets > 0) { return; }
+        if (GunBullets > 0) { return; }
 
         Debug.Log("GOT GUN!");
 
-        gunBullets = AMO_SIZE;
+        GunBullets = AMO_SIZE;
 
         tempGunObj.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
     }
@@ -444,11 +445,11 @@ public class RunnerPlayer : RunnerGameObject
 
     public void fireGun()
     {
-        if (gunBullets <= 0) { return; }
+        if (GunBullets <= 0) { return; }
 
-        gunBullets--;
+        GunBullets--;
 
-        if (gunBullets == 0)
+        if (GunBullets == 0)
         {
             defaultInitAction(PLAYER_STATE.THROW_G);
             return;
@@ -480,19 +481,23 @@ public class RunnerPlayer : RunnerGameObject
 
 
         int currState = anim.GetCurrentAnimatorStateInfo(0).fullPathHash;
-        float startNormTime = getNormTimeFromFrame(animDict[stateString], anim, startFrame);
+
+        //only exception to using startFrame with firing gun
+        int torsoStartFrame = state == PLAYER_STATE.FIRE? getCurrFrame(animDict["RUN"], anim) : startFrame;
+        float startNormTime = getNormTimeFromFrame(animDict[stateString], anim, torsoStartFrame);
 
         
         
 
         string LAstring = "LA_" + stateString;
-        LAstring = gunBullets > 0 && state != PLAYER_STATE.THROW_G && state != PLAYER_STATE.FIRE? LAstring + "_GUN" : LAstring;
+        LAstring = GunBullets > 0 && state != PLAYER_STATE.THROW_G && state != PLAYER_STATE.FIRE? LAstring + "_GUN" : LAstring;
         int currStateLA = animLA.GetCurrentAnimatorStateInfo(0).fullPathHash;
         float startNormTimeLA = getNormTimeFromFrame(animLADict[LAstring], animLA, startFrame);
         
 
         string RAstring = "RA_" + stateString;
-        RAstring = HasRock && state != PLAYER_STATE.THROW_R? RAstring + "_ROCK" : RAstring;
+        //TODO: get firing anim while holding rock
+        RAstring = HasRock && state != PLAYER_STATE.THROW_R && state != PLAYER_STATE.FIRE? RAstring + "_ROCK" : RAstring;
         
         int currStateRA = animRA.GetCurrentAnimatorStateInfo(0).fullPathHash;
         float startNormTimeRA = getNormTimeFromFrame(animRADict[RAstring], animRA, startFrame);

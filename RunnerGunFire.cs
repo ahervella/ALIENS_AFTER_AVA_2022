@@ -6,9 +6,9 @@ using static RunnerGameObject;
 public class RunnerGunFire : MonoBehaviour
 {
     public static event System.Action onGunFireAnimEnd = delegate { };
-    public static event System.Action<PLAYER_STATE> onGunFired = delegate { };
+    public static event System.Action<RunnerThrowable.THROW_TYPE> onGunFired = delegate { };
 
     //used by RA_FIRE animation clip events
     void gunFireAnimEnded() => onGunFireAnimEnd();
-    void gunFired() => onGunFireAnimEnd();
+    void gunFired() => onGunFired(RunnerThrowable.THROW_TYPE.BULLET);
 }

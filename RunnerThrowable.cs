@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(BoxCollider))]
+[RequireComponent(typeof(SpriteRenderer))]
 public class RunnerThrowable : MonoBehaviour
 {
     public enum THROW_TYPE { BULLET, ROCK, GUN};
