@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,6 +11,7 @@ public class RunnerPlayer : RunnerGameObject
     const float SPRINT_SPEED_PERCENT_BOOST = 0.3f;
     const float minCollideDist = 1f;
 
+    public const int AMO_SIZE = 4;
     //List<TerrObject> checkClipObjs = new List<TerrObject>();
 
     //const int JUMP_FRAME_DELAY = 2;
@@ -28,7 +29,7 @@ public class RunnerPlayer : RunnerGameObject
     public bool canChangeState() { return canChange; }
 
     public bool HasRock { get; set; } = false;
-    int gunBullets = 0;
+    public int GunBullets { get; set; } = 0;
 
     public bool IsInvincible { get; set; } = false;
 
@@ -42,6 +43,7 @@ public class RunnerPlayer : RunnerGameObject
     protected string animLAIndex;
     public AnimationClip[] animLAClips;
     Dictionary<string, AnimationClip> animLADict = new Dictionary<string, AnimationClip>();
+    void gunFireAnimEnded() => onAnimEnd(PLAYER_STATE.FIRE);
 
     protected Animator animRA;
     protected AnimatorOverrideController animRAOC;
@@ -54,6 +56,7 @@ public class RunnerPlayer : RunnerGameObject
     Dictionary<RunnerThrowable.THROW_TYPE, RunnerThrowable> throwablesDict = new Dictionary<RunnerThrowable.THROW_TYPE, RunnerThrowable>();
 
     PLAYER_STATE currState = PLAYER_STATE.RUN;
+    
 
     public static event System.Action<PLAYER_STATE> onAnimationStarted = delegate { };
     public static event System.Action<PLAYER_STATE> onAnimationEnded = delegate { };
@@ -69,6 +72,11 @@ public class RunnerPlayer : RunnerGameObject
 
         foreach (AnimationClip animClip in animClips)
         {
+            //we still want the torso run animation for firing a gun
+            if (animClip.name == "RUN")
+            {
+                animDict.Add("FIRE", animClip);
+            }
             animDict.Add(animClip.name, animClip);
         }
 
@@ -94,6 +102,8 @@ public class RunnerPlayer : RunnerGameObject
         animLAOC = new AnimatorOverrideController(animLA.runtimeAnimatorController);
         animLA.runtimeAnimatorController = animLAOC;
         animLAIndex = animLAOC.animationClips[0].name;
+        RunnerGunFire.onGunFireAnimEnd += gunFireAnimEnded;
+        RunnerGunFire.onGunFired += generateThrowable;
 
         animRAOC = new AnimatorOverrideController(animRA.runtimeAnimatorController);
         animRA.runtimeAnimatorController = animRAOC;
@@ -114,6 +124,15 @@ public class RunnerPlayer : RunnerGameObject
             if (terrObj.actionNeeded == currState)
             {
                 grabbedRock(terrObj);
+            }
+            return;
+        }
+
+        if (terrObj.objType == TerrObject.OBJ_TYPE.TEMP_GUN)
+        {
+            if (terrObj.actionNeeded == currState)
+            {
+                grabbedTempGun(terrObj);
             }
             return;
         }
@@ -143,6 +162,17 @@ public class RunnerPlayer : RunnerGameObject
 
         //make rock "disappear"
         rockObj.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
+    }
+
+    void grabbedTempGun(TerrObject tempGunObj)
+    {
+        if (GunBullets > 0) { return; }
+
+        Debug.Log("GOT GUN!");
+
+        GunBullets = AMO_SIZE;
+
+        tempGunObj.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
     }
 
     //Attempt at basically raycasting for fast moving objects
@@ -262,7 +292,6 @@ public class RunnerPlayer : RunnerGameObject
         RunnerSounds.Current.playSound(sw, this.gameObject);
     }
 
-    
 
     void onAnimEnd(AnimationClip animClip)
     {
@@ -277,6 +306,12 @@ public class RunnerPlayer : RunnerGameObject
             }
         }
 
+        onAnimEnd(animState);
+    }
+
+    //So that we can tell it fire ended without an anim clip
+    void onAnimEnd(PLAYER_STATE animState)
+    {
         if (gameIsOver() && animState != PLAYER_STATE.DEATH1)
         {
             initDeath();
@@ -292,11 +327,7 @@ public class RunnerPlayer : RunnerGameObject
             case PLAYER_STATE.JUMP:
                 switchAnimState(PLAYER_STATE.LAND_G);
                 //controls feel better this way
-                canChange = true;
-                if (!canSprint && sprintCoolDownCoroutine == null)
-                {
-                    sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
-                }
+                onAnimEndSwitch();
                 break;
 
 
@@ -309,27 +340,32 @@ public class RunnerPlayer : RunnerGameObject
             case PLAYER_STATE.DODGE_R:
             case PLAYER_STATE.ROLL:
                 switchAnimState(PLAYER_STATE.RUN, 7);
-                canChange = true;
-                if (!canSprint && sprintCoolDownCoroutine == null)
-                {
-                    sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
-                }
+                onAnimEndSwitch();
                 break;
 
+            case PLAYER_STATE.FIRE:
+                switchAnimState(PLAYER_STATE.RUN, getCurrFrame(animDict["RUN"], anim));
+                onAnimEndSwitch();
+                break;
 
             default:
                 switchAnimState(PLAYER_STATE.RUN);
-                canChange = true;
-                if (!canSprint && sprintCoolDownCoroutine == null)
-                {
-                    sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
-                }
+                onAnimEndSwitch();
                 break;
         }
 
 
         onAnimationEnded(animState);
+    }
 
+    private void onAnimEndSwitch()
+    {
+        canChange = true;
+        //in case we switched from a sprinting anim
+        if (!canSprint && sprintCoolDownCoroutine == null)
+        {
+            sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
+        }
     }
 
 
@@ -407,6 +443,21 @@ public class RunnerPlayer : RunnerGameObject
         HasRock = false;
     }
 
+    public void fireGun()
+    {
+        if (GunBullets <= 0) { return; }
+
+        GunBullets--;
+
+        if (GunBullets == 0)
+        {
+            defaultInitAction(PLAYER_STATE.THROW_G);
+            return;
+        }
+
+        defaultInitAction(PLAYER_STATE.FIRE);
+    }
+
 
     void defaultInitAction(PLAYER_STATE state)
     {
@@ -430,19 +481,23 @@ public class RunnerPlayer : RunnerGameObject
 
 
         int currState = anim.GetCurrentAnimatorStateInfo(0).fullPathHash;
-        float startNormTime = getNormTimeFromFrame(animDict[stateString], anim, startFrame);
+
+        //only exception to using startFrame with firing gun
+        int torsoStartFrame = state == PLAYER_STATE.FIRE? getCurrFrame(animDict["RUN"], anim) : startFrame;
+        float startNormTime = getNormTimeFromFrame(animDict[stateString], anim, torsoStartFrame);
 
         
-
+        
 
         string LAstring = "LA_" + stateString;
-        LAstring = gunBullets > 0 && state != PLAYER_STATE.THROW_G? LAstring + "_GUN" : LAstring;
+        LAstring = GunBullets > 0 && state != PLAYER_STATE.THROW_G && state != PLAYER_STATE.FIRE? LAstring + "_GUN" : LAstring;
         int currStateLA = animLA.GetCurrentAnimatorStateInfo(0).fullPathHash;
         float startNormTimeLA = getNormTimeFromFrame(animLADict[LAstring], animLA, startFrame);
         
 
         string RAstring = "RA_" + stateString;
-        RAstring = HasRock && state != PLAYER_STATE.THROW_R? RAstring + "_ROCK" : RAstring;
+        //TODO: get firing anim while holding rock
+        RAstring = HasRock && state != PLAYER_STATE.THROW_R && state != PLAYER_STATE.FIRE? RAstring + "_ROCK" : RAstring;
         
         int currStateRA = animRA.GetCurrentAnimatorStateInfo(0).fullPathHash;
         float startNormTimeRA = getNormTimeFromFrame(animRADict[RAstring], animRA, startFrame);

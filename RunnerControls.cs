@@ -198,6 +198,11 @@ public class RunnerControls : MonoBehaviour
             keyState = RunnerGameObject.PLAYER_STATE.THROW_R;
         }
 
+        else if (Input.GetKeyDown(KeyCode.G))
+        {
+            keyState = RunnerGameObject.PLAYER_STATE.FIRE;
+        }
+
         return new InputData(keyState);
     }
 

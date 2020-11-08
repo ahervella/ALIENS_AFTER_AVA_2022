@@ -30,7 +30,7 @@ public class SickMesh : MonoBehaviour
     public int rightMargin = 0;
 
     public float treadmillSpeed = 0.05f;
-    public float startingTreadmillSpeed;
+    private float startingTreadmillSpeed;
     public float treadmillAccel;
     float TMSlowDownTime = 0;
     float currTMSpeed;
@@ -108,6 +108,7 @@ public class SickMesh : MonoBehaviour
         RunnerPlayer.changeTreamillSpeed += changeTMSpeed;
         RunnerThrowable.throwableGenerated += addThrowable;
         RunnerThrowable.throwableDestroyed += removeThrowable;
+        TerrObject.terrObjDestroyed += onDestroyedTerrObj;
     }
 
     void createControlVertices()
@@ -204,11 +205,6 @@ public class SickMesh : MonoBehaviour
 
     }
 
-
-
-
-
-
     private void OnDrawGizmos()
     {
         if (rendVertices == null || !drawPoints) { return; }
@@ -228,18 +224,17 @@ public class SickMesh : MonoBehaviour
         }
     }
 
-
-
     private void Update()
     {
         updateTreadmillSpeed();
         generateTerrain();
         generateTerrObjs();
-        //inputUpdate();
         
         moveMesh();
         updateTerrObjAlpha();
         updateMesh();
+
+        destroyOverlappingBullet();
     }
 
 
@@ -470,7 +465,6 @@ public class SickMesh : MonoBehaviour
 
 
 
-
         //if its not a hazard, meaning it doesnt have to be in a designated lane, can be anywhere in the horz.
         float horizOffset = terrObj.objType == TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(widthUnit) / 2f, widthUnit / 2f) : 0f;
         float flipMultiplyer = terrObj.canFlip ? Random.Range(0, 2) * 2 - 1 : 1;
@@ -500,6 +494,20 @@ public class SickMesh : MonoBehaviour
         currTerrObjsDict[index].Add(terrObjInst);
     }
 
+    private void onDestroyedTerrObj(TerrObject terrObj)
+    {
+        foreach (int row in currTerrObjsDict.Keys)
+        {
+            if (currTerrObjsDict[row].Remove(terrObj))
+            {
+                if (currTerrObjsDict[row].Count == 0)
+                {
+                    currTerrObjsDict.Remove(row);
+                }
+                return;
+            }
+        }
+    }
 
     bool canAddToThisLane(int laneIndex, float vertOffset)
     {
@@ -579,6 +587,10 @@ public class SickMesh : MonoBehaviour
 
             case RunnerGameObject.PLAYER_STATE.THROW_R:
                 player.throwRock();
+                return;
+
+            case RunnerGameObject.PLAYER_STATE.FIRE:
+                player.fireGun();
                 return;
 
             default:
@@ -936,6 +948,26 @@ public class SickMesh : MonoBehaviour
             }
             vert++;
         }
+    }
+
+    //if the bullet goes through the mesh, don't want it to come out the end!
+    private void destroyOverlappingBullet()
+    {
+        foreach (RunnerThrowable throwable in throwables)
+        {
+            if (throwable.throwType != RunnerThrowable.THROW_TYPE.BULLET)
+            {
+                continue;
+            }
+
+            Vector3 pos = throwable.gameObject.transform.position;
+            if (getElevationAtPos(pos.x, pos.z) > pos.y)
+            {
+                Debug.Log("destroyed bullet from sickMesh!");
+                Destroy(throwable.gameObject);
+            }
+        }
+
     }
 
 }
