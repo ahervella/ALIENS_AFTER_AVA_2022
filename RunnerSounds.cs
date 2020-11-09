@@ -8,7 +8,7 @@ public class RunnerSounds : MonoBehaviour
     //DJs record players (only increases if needed for now)
     List<AudioSource> audioSources = new List<AudioSource>();
 
-    
+
     //the single reference to the only DJ ever
     static public RunnerSounds Current = null;
 
@@ -53,27 +53,35 @@ public class RunnerSounds : MonoBehaviour
     {
         AudioSource CurrentSource = getAudioSource(soundObject, acw.isOneShot);
 
-        CurrentSource.volume = acw.vol + acw.vol * (Random.Range(-acw.volVariation, acw.volVariation))/100;
+        CurrentSource.volume = acw.vol + acw.vol * (Random.Range(-acw.volVariation, acw.volVariation)) / 100;
         CurrentSource.pitch = acw.pitch + acw.pitch * (Random.Range(-acw.pitchVariation, acw.pitchVariation)) / 100;
+        AudioClip clip = null;
         if (acw.isRandom)
         {
-            CurrentSource.clip = acw.audioClips[Random.Range(0, acw.audioClips.Count - 1)];
-            acw.audioClips.Remove(CurrentSource.clip);
-            acw.audioClips.Add(CurrentSource.clip);
+            clip = acw.audioClips[Random.Range(0, acw.audioClips.Count - 1)];
+            acw.audioClips.Remove(clip);
+            acw.audioClips.Add(clip);
         }
         else
         {
             // :/
             Debug.Log(acw.name + " IS NOT RANDOM >>:(");
         }
-        
-        CurrentSource.Play();
 
+        if (acw.isOneShot)
+        {
+            CurrentSource.PlayOneShot(clip);
+        }
+        else
+        {
+            CurrentSource.clip = clip;
+            CurrentSource.Play();
+        }
     }
 
     public void playSound(SoundWrapper sw, GameObject soundObject)
     {
-        foreach(AudioClipWrapper acw in sw.audioClipWrappers)
+        foreach (AudioClipWrapper acw in sw.audioClipWrappers)
         {
             playSound(acw, soundObject);
         }
@@ -105,7 +113,7 @@ public class RunnerSounds : MonoBehaviour
         }
 
         return currSource;
-        
+
     }
 }
 

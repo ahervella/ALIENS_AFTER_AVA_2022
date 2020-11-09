@@ -43,7 +43,7 @@ public class RunnerPlayer : RunnerGameObject
     protected string animLAIndex;
     public AnimationClip[] animLAClips;
     Dictionary<string, AnimationClip> animLADict = new Dictionary<string, AnimationClip>();
-    void gunFireAnimEnded() => onAnimEnd(PLAYER_STATE.FIRE);
+    void gunFireAnimEnded() => onAnimStateEnd(PLAYER_STATE.FIRE);
 
     protected Animator animRA;
     protected AnimatorOverrideController animRAOC;
@@ -287,7 +287,7 @@ public class RunnerPlayer : RunnerGameObject
         return lives < 0;
     }
 
-    void playAnimSound(AudioClipWrapper acw)
+    void playAnimAudioClip(AudioClipWrapper acw)
     {
         RunnerSounds.Current.playSound(acw, this.gameObject);
     }
@@ -311,11 +311,11 @@ public class RunnerPlayer : RunnerGameObject
             }
         }
 
-        onAnimEnd(animState);
+        onAnimStateEnd(animState);
     }
 
     //So that we can tell it fire ended without an anim clip
-    void onAnimEnd(PLAYER_STATE animState)
+    void onAnimStateEnd(PLAYER_STATE animState)
     {
         if (gameIsOver() && animState != PLAYER_STATE.DEATH1)
         {

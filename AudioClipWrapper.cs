@@ -5,7 +5,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Data", menuName = "ScriptableObjects/AudioClipWrapper", order = 1)]
 public class AudioClipWrapper : ScriptableObject
 {
-    public GameObject gameObject;
     public List<AudioClip> audioClips = new List<AudioClip>();
     public float vol = 1;
     public float pitch = 1;
