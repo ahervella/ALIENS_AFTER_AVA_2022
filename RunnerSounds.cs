@@ -49,26 +49,34 @@ public class RunnerSounds : MonoBehaviour
 
     //any time anyone wants to play a sound from anywhere
     //use this method (with the current DJ)
-    public void playSound(SoundWrapper sw, GameObject soundObject)
+    public void playSound(AudioClipWrapper acw, GameObject soundObject)
     {
-        AudioSource CurrentSource = getAudioSource(soundObject, sw.isOneShot);
+        AudioSource CurrentSource = getAudioSource(soundObject, acw.isOneShot);
 
-        CurrentSource.volume = sw.vol + sw.vol * (Random.Range(-sw.volVariation, sw.volVariation))/100;
-        CurrentSource.pitch = sw.pitch + sw.pitch * (Random.Range(-sw.pitchVariation, sw.pitchVariation)) / 100;
-        if (sw.isRandom)
+        CurrentSource.volume = acw.vol + acw.vol * (Random.Range(-acw.volVariation, acw.volVariation))/100;
+        CurrentSource.pitch = acw.pitch + acw.pitch * (Random.Range(-acw.pitchVariation, acw.pitchVariation)) / 100;
+        if (acw.isRandom)
         {
-            CurrentSource.clip = sw.audioClips[Random.Range(0, sw.audioClips.Count - 1)];
-            sw.audioClips.Remove(CurrentSource.clip);
-            sw.audioClips.Add(CurrentSource.clip);
+            CurrentSource.clip = acw.audioClips[Random.Range(0, acw.audioClips.Count - 1)];
+            acw.audioClips.Remove(CurrentSource.clip);
+            acw.audioClips.Add(CurrentSource.clip);
         }
         else
         {
             // :/
-            Debug.Log(sw.name + " IS NOT RANDOM >>:(");
+            Debug.Log(acw.name + " IS NOT RANDOM >>:(");
         }
         
         CurrentSource.Play();
 
+    }
+
+    public void playSound(SoundWrapper sw, GameObject soundObject)
+    {
+        foreach(AudioClipWrapper acw in sw.audioClipWrappers)
+        {
+            playSound(acw, soundObject);
+        }
     }
 
     //get the first available record player
