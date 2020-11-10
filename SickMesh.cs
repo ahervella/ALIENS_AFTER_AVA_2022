@@ -207,20 +207,26 @@ public class SickMesh : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if (rendVertices == null || !drawPoints) { return; }
+        if (/*rendVertices == null || */!drawPoints) { return; }
 
         Vector3[] points = drawOnlyControlPoints ? vertices : rendVertices;
+
+        //Gizmos.DrawSphere(Vector3.zero, 0.2f);
 
         for (int i = 0; i < points.Length; i++)
         {
             Vector3 point = points[i];
+            Gizmos.DrawSphere(point, 0.2f);
+            /*
+            continue;
             if (point.z <= (height - topMargin) * heightUnit
                 && point.z >= bottomMargin * heightUnit
                 && point.x <= (width - rightMargin) * widthUnit
                 && point.x >= leftMargin * widthUnit)
             {
-                Gizmos.DrawSphere(point, 0.05f);
+                Gizmos.DrawSphere(point, 0.2f);
             }
+            */
         }
     }
 
@@ -467,7 +473,13 @@ public class SickMesh : MonoBehaviour
 
         //if its not a hazard, meaning it doesnt have to be in a designated lane, can be anywhere in the horz.
         float horizOffset = terrObj.objType == TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(widthUnit) / 2f, widthUnit / 2f) : 0f;
+
         float flipMultiplyer = terrObj.canFlip ? Random.Range(0, 2) * 2 - 1 : 1;
+
+        if (terrObj.centerXPosWithHitBox)
+        {
+            horizOffset -= terrObj.getOffsetFromHitBox().x;// * flipMultiplyer;
+        }
 
         TerrObject terrObjInst = Instantiate(terrObj);
 

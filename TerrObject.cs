@@ -25,6 +25,8 @@ public class TerrObject : RunnerGameObject
 
     public float elevationOffsetPerc = 0f;
 
+    public bool centerXPosWithHitBox = false;
+
     public float minHeightUnitsForNextHaz = 0f;
 
 
@@ -32,6 +34,11 @@ public class TerrObject : RunnerGameObject
     {
         int index = Random.Range(0, animClips.Length);
         animOC[animIndex] = animClips[index];
+    }
+
+    public Vector3 getOffsetFromHitBox()
+    {
+        return gameObject.GetComponent<BoxCollider>().center * gameObject.transform.localScale.x;
     }
 
     private void OnDestroy()
