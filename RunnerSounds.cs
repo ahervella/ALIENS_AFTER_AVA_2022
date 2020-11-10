@@ -5,8 +5,6 @@ using UnityEngine;
 //aka, our class type of DJ
 public class RunnerSounds : MonoBehaviour
 {
-    //DJs record players (only increases if needed for now)
-    List<AudioSource> audioSources = new List<AudioSource>();
 
 
     //the single reference to the only DJ ever
@@ -56,6 +54,7 @@ public class RunnerSounds : MonoBehaviour
         CurrentSource.volume = acw.vol + acw.vol * (Random.Range(-acw.volVariation, acw.volVariation)) / 100;
         CurrentSource.pitch = acw.pitch + acw.pitch * (Random.Range(-acw.pitchVariation, acw.pitchVariation)) / 100;
         AudioClip clip = null;
+
         if (acw.isRandom)
         {
             clip = acw.audioClips[Random.Range(0, acw.audioClips.Count - 1)];
@@ -90,30 +89,39 @@ public class RunnerSounds : MonoBehaviour
     //get the first available record player
     private AudioSource getAudioSource(GameObject obj, bool useOneShot)
     {
-        AudioSource currSource;
-        /*
-        for (int i = 0; i < audioSources.Count; i++)
+        AudioSource[] audioSources = obj.GetComponents<AudioSource>();
+        AudioSource availSource = null;
+
+        if (audioSources == null) //If there are no audio sources on the object
         {
-            currSource = audioSources[i];
-            if (!currSource.isPlaying)
+            availSource = obj.AddComponent<AudioSource>(); //Make one and use it
+        }
+        else //If there are audiosources on the object
+        {
+            switch (useOneShot)
             {
-                return currSource;
+                case true: //If it's a one-shot
+                    availSource = audioSources[audioSources.Length - 1]; //Use the last source
+                    //Debug.Log("OneShot source chosen");
+                    break;
+                case false:
+                    for (int i = 0; i < audioSources.Length - 1; i++) //Checks for available audio sources
+                    {
+                        AudioSource thisSource = audioSources[i];
+
+                        if (!thisSource.isPlaying)//If it isn't playing
+                        {
+                            availSource = thisSource; //Use this source
+                        }
+                        if (availSource != null) //If we chose an audio source
+                        {
+                            break; //Stop checking
+                        }
+                    }
+                    break;
             }
         }
-
-        currSource = gameObject.AddComponent<AudioSource>();
-        audioSources.Add(currSource);
-        */
-
-        currSource = obj.GetComponent<AudioSource>();
-
-        if (currSource == null || (!useOneShot && currSource.isPlaying))
-        {
-            currSource = obj.AddComponent<AudioSource>();
-        }
-
-        return currSource;
-
+        return availSource;
     }
 }
 
