@@ -105,7 +105,7 @@ public class RunnerSounds : MonoBehaviour
                     //Debug.Log("OneShot source chosen");
                     break;
                 case false:
-                    for (int i = 0; i < audioSources.Length - 1; i++) //Checks for available audio sources
+                    for (int i = 0; i < audioSources.Length; i++) //Checks for available audio sources
                     {
                         AudioSource thisSource = audioSources[i];
 
