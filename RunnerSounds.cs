@@ -90,38 +90,29 @@ public class RunnerSounds : MonoBehaviour
     private AudioSource getAudioSource(GameObject obj, bool useOneShot)
     {
         AudioSource[] audioSources = obj.GetComponents<AudioSource>();
-        AudioSource availSource = null;
 
         if (audioSources == null) //If there are no audio sources on the object
         {
-            availSource = obj.AddComponent<AudioSource>(); //Make one and use it
+            return obj.AddComponent<AudioSource>(); //Make one and use it
         }
-        else //If there are audiosources on the object
-        {
-            switch (useOneShot)
-            {
-                case true: //If it's a one-shot
-                    availSource = audioSources[audioSources.Length - 1]; //Use the last source
-                    //Debug.Log("OneShot source chosen");
-                    break;
-                case false:
-                    for (int i = 0; i < audioSources.Length; i++) //Checks for available audio sources
-                    {
-                        AudioSource thisSource = audioSources[i];
 
-                        if (!thisSource.isPlaying)//If it isn't playing
-                        {
-                            availSource = thisSource; //Use this source
-                        }
-                        if (availSource != null) //If we chose an audio source
-                        {
-                            break; //Stop checking
-                        }
-                    }
-                    break;
+        /* if (useOneShot) //If it's a one-shot
+        {
+            //availSource = audioSources[audioSources.Length - 1]; //Use the last source
+            return 
+            Debug.Log("ONESHOT!!! >:(");
+        }*/
+
+        for (int i = 0; i < audioSources.Length; i++) //Checks for available audio sources
+        {
+            AudioSource thisSource = audioSources[i];
+
+            if (!thisSource.isPlaying)//If it isn't playing
+            {
+                return thisSource; //Use this source
             }
         }
-        return availSource;
+        return obj.AddComponent<AudioSource>();
     }
 }
 
