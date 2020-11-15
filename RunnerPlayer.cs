@@ -287,16 +287,15 @@ public class RunnerPlayer : RunnerGameObject
         return lives < 0;
     }
 
-    void playAnimAudioClip(AudioClipWrapper acw)
-    {
-        RunnerSounds.Current.playSound(acw, this.gameObject);
-    }
+    //void playAnimAudioEvent(AudioEventWrapper aew)
+    //{
+    //    RunnerSounds.Current.PlayAudioWrapper(aew, gameObject);
+    //}
 
-    void playAnimSound(SoundWrapper sw)
+    void playAnimAudioWrapper(AAudioWrapper aw)
     {
-        RunnerSounds.Current.playSound(sw, this.gameObject);
+        RunnerSounds.Current.PlayAudioWrapper(aw, gameObject);
     }
-
 
     void onAnimEnd(AnimationClip animClip)
     {
