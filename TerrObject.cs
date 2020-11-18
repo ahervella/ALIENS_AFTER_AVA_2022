@@ -11,6 +11,7 @@ public class TerrObject : RunnerGameObject
 
     public enum OBJ_TYPE { STATIC, STATIC_HAZ, ROCK, TEMP_GUN, ENEMY, THROWABLE};
 
+    public const float ATTACHMENT_SPACING = 0.2f;
     //public enum ACTION { JUMP, ROLL, SPRINT}
 
     public OBJ_TYPE objType = OBJ_TYPE.STATIC;
@@ -27,8 +28,11 @@ public class TerrObject : RunnerGameObject
 
     public bool centerXPosWithHitBox = false;
 
+    public int laneOffset = 0;
+
     public float minHeightUnitsForNextHaz = 0f;
 
+    public List<TerrObject> AttachmentObjects { get; set; } = new List<TerrObject>();
 
     public void RandomizeSpriteType()
     {
@@ -43,6 +47,11 @@ public class TerrObject : RunnerGameObject
 
     private void OnDestroy()
     {
+        foreach(TerrObject attachment in AttachmentObjects)
+        {
+            Destroy(attachment);
+        }
+
         terrObjDestroyed(this);
     }
 }

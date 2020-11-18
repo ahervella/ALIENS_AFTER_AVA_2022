@@ -68,7 +68,10 @@ public class SickMesh : MonoBehaviour
     public Vector3[] rendVertices;
 
     public Terrainnnn[] terrains;
+    //TODO: make these read onlys
     public List<TerrObject> terrObjects;
+    public List<TerrObject> attachmentTerrObjects = new List<TerrObject>();
+    private List<TerrObject> attachmentTerrObjs = new List<TerrObject>();
     List<RunnerThrowable> throwables = new List<RunnerThrowable>();
 
     public RunnerPlayer player;
@@ -109,6 +112,8 @@ public class SickMesh : MonoBehaviour
         RunnerThrowable.throwableGenerated += addThrowable;
         RunnerThrowable.throwableDestroyed += removeThrowable;
         TerrObject.terrObjDestroyed += onDestroyedTerrObj;
+
+        attachmentTerrObjs.AddRange(attachmentTerrObjects);
     }
 
     void createControlVertices()
@@ -276,12 +281,24 @@ public class SickMesh : MonoBehaviour
     {
         if (hideTerrObjs) { return; }
 
+
+
         foreach (TerrObject terrObj in terrObjects)
         {
 
             if (trueFromLikelihood(terrObj.appearanceLikelihood))
             {
-                addTerrObj(terrObj);
+                TerrObject attachment = null;
+                foreach (TerrObject attachmentTerrObj in attachmentTerrObjs)
+                {
+                    if (trueFromLikelihood(attachmentTerrObj.appearanceLikelihood))
+                    {
+                        attachment = attachmentTerrObj;
+                        break;
+                    }
+                }
+
+                addTerrObj(terrObj, attachment);
             }
         }
     }
@@ -461,13 +478,44 @@ public class SickMesh : MonoBehaviour
     }
 
 
-    void addTerrObj(TerrObject terrObj)
+    void addTerrObj(TerrObject terrObj, TerrObject attachment = null)
     {
-        int index = Random.Range(0, width + 1);
+        int index;
+        float vertOffset;
+        TerrObject terrObjInst = initTerrObj(terrObj, out index, out vertOffset);
 
-        float vertOffset = Random.Range(-(heightUnit) / 2f, heightUnit / 2f);//TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(heightUnit) / 2f, heightUnit / 2f) : 0f;
 
-        if (terrObj.objType == TerrObject.OBJ_TYPE.STATIC_HAZ && !canAddToThisLane(index, vertOffset)) { return; }
+        if (!currTerrObjsDict.ContainsKey(index))
+        {
+            currTerrObjsDict.Add(index, new List<TerrObject>());
+        }
+
+        currTerrObjsDict[index].Add(terrObjInst);
+
+        if (attachment == null) { return; }
+
+        int attachmentIndex;
+        float attachmentVertOffset;
+        TerrObject attachmentTerrObjInst = initTerrObj(attachment, out attachmentIndex, out attachmentVertOffset, index, vertOffset);
+
+        terrObjInst.AttachmentObjects.Add(attachmentTerrObjInst);
+
+        if (!currTerrObjsDict.ContainsKey(attachmentIndex))
+        {
+            currTerrObjsDict.Add(attachmentIndex, new List<TerrObject>());
+        }
+
+        currTerrObjsDict[attachmentIndex].Add(attachmentTerrObjInst);
+    }
+
+    TerrObject initTerrObj(TerrObject terrObj, out int index, out float vertOffset, int givenIndex = -1, float? givenVertOffset = null)
+    {
+        index = givenIndex == -1? Random.Range(0, width + 1) : givenIndex;
+        index += terrObj.laneOffset;
+
+        vertOffset = givenVertOffset == null? Random.Range(-(heightUnit) / 2f, heightUnit / 2f) : (float) givenVertOffset + TerrObject.ATTACHMENT_SPACING;//TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(heightUnit) / 2f, heightUnit / 2f) : 0f;
+
+        if (terrObj.objType == TerrObject.OBJ_TYPE.STATIC_HAZ && !canAddToThisLane(index, vertOffset)) { return null; }
 
 
 
@@ -487,23 +535,18 @@ public class SickMesh : MonoBehaviour
 
         //TODO: future if using log with middle roll, sides jump, need to change this
         //for now just assuming all terrObj are 1 width in hitbox, and skinny ( /4) so that doesn't hit on changing lanes too soon
-        terrObjInst.hitBox.size = new Vector3(calcHitBoxSizeX( terrObjInst.transform.localScale.x), terrObjInst.hitBox.size.y, terrObjInst.hitBox.size.z * 4 * speedMultiplyer);
+        terrObjInst.hitBox.size = new Vector3(calcHitBoxSizeX(terrObjInst.transform.localScale.x), terrObjInst.hitBox.size.y, terrObjInst.hitBox.size.z * 4 * speedMultiplyer);
         //terrObj.hitBox.size = new Vector3(terrObj.hitBoxUnitWidth * widthUnit / terrObj.transform.localScale.x, terrObj.hitBox.size.y, terrObj.hitBox.size.z);
 
         terrObjInst.RandomizeSpriteType();
 
-        terrObjInst.gameObject.GetComponent<SpriteRenderer>().flipX = flipMultiplyer > 0? false : true;
+        terrObjInst.gameObject.GetComponent<SpriteRenderer>().flipX = flipMultiplyer > 0 ? false : true;
 
         Vector3 pos = vertices[index] + new Vector3(horizOffset, hitBoxElevOffset(terrObj), vertOffset);
 
         terrObjInst.transform.position = pos;
-        //currTerrObjs.Add(terrObjInst);
-        if (!currTerrObjsDict.ContainsKey(index))
-        {
-            currTerrObjsDict.Add(index, new List<TerrObject>());
-        }
 
-        currTerrObjsDict[index].Add(terrObjInst);
+        return terrObjInst;
     }
 
     private void onDestroyedTerrObj(TerrObject terrObj)
