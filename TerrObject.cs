@@ -32,6 +32,8 @@ public class TerrObject : RunnerGameObject
 
     public float minHeightUnitsForNextHaz = 0f;
 
+    public bool canHaveAttachments = false;
+
     public List<TerrObject> AttachmentObjects { get; set; } = new List<TerrObject>();
 
     public void RandomizeSpriteType()

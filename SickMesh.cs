@@ -281,14 +281,18 @@ public class SickMesh : MonoBehaviour
     {
         if (hideTerrObjs) { return; }
 
-
-
         foreach (TerrObject terrObj in terrObjects)
         {
-
             if (trueFromLikelihood(terrObj.appearanceLikelihood))
             {
+                if (!terrObj.canHaveAttachments)
+                {
+                    AddTerrObj(terrObj);
+                    continue;
+                }
+
                 TerrObject attachment = null;
+
                 foreach (TerrObject attachmentTerrObj in attachmentTerrObjs)
                 {
                     if (trueFromLikelihood(attachmentTerrObj.appearanceLikelihood))
@@ -298,7 +302,7 @@ public class SickMesh : MonoBehaviour
                     }
                 }
 
-                addTerrObj(terrObj, attachment);
+                AddTerrObj(terrObj, attachment);
             }
         }
     }
@@ -478,12 +482,13 @@ public class SickMesh : MonoBehaviour
     }
 
 
-    void addTerrObj(TerrObject terrObj, TerrObject attachment = null)
+    void AddTerrObj(TerrObject terrObj, TerrObject attachment = null)
     {
         int index;
         float vertOffset;
-        TerrObject terrObjInst = initTerrObj(terrObj, out index, out vertOffset);
+        TerrObject terrObjInst = InitTerrObj(terrObj, out index, out vertOffset);
 
+        if (terrObjInst == null) { return; }
 
         if (!currTerrObjsDict.ContainsKey(index))
         {
@@ -496,7 +501,7 @@ public class SickMesh : MonoBehaviour
 
         int attachmentIndex;
         float attachmentVertOffset;
-        TerrObject attachmentTerrObjInst = initTerrObj(attachment, out attachmentIndex, out attachmentVertOffset, index, vertOffset);
+        TerrObject attachmentTerrObjInst = InitTerrObj(attachment, out attachmentIndex, out attachmentVertOffset, index, vertOffset);
 
         terrObjInst.AttachmentObjects.Add(attachmentTerrObjInst);
 
@@ -508,10 +513,13 @@ public class SickMesh : MonoBehaviour
         currTerrObjsDict[attachmentIndex].Add(attachmentTerrObjInst);
     }
 
-    TerrObject initTerrObj(TerrObject terrObj, out int index, out float vertOffset, int givenIndex = -1, float? givenVertOffset = null)
+    TerrObject InitTerrObj(TerrObject terrObj, out int index, out float vertOffset, int givenIndex = -1, float? givenVertOffset = null)
     {
+        //TODO: make a flip terrObject method within TerrObject
+        int flipMultiplyer = terrObj.canFlip ? Random.Range(0, 2) * 2 - 1 : 1;
+
         index = givenIndex == -1? Random.Range(0, width + 1) : givenIndex;
-        index += terrObj.laneOffset;
+        index += terrObj.laneOffset * flipMultiplyer;
 
         vertOffset = givenVertOffset == null? Random.Range(-(heightUnit) / 2f, heightUnit / 2f) : (float) givenVertOffset + TerrObject.ATTACHMENT_SPACING;//TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(heightUnit) / 2f, heightUnit / 2f) : 0f;
 
@@ -522,11 +530,10 @@ public class SickMesh : MonoBehaviour
         //if its not a hazard, meaning it doesnt have to be in a designated lane, can be anywhere in the horz.
         float horizOffset = terrObj.objType == TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(widthUnit) / 2f, widthUnit / 2f) : 0f;
 
-        float flipMultiplyer = terrObj.canFlip ? Random.Range(0, 2) * 2 - 1 : 1;
 
         if (terrObj.centerXPosWithHitBox)
         {
-            horizOffset -= terrObj.getOffsetFromHitBox().x;// * flipMultiplyer;
+            horizOffset -= terrObj.getOffsetFromHitBox().x * flipMultiplyer;
         }
 
         TerrObject terrObjInst = Instantiate(terrObj);
@@ -536,6 +543,9 @@ public class SickMesh : MonoBehaviour
         //TODO: future if using log with middle roll, sides jump, need to change this
         //for now just assuming all terrObj are 1 width in hitbox, and skinny ( /4) so that doesn't hit on changing lanes too soon
         terrObjInst.hitBox.size = new Vector3(calcHitBoxSizeX(terrObjInst.transform.localScale.x), terrObjInst.hitBox.size.y, terrObjInst.hitBox.size.z * 4 * speedMultiplyer);
+
+        terrObjInst.hitBox.center = new Vector3(terrObjInst.hitBox.center.x * flipMultiplyer, terrObjInst.hitBox.center.y, terrObjInst.hitBox.center.z);
+
         //terrObj.hitBox.size = new Vector3(terrObj.hitBoxUnitWidth * widthUnit / terrObj.transform.localScale.x, terrObj.hitBox.size.y, terrObj.hitBox.size.z);
 
         terrObjInst.RandomizeSpriteType();
