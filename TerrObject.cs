@@ -14,6 +14,9 @@ public class TerrObject : RunnerGameObject
     public const float ATTACHMENT_SPACING = 0.2f;
     //public enum ACTION { JUMP, ROLL, SPRINT}
 
+    public const float ALIEN_ATTACK_DIST = 10f;
+    public bool played = false;
+
     public OBJ_TYPE objType = OBJ_TYPE.STATIC;
 
     public PLAYER_STATE actionNeeded = PLAYER_STATE.NONE;

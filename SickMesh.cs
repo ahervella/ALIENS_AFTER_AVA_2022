@@ -75,6 +75,7 @@ public class SickMesh : MonoBehaviour
     List<RunnerThrowable> throwables = new List<RunnerThrowable>();
 
     public RunnerPlayer player;
+    private int playerLane;
 
 
     //list for value because could generate more than one instance before control point
@@ -99,6 +100,8 @@ public class SickMesh : MonoBehaviour
         }
 
         player.transform.position = new Vector3((width / 2) * widthUnit, player.hitBox.size.y / 2f * player.transform.localScale.y, player.transform.position.z);//bottomMargin * heightUnit);
+        playerLane = width / 2;
+
 
         currTMSpeed = treadmillSpeed;
         targetTMSpeed = treadmillSpeed;
@@ -243,6 +246,7 @@ public class SickMesh : MonoBehaviour
         
         moveMesh();
         updateTerrObjAlpha();
+        UpdateAliens();
         updateMesh();
 
         destroyOverlappingBullet();
@@ -419,6 +423,8 @@ public class SickMesh : MonoBehaviour
             }
         }
     }
+
+
 
 
     float getElevationAtPos(float xVal, float zVal)
@@ -670,6 +676,9 @@ public class SickMesh : MonoBehaviour
         yield return new WaitForSecondsRealtime(delayTime);
 
         changeLaneDir = dir;
+        //player will never be lane 0 or width+1 because doesn't reach ends
+        playerLane = playerLane - dir;//Mathf.Clamp(playerLane - dir, 0, width);
+        Debug.Log(playerLane);
 
     }
 
@@ -876,6 +885,8 @@ public class SickMesh : MonoBehaviour
             int invModifier = movingRight ? 0 : 1;
             int dirModifier = movingRight ? 1 : -1;
 
+            playerLane += dirModifier;
+
             Vector3[] shortenedList = new Vector3[vertices.Length - (height + 1)];
 
 
@@ -968,7 +979,38 @@ public class SickMesh : MonoBehaviour
         }
     }
 
+    void UpdateAliens()
+    {
+        foreach (TerrObject terrObject in GetObjectsInLane(playerLane))
+        {
+            if (terrObject.objType == TerrObject.OBJ_TYPE.ENEMY && !terrObject.played)
+            {
+                if (terrObject.transform.position.z - player.transform.position.z < TerrObject.ALIEN_ATTACK_DIST)
+                {
+                    terrObject.played = true;
+                    Debug.Log("haza!");
+                }
+            }
+        }
+    }
 
+    List<TerrObject> GetObjectsInLane(int lane)
+    {
+        List<TerrObject> objectsInLane = new List<TerrObject>();
+
+        for (int i = lane; lane < (width+1) * (height+1); lane += width + 1)
+        {
+            if (currTerrObjsDict.ContainsKey(lane))
+            {
+                foreach(TerrObject terrObject in currTerrObjsDict[lane])
+                {
+                    objectsInLane.Add(terrObject);
+                }
+            }
+        }
+
+        return objectsInLane;
+    }
 
     void updateMesh()
     {
