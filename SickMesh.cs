@@ -509,7 +509,10 @@ public class SickMesh : MonoBehaviour
         float attachmentVertOffset;
         TerrObject attachmentTerrObjInst = InitTerrObj(attachment, out attachmentIndex, out attachmentVertOffset, index, vertOffset);
 
-        terrObjInst.AttachmentObjects.Add(attachmentTerrObjInst);
+        if (attachmentTerrObjInst == null) { return; }
+
+        terrObjInst.AddAlienAttachment(attachmentTerrObjInst);
+        //terrObjInst.AttachmentObjects.Add(attachmentTerrObjInst);
 
         if (!currTerrObjsDict.ContainsKey(attachmentIndex))
         {
@@ -556,7 +559,8 @@ public class SickMesh : MonoBehaviour
 
         terrObjInst.RandomizeSpriteType();
 
-        terrObjInst.gameObject.GetComponent<SpriteRenderer>().flipX = flipMultiplyer > 0 ? false : true;
+        //terrObjInst.gameObject.GetComponent<SpriteRenderer>().flipX = flipMultiplyer > 0 ? false : true;
+        terrObjInst.flipTerrObj(flipMultiplyer);
 
         Vector3 pos = vertices[index] + new Vector3(horizOffset, hitBoxElevOffset(terrObj), vertOffset);
 
@@ -690,8 +694,8 @@ public class SickMesh : MonoBehaviour
         //incase of death and still
         if (targetTMSpeed > 0.0001f)
         {
-            treadmillSpeed += treadmillAccel * Time.deltaTime;
-            currTMSpeed += treadmillAccel * Time.deltaTime;
+            treadmillSpeed += 0;//treadmillAccel * Time.deltaTime * Time.deltaTime;
+            currTMSpeed += 0;//treadmillAccel * Time.deltaTime * Time.deltaTime;
         }
 
         //if (treadmillSpeed % 0.01 < 0.01) { Debug.Log(currTMSpeed); }
@@ -729,6 +733,8 @@ public class SickMesh : MonoBehaviour
     {
         //for controling lane changing
 
+        float speedToApply = currTMSpeed * Time.deltaTime;
+
         float change = 0f;
 
         if (changeLaneDir != 0)
@@ -758,13 +764,13 @@ public class SickMesh : MonoBehaviour
         //applying treadmill move and lane change
         for (int i = 0; i < rendVertices.Length; i++)
         {
-            rendVertices[i] += new Vector3(change / (float)(fillPointCount + 1), 0, -currTMSpeed);
+            rendVertices[i] += new Vector3(change / (float)(fillPointCount + 1), 0, -speedToApply);
         }
 
 
         for (int k = 0; k < vertices.Length; k++)
         {
-            vertices[k] += new Vector3(change, 0, -currTMSpeed);
+            vertices[k] += new Vector3(change, 0, -speedToApply);
         }
 
 
@@ -772,7 +778,7 @@ public class SickMesh : MonoBehaviour
         {
             for (int t = 0; t < currTerrObjsDict[key].Count; t++)
             {
-                currTerrObjsDict[key][t].transform.position += new Vector3(change, 0, -currTMSpeed);
+                currTerrObjsDict[key][t].transform.position += new Vector3(change, 0, -speedToApply);
             }
             
         }
@@ -985,9 +991,14 @@ public class SickMesh : MonoBehaviour
         {
             if (terrObject.objType == TerrObject.OBJ_TYPE.ENEMY && !terrObject.played)
             {
-                if (terrObject.transform.position.z - player.transform.position.z < TerrObject.ALIEN_ATTACK_DIST)
+                float dist = terrObject.transform.position.z - player.transform.position.z;
+                //quadratic formula
+                float timeToClostDist = (-currTMSpeed + Mathf.Sqrt(currTMSpeed * currTMSpeed - 4 * (treadmillAccel / 2f) * (-dist)))/(treadmillAccel);
+                Debug.Log("progress... " + timeToClostDist);
+                if (timeToClostDist < terrObject.alienAttackTime && timeToClostDist > (terrObject.alienAttackTime - TerrObject.ALIEN_ATTACK_THRESHOLD ))
                 {
-                    terrObject.played = true;
+                    Debug.Log("the vel, accel, and time calculated:" + currTMSpeed + "  " + treadmillAccel + "  " + timeToClostDist);
+                    terrObject.PlayAnimation();
                     Debug.Log("haza!");
                 }
             }

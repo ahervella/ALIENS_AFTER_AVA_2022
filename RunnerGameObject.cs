@@ -29,7 +29,7 @@ public class RunnerGameObject : MonoBehaviour
 
     public static float getGameFPS() { return GAME_FPS; }
 
-    void OnEnable()
+    protected void Awake()
     {
         anim = gameObject.GetComponent<Animator>();
         animOC = new AnimatorOverrideController(anim.runtimeAnimatorController);

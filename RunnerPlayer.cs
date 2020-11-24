@@ -142,13 +142,17 @@ public class RunnerPlayer : RunnerGameObject
             return;
         }
 
+        if (terrObj.objType == TerrObject.OBJ_TYPE.ENEMY && !terrObj.played)
+        {
+            return;
+        }
+
         if (terrObj.objType != TerrObject.OBJ_TYPE.STATIC && terrObj.actionNeeded != currState)
         {
             
             looseLife(terrObj);
             Debug.Log("IM HIT!!!!");
         }
-
         
     }
 
