@@ -44,11 +44,24 @@ public class RunnerSounds : MonoBehaviour
 
         CurrentSource.clip = clip;
         CurrentSource.Play();
+        //Debug.Log("Clip <<" + clip.name + ">> played from <<" + soundObject.name +">>");
     }
 
     public void PlayAudioWrapper(AAudioWrapper aw, GameObject soundObject)
     {
         aw.PlayAudioWrappers(soundObject);
+    }
+
+    public void StartAudioAmbience()
+    {
+        foreach (Ambience.AmbSound ambSound in Ambience.Current.ambSounds)
+        {
+            AudioSource CurrentSource = GetAudioSource(Ambience.Current.gameObject);
+            CurrentSource.pitch = Mathf.Pow(2, ambSound.pitchCents / 1200);
+            CurrentSource.loop = true;
+            CurrentSource.clip = ambSound.audioClip;
+            StartCoroutine(AudioFades.FadeIn(CurrentSource, 2, Mathf.Pow(10, ambSound.volDb / 20)));
+        }
     }
 
     //get the first available record player
@@ -58,7 +71,10 @@ public class RunnerSounds : MonoBehaviour
 
         if (audioSources == null) //If there are no audio sources on the object
         {
-            return obj.AddComponent<AudioSource>(); //Make one and use it
+            Debug.Log("<<" + obj + ">> required an additional audio source");
+            AudioSource newSource = obj.AddComponent<AudioSource>();
+            newSource.outputAudioMixerGroup = obj.GetComponent<SourceProperties>().output;
+            return newSource;
         }
 
         for (int i = 0; i < audioSources.Length; i++) //Checks for available audio sources
@@ -67,12 +83,14 @@ public class RunnerSounds : MonoBehaviour
 
             if (!thisSource.isPlaying)//If it isn't playing
             {
-                //Debug.Log("Sources used by " + obj + ": " + (i + 1));
+                //Debug.Log("Source used by <<" + obj.name + ">>: " + (i + 1));
                 return thisSource; //Use this source
             }
         }
-        Debug.Log("Object: '" + obj + "' required an additional audio source");
-        return obj.AddComponent<AudioSource>();
+        Debug.Log("<<" + obj + ">> required an additional audio source");
+        AudioSource addedSource = obj.AddComponent<AudioSource>();
+        addedSource.outputAudioMixerGroup = obj.GetComponent<SourceProperties>().output;
+        return addedSource;
     }
 
     public void PlayDelayed(AAudioWrapper aw, float del, GameObject soundObject)
