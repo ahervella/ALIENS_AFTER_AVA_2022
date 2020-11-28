@@ -117,6 +117,15 @@ public class RunnerPlayer : RunnerGameObject
     private void OnTriggerEnter(Collider coll)
     {
         TerrObject terrObj = coll.gameObject.GetComponent<TerrObject>();
+        RunnerThrowable enemyBullet = coll.gameObject.GetComponent<RunnerThrowable>();
+
+        if (enemyBullet != null && currState != PLAYER_STATE.ROLL && !IsInvincible)
+        {
+            looseLife(PLAYER_STATE.ROLL);
+            Debug.Log("IM SHOT!!!!");
+            return;
+        }
+
         if (terrObj == null) { return;  }
 
         if (terrObj.objType == TerrObject.OBJ_TYPE.ROCK)
@@ -147,13 +156,15 @@ public class RunnerPlayer : RunnerGameObject
             return;
         }
 
-        if (terrObj.objType != TerrObject.OBJ_TYPE.STATIC && terrObj.actionNeeded != currState)
+        if (terrObj.objType == TerrObject.OBJ_TYPE.STATIC || terrObj.actionNeeded == currState)
         {
-            
-            looseLife(terrObj);
-            Debug.Log("IM HIT!!!!");
+
+            return;
         }
-        
+
+        looseLife(terrObj);
+        Debug.Log("IM HIT!!!!");
+
     }
 
     void grabbedRock(TerrObject rockObj)
@@ -196,8 +207,8 @@ public class RunnerPlayer : RunnerGameObject
     }
     */
 
-
-    private void looseLife(TerrObject hazObject)
+    private void looseLife(TerrObject hazObject) => looseLife(hazObject.actionNeeded);
+    private void looseLife(PLAYER_STATE stateThatWasNeeded)
     {
         if (currState == PLAYER_STATE.DEATH1
             || currState == PLAYER_STATE.HURT_F
@@ -236,7 +247,7 @@ public class RunnerPlayer : RunnerGameObject
 
         PLAYER_STATE state = PLAYER_STATE.NONE;
 
-        switch (hazObject.actionNeeded)
+        switch (stateThatWasNeeded)
         {
             case PLAYER_STATE.NONE:
                 state = PLAYER_STATE.HURT_F;
@@ -532,7 +543,7 @@ public class RunnerPlayer : RunnerGameObject
 
     public void generateThrowable(RunnerThrowable.THROW_TYPE throwType)
     {
-        throwablesDict[throwType].Instantiate(transform);
+        throwablesDict[throwType].Instantiate(transform.position);
     }
 
     int getCurrFrame(AnimationClip animClip, Animator animator)

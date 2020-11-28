@@ -91,9 +91,16 @@ public class TerrObject : RunnerGameObject
 
     public void flipTerrObj(int flipMultiplyer)
     {
-        //I thought this should be the other way around but it's working...?
-        IsFlipped = flipMultiplyer > 0 ? true : false;
+        
+        IsFlipped = flipMultiplyer > 0 ? false : true;
         GetComponent<SpriteRenderer>().flipX = flipMultiplyer > 0 ? false : true;
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            var go = transform.GetChild(i);
+            if (go.gameObject == alienEye) { continue; }
+            Vector3 pos = go.transform.position;
+            go.transform.position = new Vector3(pos.x * flipMultiplyer, pos.y, pos.z);
+        }
     }
 
     public void AddAlienAttachment(TerrObject alien)

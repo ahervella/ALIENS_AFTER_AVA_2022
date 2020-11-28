@@ -7,14 +7,15 @@ using UnityEngine;
 [RequireComponent(typeof(SpriteRenderer))]
 public class RunnerThrowable : MonoBehaviour
 {
-    public enum THROW_TYPE { BULLET, ROCK, GUN};
+    public enum THROW_TYPE { BULLET, ENEMY_BULLET, ROCK, GUN};
     const float GRAV = 4.89f;
 
     TerrObject terrObj;
 
     public THROW_TYPE throwType;
 
-    public Transform playerTrans;
+    //public Transform playerTrans;
+    private Vector3 startPos;
 
     public Vector3 spawnOffset;
 
@@ -28,26 +29,31 @@ public class RunnerThrowable : MonoBehaviour
     public static event System.Action<RunnerThrowable> throwableGenerated = delegate { };
     public static event System.Action<RunnerThrowable> throwableDestroyed = delegate { };
 
-    public RunnerThrowable Instantiate(Transform playerTrans)
+    //TODO: make this inherit a TerrObj?
+    public RunnerThrowable Instantiate(Vector3 startPos, Transform parent = null)
     {
-        this.playerTrans = playerTrans;
-        RunnerThrowable inst = Instantiate(this);
+        
+        RunnerThrowable inst = parent == null? Instantiate(this) : Instantiate(this, parent);
+        inst.startPos = startPos;
+        inst.transform.position = startPos + spawnOffset;
+        inst.terrObj = GetComponent<TerrObject>();
+        inst.vel = new Vector3(0, throwVelocity.y, throwVelocity.x);
+
         throwableGenerated(inst);
         return inst;
 
     }
-
+    /*
     void Start()
     {
         terrObj = GetComponent<TerrObject>();
-
-        transform.position = playerTrans.position + spawnOffset;
         vel = new Vector3(0, throwVelocity.y, throwVelocity.x);
     }
-
+    */
     private void Update()
     {
-        if (transform.position.z - playerTrans.position.z >= dist2Disappear)
+        //dunno which direction its traveling in
+        if (Mathf.Abs(transform.position.z - startPos.z) >= dist2Disappear)
         {
             //Debug.Log("throwable destroyed");
             //throwableDestroyed(this);
@@ -73,7 +79,8 @@ public class RunnerThrowable : MonoBehaviour
         if (terrObj == null) { return; }
 
         //destroy any hazard if its a bullet, else only aliens if its anything else (rock or thrown gun)
-        if (terrObj.objType == TerrObject.OBJ_TYPE.ENEMY || (terrObj.objType == TerrObject.OBJ_TYPE.STATIC_HAZ && throwType == THROW_TYPE.BULLET))
+        if (terrObj.objType == TerrObject.OBJ_TYPE.ENEMY && throwType != THROW_TYPE.ENEMY_BULLET
+            || (terrObj.objType == TerrObject.OBJ_TYPE.STATIC_HAZ && throwType == THROW_TYPE.BULLET))
         {
             Debug.Log(("went through {0}", terrObj.gameObject.name));
             Destroy(terrObj.gameObject);

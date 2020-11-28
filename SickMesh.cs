@@ -507,6 +507,7 @@ public class SickMesh : MonoBehaviour
 
         int attachmentIndex;
         float attachmentVertOffset;
+        int parentFlipDir = terrObjInst.IsFlipped ? -1 : 1;
         TerrObject attachmentTerrObjInst = InitTerrObj(attachment, out attachmentIndex, out attachmentVertOffset, index, vertOffset);
 
         if (attachmentTerrObjInst == null) { return; }
@@ -525,6 +526,7 @@ public class SickMesh : MonoBehaviour
     TerrObject InitTerrObj(TerrObject terrObj, out int index, out float vertOffset, int givenIndex = -1, float? givenVertOffset = null)
     {
         //TODO: make a flip terrObject method within TerrObject
+        
         int flipMultiplyer = terrObj.canFlip ? Random.Range(0, 2) * 2 - 1 : 1;
 
         index = givenIndex == -1? Random.Range(0, width + 1) : givenIndex;
@@ -548,6 +550,8 @@ public class SickMesh : MonoBehaviour
         TerrObject terrObjInst = Instantiate(terrObj);
 
         float speedMultiplyer = treadmillSpeed / startingTreadmillSpeed;
+
+        //TODO: just flip the whole thing including the hit box, then get this shit
 
         //TODO: future if using log with middle roll, sides jump, need to change this
         //for now just assuming all terrObj are 1 width in hitbox, and skinny ( /4) so that doesn't hit on changing lanes too soon
