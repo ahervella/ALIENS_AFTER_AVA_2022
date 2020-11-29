@@ -141,7 +141,7 @@ public class RunnerPlayer : RunnerGameObject
         {
             if (terrObj.actionNeeded == currState)
             {
-                grabbedTempGun(terrObj);
+                GotGun(terrObj);
             }
             return;
         }
@@ -166,14 +166,16 @@ public class RunnerPlayer : RunnerGameObject
                 {
                     case 0:
                         defaultInitAction(PLAYER_STATE.TAKEDOWN1);
-                        return;
+                        break;
                     case 1:
                         defaultInitAction(PLAYER_STATE.TAKEDOWN2);
-                        return;
+                        break;
                     default:
                         defaultInitAction(PLAYER_STATE.TAKEDOWN3);
-                        return;
+                        break;
                 }
+                GotGun();
+                return;
             }
         }
 
@@ -201,13 +203,15 @@ public class RunnerPlayer : RunnerGameObject
         rockObj.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
     }
 
-    void grabbedTempGun(TerrObject tempGunObj)
+    void GotGun(TerrObject tempGunObj = null)
     {
-        if (GunBullets > 0) { return; }
+        //if (GunBullets > 0) { return; }
 
         Debug.Log("GOT GUN!");
 
         GunBullets = AMO_SIZE;
+
+        if (tempGunObj == null) { return; }
 
         tempGunObj.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
     }
