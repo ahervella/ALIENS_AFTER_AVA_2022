@@ -117,6 +117,15 @@ public class RunnerPlayer : RunnerGameObject
     private void OnTriggerEnter(Collider coll)
     {
         TerrObject terrObj = coll.gameObject.GetComponent<TerrObject>();
+        RunnerThrowable enemyBullet = coll.gameObject.GetComponent<RunnerThrowable>();
+
+        if (enemyBullet != null && currState != PLAYER_STATE.ROLL && !IsInvincible)
+        {
+            looseLife(PLAYER_STATE.ROLL);
+            Debug.Log("IM SHOT!!!!");
+            return;
+        }
+
         if (terrObj == null) { return;  }
 
         if (terrObj.objType == TerrObject.OBJ_TYPE.ROCK)
@@ -132,7 +141,7 @@ public class RunnerPlayer : RunnerGameObject
         {
             if (terrObj.actionNeeded == currState)
             {
-                grabbedTempGun(terrObj);
+                GotGun(terrObj);
             }
             return;
         }
@@ -142,14 +151,44 @@ public class RunnerPlayer : RunnerGameObject
             return;
         }
 
-        if (terrObj.objType != TerrObject.OBJ_TYPE.STATIC && terrObj.actionNeeded != currState)
+        if (terrObj.objType == TerrObject.OBJ_TYPE.ENEMY)
         {
-            
-            looseLife(terrObj);
-            Debug.Log("IM HIT!!!!");
+            if (!terrObj.played)
+            {
+                return;
+            }
+
+            //correct condition for take down
+            if (terrObj.actionNeeded == currState && currState == PLAYER_STATE.SPRINT)
+            {
+                int randomTakedown = Random.Range(0, 3);
+                switch (randomTakedown)
+                {
+                    case 0:
+                        defaultInitAction(PLAYER_STATE.TAKEDOWN1);
+                        break;
+                    case 1:
+                        defaultInitAction(PLAYER_STATE.TAKEDOWN2);
+                        break;
+                    default:
+                        defaultInitAction(PLAYER_STATE.TAKEDOWN3);
+                        break;
+                }
+                GotGun();
+                return;
+            }
         }
 
-        
+        if (terrObj.objType == TerrObject.OBJ_TYPE.STATIC || terrObj.actionNeeded == currState)
+        {
+
+            return;
+        }
+
+        looseLife(terrObj);
+        Debug.Log("object: " + terrObj.name);
+        Debug.Log("IM HIT!!!!");
+
     }
 
     void grabbedRock(TerrObject rockObj)
@@ -164,13 +203,15 @@ public class RunnerPlayer : RunnerGameObject
         rockObj.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
     }
 
-    void grabbedTempGun(TerrObject tempGunObj)
+    void GotGun(TerrObject tempGunObj = null)
     {
-        if (GunBullets > 0) { return; }
+        //if (GunBullets > 0) { return; }
 
         Debug.Log("GOT GUN!");
 
         GunBullets = AMO_SIZE;
+
+        if (tempGunObj == null) { return; }
 
         tempGunObj.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
     }
@@ -192,8 +233,8 @@ public class RunnerPlayer : RunnerGameObject
     }
     */
 
-
-    private void looseLife(TerrObject hazObject)
+    private void looseLife(TerrObject hazObject) => looseLife(hazObject.actionNeeded);
+    private void looseLife(PLAYER_STATE stateThatWasNeeded)
     {
         if (currState == PLAYER_STATE.DEATH1
             || currState == PLAYER_STATE.HURT_F
@@ -202,8 +243,6 @@ public class RunnerPlayer : RunnerGameObject
         {
             return;
         }
-
-
 
         lives--;
         lifeRecoverTotalTime = 0f;
@@ -232,9 +271,10 @@ public class RunnerPlayer : RunnerGameObject
 
         PLAYER_STATE state = PLAYER_STATE.NONE;
 
-        switch (hazObject.actionNeeded)
+        switch (stateThatWasNeeded)
         {
             case PLAYER_STATE.NONE:
+            case PLAYER_STATE.SPRINT:
                 state = PLAYER_STATE.HURT_F;
                 break;
 
@@ -486,6 +526,8 @@ public class RunnerPlayer : RunnerGameObject
 
         int currState = anim.GetCurrentAnimatorStateInfo(0).fullPathHash;
 
+        Debug.Log("anim string: " + stateString);
+
         //only exception to using startFrame with firing gun
         int torsoStartFrame = state == PLAYER_STATE.FIRE? getCurrFrame(animDict["RUN"], anim) : startFrame;
         float startNormTime = getNormTimeFromFrame(animDict[stateString], anim, torsoStartFrame);
@@ -532,7 +574,7 @@ public class RunnerPlayer : RunnerGameObject
 
     public void generateThrowable(RunnerThrowable.THROW_TYPE throwType)
     {
-        throwablesDict[throwType].Instantiate(transform);
+        throwablesDict[throwType].Instantiate(transform.position);
     }
 
     int getCurrFrame(AnimationClip animClip, Animator animator)

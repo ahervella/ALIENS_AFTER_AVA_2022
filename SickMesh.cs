@@ -68,10 +68,14 @@ public class SickMesh : MonoBehaviour
     public Vector3[] rendVertices;
 
     public Terrainnnn[] terrains;
+    //TODO: make these read onlys
     public List<TerrObject> terrObjects;
+    public List<TerrObject> attachmentTerrObjects = new List<TerrObject>();
+    private List<TerrObject> attachmentTerrObjs = new List<TerrObject>();
     List<RunnerThrowable> throwables = new List<RunnerThrowable>();
 
     public RunnerPlayer player;
+    private int playerLane;
 
 
     //list for value because could generate more than one instance before control point
@@ -96,6 +100,8 @@ public class SickMesh : MonoBehaviour
         }
 
         player.transform.position = new Vector3((width / 2) * widthUnit, player.hitBox.size.y / 2f * player.transform.localScale.y, player.transform.position.z);//bottomMargin * heightUnit);
+        playerLane = width / 2;
+
 
         currTMSpeed = treadmillSpeed;
         targetTMSpeed = treadmillSpeed;
@@ -109,6 +115,8 @@ public class SickMesh : MonoBehaviour
         RunnerThrowable.throwableGenerated += addThrowable;
         RunnerThrowable.throwableDestroyed += removeThrowable;
         TerrObject.terrObjDestroyed += onDestroyedTerrObj;
+
+        attachmentTerrObjs.AddRange(attachmentTerrObjects);
     }
 
     void createControlVertices()
@@ -207,20 +215,26 @@ public class SickMesh : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        if (rendVertices == null || !drawPoints) { return; }
+        if (/*rendVertices == null || */!drawPoints) { return; }
 
         Vector3[] points = drawOnlyControlPoints ? vertices : rendVertices;
+
+        //Gizmos.DrawSphere(Vector3.zero, 0.2f);
 
         for (int i = 0; i < points.Length; i++)
         {
             Vector3 point = points[i];
+            Gizmos.DrawSphere(point, 0.2f);
+            /*
+            continue;
             if (point.z <= (height - topMargin) * heightUnit
                 && point.z >= bottomMargin * heightUnit
                 && point.x <= (width - rightMargin) * widthUnit
                 && point.x >= leftMargin * widthUnit)
             {
-                Gizmos.DrawSphere(point, 0.05f);
+                Gizmos.DrawSphere(point, 0.2f);
             }
+            */
         }
     }
 
@@ -232,6 +246,7 @@ public class SickMesh : MonoBehaviour
         
         moveMesh();
         updateTerrObjAlpha();
+        UpdateAliens();
         updateMesh();
 
         destroyOverlappingBullet();
@@ -272,10 +287,26 @@ public class SickMesh : MonoBehaviour
 
         foreach (TerrObject terrObj in terrObjects)
         {
-
             if (trueFromLikelihood(terrObj.appearanceLikelihood))
             {
-                addTerrObj(terrObj);
+                if (!terrObj.canHaveAttachments)
+                {
+                    AddTerrObj(terrObj);
+                    continue;
+                }
+
+                TerrObject attachment = null;
+
+                foreach (TerrObject attachmentTerrObj in attachmentTerrObjs)
+                {
+                    if (trueFromLikelihood(attachmentTerrObj.appearanceLikelihood))
+                    {
+                        attachment = attachmentTerrObj;
+                        break;
+                    }
+                }
+
+                AddTerrObj(terrObj, attachment);
             }
         }
     }
@@ -394,6 +425,8 @@ public class SickMesh : MonoBehaviour
     }
 
 
+
+
     float getElevationAtPos(float xVal, float zVal)
     {
         //xVal = xVal / widthUnit;
@@ -455,43 +488,105 @@ public class SickMesh : MonoBehaviour
     }
 
 
-    void addTerrObj(TerrObject terrObj)
+    void AddTerrObj(TerrObject terrObj, TerrObject attachment = null)
     {
-        int index = Random.Range(0, width + 1);
+        int index;
+        float vertOffset;
+        TerrObject terrObjInst = InitTerrObj(terrObj, out index, out vertOffset);
 
-        float vertOffset = Random.Range(-(heightUnit) / 2f, heightUnit / 2f);//TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(heightUnit) / 2f, heightUnit / 2f) : 0f;
+        if (terrObjInst == null) { return; }
 
-        if (terrObj.objType == TerrObject.OBJ_TYPE.STATIC_HAZ && !canAddToThisLane(index, vertOffset)) { return; }
-
-
-
-        //if its not a hazard, meaning it doesnt have to be in a designated lane, can be anywhere in the horz.
-        float horizOffset = terrObj.objType == TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(widthUnit) / 2f, widthUnit / 2f) : 0f;
-        float flipMultiplyer = terrObj.canFlip ? Random.Range(0, 2) * 2 - 1 : 1;
-
-        TerrObject terrObjInst = Instantiate(terrObj);
-
-        float speedMultiplyer = treadmillSpeed / startingTreadmillSpeed;
-
-        //TODO: future if using log with middle roll, sides jump, need to change this
-        //for now just assuming all terrObj are 1 width in hitbox, and skinny ( /4) so that doesn't hit on changing lanes too soon
-        terrObjInst.hitBox.size = new Vector3(calcHitBoxSizeX( terrObjInst.transform.localScale.x), terrObjInst.hitBox.size.y, terrObjInst.hitBox.size.z * 4 * speedMultiplyer);
-        //terrObj.hitBox.size = new Vector3(terrObj.hitBoxUnitWidth * widthUnit / terrObj.transform.localScale.x, terrObj.hitBox.size.y, terrObj.hitBox.size.z);
-
-        terrObjInst.RandomizeSpriteType();
-
-        terrObjInst.gameObject.GetComponent<SpriteRenderer>().flipX = flipMultiplyer > 0? false : true;
-
-        Vector3 pos = vertices[index] + new Vector3(horizOffset, hitBoxElevOffset(terrObj), vertOffset);
-
-        terrObjInst.transform.position = pos;
-        //currTerrObjs.Add(terrObjInst);
         if (!currTerrObjsDict.ContainsKey(index))
         {
             currTerrObjsDict.Add(index, new List<TerrObject>());
         }
 
         currTerrObjsDict[index].Add(terrObjInst);
+
+        if (attachment == null) { return; }
+
+        int attachmentIndex;
+        float attachmentVertOffset;
+        int parentFlipDir = terrObjInst.IsFlipped ? -1 : 1;
+        TerrObject attachmentTerrObjInst = InitTerrObj(attachment, out attachmentIndex, out attachmentVertOffset, index, vertOffset);
+
+        if (attachmentTerrObjInst == null) { return; }
+
+        terrObjInst.AddAlienAttachment(attachmentTerrObjInst);
+        //terrObjInst.AttachmentObjects.Add(attachmentTerrObjInst);
+
+        if (!currTerrObjsDict.ContainsKey(attachmentIndex))
+        {
+            currTerrObjsDict.Add(attachmentIndex, new List<TerrObject>());
+        }
+
+        currTerrObjsDict[attachmentIndex].Add(attachmentTerrObjInst);
+    }
+
+    TerrObject InitTerrObj(TerrObject terrObj, out int index, out float vertOffset, int givenIndex = -1, float? givenVertOffset = null)
+    {
+        //TODO: make a flip terrObject method within TerrObject
+        
+        int flipMultiplyer = terrObj.canFlip ? Random.Range(0, 2) * 2 - 1 : 1;
+
+        index = givenIndex == -1? Random.Range(0, width+1) : givenIndex;
+
+        //make sure things wrap correctly on the same row with actual offsets,
+        //and so no indexes too high if on the last row
+        int actualLaneOffset = terrObj.laneOffset * flipMultiplyer;
+
+        if (index % (width + 1) == 0 && actualLaneOffset < 0)
+        {
+            index += (width + 1 + actualLaneOffset);
+        }
+        else if (index % (width + 1) == width && actualLaneOffset > 0)
+        {
+            index += (actualLaneOffset - (width + 1));
+        }
+        else
+        {
+            index += actualLaneOffset;
+        }
+
+        vertOffset = givenVertOffset == null? Random.Range(-(heightUnit) / 2f, heightUnit / 2f) : (float) givenVertOffset + TerrObject.ATTACHMENT_SPACING;//TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(heightUnit) / 2f, heightUnit / 2f) : 0f;
+
+        if (terrObj.objType == TerrObject.OBJ_TYPE.STATIC_HAZ && !canAddToThisLane(index, vertOffset)) { return null; }
+
+
+
+        //if its not a hazard, meaning it doesnt have to be in a designated lane, can be anywhere in the horz.
+        float horizOffset = terrObj.objType == TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(widthUnit) / 2f, widthUnit / 2f) : 0f;
+
+
+        if (terrObj.centerXPosWithHitBox)
+        {
+            horizOffset -= terrObj.getOffsetFromHitBox().x * flipMultiplyer;
+        }
+
+        TerrObject terrObjInst = Instantiate(terrObj);
+
+        float speedMultiplyer = treadmillSpeed / startingTreadmillSpeed;
+
+        //TODO: just flip the whole thing including the hit box, then get this shit
+
+        //TODO: future if using log with middle roll, sides jump, need to change this
+        //for now just assuming all terrObj are 1 width in hitbox, and skinny ( /4) so that doesn't hit on changing lanes too soon
+        terrObjInst.hitBox.size = new Vector3(calcHitBoxSizeX(terrObjInst.transform.localScale.x), terrObjInst.hitBox.size.y, terrObjInst.hitBox.size.z * 4 * speedMultiplyer);
+
+        terrObjInst.hitBox.center = new Vector3(terrObjInst.hitBox.center.x * flipMultiplyer, terrObjInst.hitBox.center.y, terrObjInst.hitBox.center.z);
+
+        //terrObj.hitBox.size = new Vector3(terrObj.hitBoxUnitWidth * widthUnit / terrObj.transform.localScale.x, terrObj.hitBox.size.y, terrObj.hitBox.size.z);
+
+        terrObjInst.RandomizeSpriteType();
+
+        //terrObjInst.gameObject.GetComponent<SpriteRenderer>().flipX = flipMultiplyer > 0 ? false : true;
+        terrObjInst.flipTerrObj(flipMultiplyer);
+
+        Vector3 pos = vertices[index] + new Vector3(horizOffset, hitBoxElevOffset(terrObj), vertOffset);
+
+        terrObjInst.transform.position = pos;
+
+        return terrObjInst;
     }
 
     private void onDestroyedTerrObj(TerrObject terrObj)
@@ -605,6 +700,9 @@ public class SickMesh : MonoBehaviour
         yield return new WaitForSecondsRealtime(delayTime);
 
         changeLaneDir = dir;
+        //player will never be lane 0 or width+1 because doesn't reach ends
+        playerLane = playerLane - dir;//Mathf.Clamp(playerLane - dir, 0, width);
+        Debug.Log(playerLane);
 
     }
 
@@ -616,8 +714,8 @@ public class SickMesh : MonoBehaviour
         //incase of death and still
         if (targetTMSpeed > 0.0001f)
         {
-            treadmillSpeed += treadmillAccel * Time.deltaTime;
-            currTMSpeed += treadmillAccel * Time.deltaTime;
+            treadmillSpeed += 0;//treadmillAccel * Time.deltaTime * Time.deltaTime;
+            currTMSpeed += 0;//treadmillAccel * Time.deltaTime * Time.deltaTime;
         }
 
         //if (treadmillSpeed % 0.01 < 0.01) { Debug.Log(currTMSpeed); }
@@ -655,6 +753,8 @@ public class SickMesh : MonoBehaviour
     {
         //for controling lane changing
 
+        float speedToApply = currTMSpeed * Time.deltaTime;
+
         float change = 0f;
 
         if (changeLaneDir != 0)
@@ -684,13 +784,13 @@ public class SickMesh : MonoBehaviour
         //applying treadmill move and lane change
         for (int i = 0; i < rendVertices.Length; i++)
         {
-            rendVertices[i] += new Vector3(change / (float)(fillPointCount + 1), 0, -currTMSpeed);
+            rendVertices[i] += new Vector3(change / (float)(fillPointCount + 1), 0, -speedToApply);
         }
 
 
         for (int k = 0; k < vertices.Length; k++)
         {
-            vertices[k] += new Vector3(change, 0, -currTMSpeed);
+            vertices[k] += new Vector3(change, 0, -speedToApply);
         }
 
 
@@ -698,7 +798,7 @@ public class SickMesh : MonoBehaviour
         {
             for (int t = 0; t < currTerrObjsDict[key].Count; t++)
             {
-                currTerrObjsDict[key][t].transform.position += new Vector3(change, 0, -currTMSpeed);
+                currTerrObjsDict[key][t].transform.position += new Vector3(change, 0, -speedToApply);
             }
             
         }
@@ -811,6 +911,8 @@ public class SickMesh : MonoBehaviour
             int invModifier = movingRight ? 0 : 1;
             int dirModifier = movingRight ? 1 : -1;
 
+            playerLane += dirModifier;
+
             Vector3[] shortenedList = new Vector3[vertices.Length - (height + 1)];
 
 
@@ -903,7 +1005,43 @@ public class SickMesh : MonoBehaviour
         }
     }
 
+    void UpdateAliens()
+    {
+        foreach (TerrObject terrObject in GetObjectsInLane(playerLane))
+        {
+            if (terrObject.objType == TerrObject.OBJ_TYPE.ENEMY && !terrObject.played)
+            {
+                float dist = terrObject.transform.position.z - player.transform.position.z;
+                //quadratic formula
+                float timeToClostDist = (-currTMSpeed + Mathf.Sqrt(currTMSpeed * currTMSpeed - 4 * (treadmillAccel / 2f) * (-dist)))/(treadmillAccel);
+                Debug.Log("progress... " + timeToClostDist);
+                if (timeToClostDist < terrObject.alienAttackTime && timeToClostDist > (terrObject.alienAttackTime - TerrObject.ALIEN_ATTACK_THRESHOLD ))
+                {
+                    Debug.Log("the vel, accel, and time calculated:" + currTMSpeed + "  " + treadmillAccel + "  " + timeToClostDist);
+                    terrObject.PlayAnimation();
+                    Debug.Log("haza!");
+                }
+            }
+        }
+    }
 
+    List<TerrObject> GetObjectsInLane(int lane)
+    {
+        List<TerrObject> objectsInLane = new List<TerrObject>();
+
+        for (int i = lane; lane < (width+1) * (height+1); lane += width + 1)
+        {
+            if (currTerrObjsDict.ContainsKey(lane))
+            {
+                foreach(TerrObject terrObject in currTerrObjsDict[lane])
+                {
+                    objectsInLane.Add(terrObject);
+                }
+            }
+        }
+
+        return objectsInLane;
+    }
 
     void updateMesh()
     {
