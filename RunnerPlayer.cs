@@ -151,9 +151,30 @@ public class RunnerPlayer : RunnerGameObject
             return;
         }
 
-        if (terrObj.objType == TerrObject.OBJ_TYPE.ENEMY && !terrObj.played)
+        if (terrObj.objType == TerrObject.OBJ_TYPE.ENEMY)
         {
-            return;
+            if (!terrObj.played)
+            {
+                return;
+            }
+
+            //correct condition for take down
+            if (terrObj.actionNeeded == currState && currState == PLAYER_STATE.SPRINT)
+            {
+                int randomTakedown = Random.Range(0, 3);
+                switch (randomTakedown)
+                {
+                    case 0:
+                        defaultInitAction(PLAYER_STATE.TAKEDOWN1);
+                        return;
+                    case 1:
+                        defaultInitAction(PLAYER_STATE.TAKEDOWN2);
+                        return;
+                    default:
+                        defaultInitAction(PLAYER_STATE.TAKEDOWN3);
+                        return;
+                }
+            }
         }
 
         if (terrObj.objType == TerrObject.OBJ_TYPE.STATIC || terrObj.actionNeeded == currState)
@@ -163,6 +184,7 @@ public class RunnerPlayer : RunnerGameObject
         }
 
         looseLife(terrObj);
+        Debug.Log("object: " + terrObj.name);
         Debug.Log("IM HIT!!!!");
 
     }
@@ -218,8 +240,6 @@ public class RunnerPlayer : RunnerGameObject
             return;
         }
 
-
-
         lives--;
         lifeRecoverTotalTime = 0f;
 
@@ -250,6 +270,7 @@ public class RunnerPlayer : RunnerGameObject
         switch (stateThatWasNeeded)
         {
             case PLAYER_STATE.NONE:
+            case PLAYER_STATE.SPRINT:
                 state = PLAYER_STATE.HURT_F;
                 break;
 
@@ -496,6 +517,8 @@ public class RunnerPlayer : RunnerGameObject
 
 
         int currState = anim.GetCurrentAnimatorStateInfo(0).fullPathHash;
+
+        Debug.Log("anim string: " + stateString);
 
         //only exception to using startFrame with firing gun
         int torsoStartFrame = state == PLAYER_STATE.FIRE? getCurrFrame(animDict["RUN"], anim) : startFrame;

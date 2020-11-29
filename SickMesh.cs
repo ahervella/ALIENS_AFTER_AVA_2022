@@ -529,8 +529,24 @@ public class SickMesh : MonoBehaviour
         
         int flipMultiplyer = terrObj.canFlip ? Random.Range(0, 2) * 2 - 1 : 1;
 
-        index = givenIndex == -1? Random.Range(0, width + 1) : givenIndex;
-        index += terrObj.laneOffset * flipMultiplyer;
+        index = givenIndex == -1? Random.Range(0, width+1) : givenIndex;
+
+        //make sure things wrap correctly on the same row with actual offsets,
+        //and so no indexes too high if on the last row
+        int actualLaneOffset = terrObj.laneOffset * flipMultiplyer;
+
+        if (index % (width + 1) == 0 && actualLaneOffset < 0)
+        {
+            index += (width + 1 + actualLaneOffset);
+        }
+        else if (index % (width + 1) == width && actualLaneOffset > 0)
+        {
+            index += (actualLaneOffset - (width + 1));
+        }
+        else
+        {
+            index += actualLaneOffset;
+        }
 
         vertOffset = givenVertOffset == null? Random.Range(-(heightUnit) / 2f, heightUnit / 2f) : (float) givenVertOffset + TerrObject.ATTACHMENT_SPACING;//TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(heightUnit) / 2f, heightUnit / 2f) : 0f;
 

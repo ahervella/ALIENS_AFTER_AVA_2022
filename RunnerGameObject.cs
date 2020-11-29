@@ -9,7 +9,7 @@ public class RunnerGameObject : MonoBehaviour
 {
     const float GAME_FPS = 60f;
 
-    public enum PLAYER_STATE { RUN, JUMP, LAND_G, DODGE_L, DODGE_R, ROLL, NONE, SPRINT, DEATH1, HURT_F, HURT_T, HURT_L, THROW_R, FIRE, THROW_G}
+    public enum PLAYER_STATE { RUN, JUMP, LAND_G, DODGE_L, DODGE_R, ROLL, NONE, SPRINT, DEATH1, HURT_F, HURT_T, HURT_L, THROW_R, FIRE, THROW_G, TAKEDOWN1, TAKEDOWN2, TAKEDOWN3}
 
     public BoxCollider hitBox;
 
