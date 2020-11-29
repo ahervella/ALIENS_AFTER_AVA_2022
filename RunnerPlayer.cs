@@ -119,7 +119,9 @@ public class RunnerPlayer : RunnerGameObject
         TerrObject terrObj = coll.gameObject.GetComponent<TerrObject>();
         RunnerThrowable enemyBullet = coll.gameObject.GetComponent<RunnerThrowable>();
 
-        if (enemyBullet != null && currState != PLAYER_STATE.ROLL && !IsInvincible)
+        if (enemyBullet != null
+            && enemyBullet.throwType == RunnerThrowable.THROW_TYPE.ENEMY_BULLET
+            && currState != PLAYER_STATE.ROLL && !IsInvincible)
         {
             looseLife(PLAYER_STATE.ROLL);
             Debug.Log("IM SHOT!!!!");
@@ -174,7 +176,13 @@ public class RunnerPlayer : RunnerGameObject
                         defaultInitAction(PLAYER_STATE.TAKEDOWN3);
                         break;
                 }
-                GotGun();
+                //only get the gun if its an alien shooter (which always has an
+                //alien shooter script attached to it)
+                if (terrObj.GetComponent<AlienShooter>() != null)
+                {
+                    GotGun();
+                }
+                
                 return;
             }
         }
