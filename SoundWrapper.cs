@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "Data", menuName = "ScriptableObjects/SoundWrapper", order = 1)]
+[CreateAssetMenu(fileName = "soundWrapper", menuName = "ScriptableObjects/SoundWrapper", order = 1)]
 public class SoundWrapper : ScriptableObject
 {
     public GameObject gameObject;
@@ -51,5 +51,5 @@ public class SoundWrapper : ScriptableObject
     [SerializeField]
     private List<DataShitToFeed> listOfShitToFeedBasedOnDataThingWeChose;
 
-
+    public List<AudioClipWrapper> audioClipWrappers = new List<AudioClipWrapper>();
 }

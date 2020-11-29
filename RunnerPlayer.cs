@@ -327,6 +327,11 @@ public class RunnerPlayer : RunnerGameObject
         return lives < 0;
     }
 
+    void playAnimSound(AudioClipWrapper acw)
+    {
+        RunnerSounds.Current.playSound(acw, this.gameObject);
+    }
+
     void playAnimSound(SoundWrapper sw)
     {
         RunnerSounds.Current.playSound(sw, this.gameObject);
