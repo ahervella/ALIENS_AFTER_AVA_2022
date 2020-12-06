@@ -1,7 +1,35 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+using Random = UnityEngine.Random;
 
+public static class PSAAW_ExtensionMethods
+{
+    public static bool Contains(this List<RunnerPlayer.PlyaerStateAAudioWrapperKVP> kvpList, RunnerGameObject.PLAYER_STATE keyIndex)
+    {
+        foreach(RunnerPlayer.PlyaerStateAAudioWrapperKVP kvp in kvpList)
+        {
+            if (kvp.key == keyIndex)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static AAudioWrapper GetAAW(this List<RunnerPlayer.PlyaerStateAAudioWrapperKVP> kvpList, RunnerGameObject.PLAYER_STATE keyIndex)
+    {
+        foreach (RunnerPlayer.PlyaerStateAAudioWrapperKVP kvp in kvpList)
+        {
+            if (kvp.key == keyIndex)
+            {
+                return kvp.value;
+            }
+        }
+        return null;
+    }
+}
 
 public class RunnerPlayer : RunnerGameObject
 {
@@ -17,7 +45,7 @@ public class RunnerPlayer : RunnerGameObject
     //const int JUMP_FRAME_DELAY = 2;
 
     public int startingLives;
-    int lives;
+    public static int Lives { get; private set; }
 
     public float lifeRecoverTime;
     float lifeRecoverTotalTime = 0f;
@@ -34,6 +62,23 @@ public class RunnerPlayer : RunnerGameObject
     public bool IsInvincible { get; set; } = false;
 
     Dictionary<string, AnimationClip> animDict = new Dictionary<string, AnimationClip>();
+
+    [Serializable]
+    public class PlyaerStateAAudioWrapperKVP
+    {
+        [SerializeField]
+        public PLAYER_STATE key = PLAYER_STATE.NONE;
+        [SerializeField]
+        public AAudioWrapper value;
+
+        public override string ToString()
+        {
+            return key.ToString();
+        }
+    }
+
+    [SerializeField]
+    public List<PlyaerStateAAudioWrapperKVP> playerAudioDict = new List<PlyaerStateAAudioWrapperKVP>();
 
     public GameObject LA;
     public GameObject RA;
@@ -68,7 +113,7 @@ public class RunnerPlayer : RunnerGameObject
     private void Start()
     {
 
-        lives = startingLives;
+        Lives = startingLives;
 
         foreach (AnimationClip animClip in animClips)
         {
@@ -252,7 +297,7 @@ public class RunnerPlayer : RunnerGameObject
             return;
         }
 
-        lives--;
+        Lives--;
         lifeRecoverTotalTime = 0f;
 
         if (gameIsOver())
@@ -261,7 +306,7 @@ public class RunnerPlayer : RunnerGameObject
         }
         else
         {
-            switch (lives)
+            switch (Lives)
             {
                 case 2:
                     changeCamRedTint(2f, 3, false);
@@ -302,13 +347,13 @@ public class RunnerPlayer : RunnerGameObject
     
     private void FixedUpdate()
     {
-        if (lives >= startingLives) { return; }
+        if (Lives >= startingLives) { return; }
 
         lifeRecoverTotalTime += Time.deltaTime;
 
         if (lifeRecoverTotalTime >= lifeRecoverTime)
         {
-            lives++;
+            Lives++;
             lifeRecoverTotalTime = 0f;
         }
     }
@@ -332,7 +377,7 @@ public class RunnerPlayer : RunnerGameObject
 
     bool gameIsOver()
     {
-        return lives < 0;
+        return Lives < 0;
     }
 
     //void playAnimAudioEvent(AudioEventWrapper aew)
@@ -521,7 +566,16 @@ public class RunnerPlayer : RunnerGameObject
     void switchAnimState(PLAYER_STATE state, int startFrame = 0)
     {
         currState = state;
+        PlayAAudioWrapper(state);
         StartCoroutine(switchAnim(state, startFrame));
+    }
+
+    private void PlayAAudioWrapper(PLAYER_STATE state)
+    {
+        if (playerAudioDict.Contains(state))
+        {
+            RunnerSounds.Current.PlayAudioWrapper(playerAudioDict.GetAAW(state), this.gameObject);
+        }
     }
 
     IEnumerator switchAnim(PLAYER_STATE state, int startFrame = 0)
@@ -562,10 +616,10 @@ public class RunnerPlayer : RunnerGameObject
         animRA.PlayInFixedTime(currStateRA, 0, startNormTimeRA);
         */
 
+
         anim.Play(currState, 0, startNormTime);
         animLA.Play(currStateLA, 0, startNormTimeLA);
         animRA.Play(currStateRA, 0, startNormTimeRA);
-
 
         //fuccccck this was such a bitch, need this specifically end of frame
         //or else playing from 0 wont happen at the same time as changing anim
@@ -575,7 +629,6 @@ public class RunnerPlayer : RunnerGameObject
         animOC[animIndex] = animDict[stateString];
         animLAOC[animLAIndex] = animLADict[LAstring];
         animRAOC[animRAIndex] = animRADict[RAstring];
-
     }
 
 

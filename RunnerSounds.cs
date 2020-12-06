@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 //aka, our class type of DJ
@@ -7,6 +8,8 @@ public class RunnerSounds : MonoBehaviour
 
     //the single reference to the only DJ ever
     static public RunnerSounds Current = null;
+
+    private Dictionary<GameObject, List<Coroutine>> soundCRs = new Dictionary<GameObject, List<Coroutine>>();
 
     private void Awake()
     {
@@ -49,6 +52,8 @@ public class RunnerSounds : MonoBehaviour
 
     public void PlayAudioWrapper(AAudioWrapper aw, GameObject soundObject)
     {
+        //TODO: do we want this here automatically, or make it to only do so on a bool flag?
+        StopAllDelayedSounds(soundObject);
         aw.PlayAudioWrappers(soundObject);
     }
 
@@ -95,13 +100,37 @@ public class RunnerSounds : MonoBehaviour
 
     public void PlayDelayed(AAudioWrapper aw, float del, GameObject soundObject)
     {
-        StartCoroutine(DelayAndPlay(aw, del, soundObject));
+        Coroutine newCR = StartCoroutine(DelayAndPlay(aw, del, soundObject));
+
+        if (soundCRs.TryGetValue(soundObject, out var crList))
+        {
+            crList.Add(newCR);
+        }
+        else
+        {
+            soundCRs.Add(soundObject, new List<Coroutine> { newCR });
+        }
     }
 
     IEnumerator DelayAndPlay(AAudioWrapper aw, float del, GameObject soundObject)
     {
         yield return new WaitForSeconds(del);
         aw.PlayAudioWrappers(soundObject);
+    }
+
+    public void StopAllDelayedSounds(GameObject go)
+    {
+        if (soundCRs.TryGetValue(go, out var crList))
+        {
+            foreach(Coroutine cr in crList)
+            {
+                StopCoroutine(cr);
+            }
+            //TODO: is this expensive to add and remove so frequently? Cause
+            //we don't want to have deleted object keys chilling in there
+            //as long as a player hasn't lost a run...
+            soundCRs.Remove(go);
+        }
     }
 
 }
