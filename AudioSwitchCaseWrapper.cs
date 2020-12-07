@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "AAudioSwitchCaseWrapper", menuName = "ScriptableObjects/AAudioSwitchCaseWrapper", order = 1)]
-public class AAudioSwitchCaseWrapper : AAudioWrapper
+[CreateAssetMenu(fileName = "AudioSwitchCaseWrapper", menuName = "ScriptableObjects/AudioSwitchCaseWrapper", order = 1)]
+public class AudioSwitchCaseWrapper : AAudioWrapper
 {
     [SerializeField, GetSet("InfoType")]
     private GameInfo.INFO infoType = GameInfo.INFO.NONE;
