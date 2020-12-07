@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Ambience : MonoBehaviour
+public class Music : MonoBehaviour
 {
-    static public Ambience Current = null;
+    static public Music Current = null;
 
     private void Awake()
     {
@@ -19,20 +20,18 @@ public class Ambience : MonoBehaviour
     }
 
     [Serializable]
-    public class AmbLoop
+    public class MusicLoop
     {
         [SerializeField]
         public AudioClip audioClip;
         [SerializeField, Range(-60f, 0f)]
         public float volDb = 0;
-        [Range(-1200, 1200)]
-        public float pitchCents = 0;
     }
 
-    public List<AmbLoop> ambLoops = new List<AmbLoop>();
+    public List<MusicLoop> musicLoops = new List<MusicLoop>();
 
     void Start()
     {
-        RunnerSounds.Current.StartAmbience();
+        RunnerSounds.Current.StartMusic();
     }
 }
