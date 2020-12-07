@@ -52,15 +52,28 @@ public class RunnerSounds : MonoBehaviour
         aw.PlayAudioWrappers(soundObject);
     }
 
-    public void StartAudioAmbience()
+    public void StartAmbience()
     {
-        foreach (Ambience.AmbSound ambSound in Ambience.Current.ambSounds)
+        Debug.Log(Ambience.Current.ambLoops.Count);
+        foreach (Ambience.AmbLoop loop in Ambience.Current.ambLoops)
         {
             AudioSource CurrentSource = GetAudioSource(Ambience.Current.gameObject);
-            CurrentSource.pitch = Mathf.Pow(2, ambSound.pitchCents / 1200);
+            CurrentSource.pitch = Mathf.Pow(2, loop.pitchCents / 1200);
             CurrentSource.loop = true;
-            CurrentSource.clip = ambSound.audioClip;
-            StartCoroutine(AudioFades.FadeIn(CurrentSource, 2, Mathf.Pow(10, ambSound.volDb / 20)));
+            CurrentSource.clip = loop.audioClip;
+            StartCoroutine(AudioFades.FadeIn(CurrentSource, 1, Mathf.Pow(10, loop.volDb / 20)));
+        }
+    }
+
+    public void StartMusic()
+    {
+        Debug.Log(Music.Current.musicLoops.Count);
+        foreach (Music.MusicLoop loop in Music.Current.musicLoops)
+        {
+            AudioSource CurrentSource = GetAudioSource(Music.Current.gameObject);
+            CurrentSource.loop = true;
+            CurrentSource.clip = loop.audioClip;
+            StartCoroutine(AudioFades.FadeIn(CurrentSource, 1, Mathf.Pow(10, loop.volDb / 20)));
         }
     }
 
