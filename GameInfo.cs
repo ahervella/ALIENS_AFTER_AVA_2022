@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-public class GameInfo : MonoBehaviour
+public class GameInfo : Singleton<GameInfo>
 {
     //Click on the region drop downs to expose the code!
 
@@ -83,19 +83,7 @@ public class GameInfo : MonoBehaviour
 
     #region DON'T TOUCH THIS SHIT
 
-    public static GameInfo Current = null;
-
-    private void Awake()
-    {
-        if (Current == null)
-        {
-            Current = this;
-        }
-        else if (Current != this)
-        {
-            Destroy(gameObject);
-        }
-    }
+    protected override GameInfo GetSelf() => this;
 
     public class GameInfoTypeDetails
     {
@@ -119,6 +107,6 @@ public class GameInfo : MonoBehaviour
 
         return null;
     }
-    #endregion
 
+    #endregion
 }

@@ -5,94 +5,117 @@ using UnityEngine;
 
 //requires mesh
 [RequireComponent(typeof(Mesh))]
-public class SickMesh : MonoBehaviour
+public class RunnerEnvironment : MonoBehaviour
 {
+    private Mesh mesh;
 
-    
-
-    Mesh mesh;
-
-    public bool drawShapes = true;
-    public bool drawPoints = true;
-    public bool drawOnlyControlPoints = false;
-    public bool hideTerrObjs = false;
-    public bool doNotGenerateShit = false;
+    [SerializeField]
+    private bool drawShapes;
+    [SerializeField]
+    private bool drawPoints;
+    [SerializeField]
+    private bool drawOnlyControlPoints;
+    [SerializeField]
+    private bool hideTerrObjs;
+    [SerializeField]
+    private bool doNotGenerateShit;
 
     //control point height and width
-    public int height = 10;
-    public int width = 5;
+    [SerializeField]
+    private int height;
+    [SerializeField]
+    private int width;
     //number of points to fill between control points (can be zero too)
-    public int fillPointCount = 4;
+    [SerializeField]
+    private int fillPointCount;
 
-    public int topMargin = 5;
-    public int bottomMargin = 5;
-    public int leftMargin = 0;
-    public int rightMargin = 0;
+    [SerializeField]
+    private int topMargin;
+    [SerializeField]
+    private int bottomMargin;
+    [SerializeField]
+    private int leftMargin;
+    [SerializeField]
+    private int rightMargin;
 
-    public float treadmillSpeed = 0.05f;
+    [SerializeField]
+    private float treadmillSpeed;
     private float startingTreadmillSpeed;
-    public float treadmillAccel;
-    float TMSlowDownTime = 0;
-    float currTMSpeed;
-    float targetTMSpeed;
-    float TMTimeTotal = 0;
 
-    public float horizontalWrapSpeed = 0.05f;
+    [SerializeField]
+    private float treadmillAccel;
+    private float TMSlowDownTime = 0;
+    private float currTMSpeed;
+    private float targetTMSpeed;
+    private float TMTimeTotal = 0;
 
-    int[] triangleRenIndices;
+    [SerializeField]
+    private float horizontalWrapSpeed;
+
+    private int[] triangleRenIndices;
 
 
     //actual render height and width with repsect to a unit
     //of 1 fill shape length or width
-    int rendHeight;
-    int rendWidth;
+    private int rendHeight;
+    private int rendWidth;
 
     //length between two control points (fill points will adjust to this)
-    public float heightUnit = 1;
-    public float widthUnit = 1;
+    [SerializeField]
+    private float heightUnit;
+    [SerializeField]
+    private float widthUnit;
 
 
-    bool canGenerateOthers = true;
+    private bool canGenerateOthers = true;
 
-    int changeLaneDir = 0;
-    public float changeLaneTime = 1.5f;
-    float totalFrameCounter = 0f;
-    float framesForLaneChange;
-    float changeLaneStep;
-    float xLaneChangePositionProgress = 0f;
+    private int changeLaneDir = 0;
+    [SerializeField]
+    private float changeLaneTime = 1.5f;
+    //private float totalFrameCounter = 0f;
+    //private float framesForLaneChange;
+    //private float changeLaneStep;
+    private float xLaneChangePositionProgress = 0f;
 
-    public float distBehindPlayer2ZeroAlpha;
+    private float currChangeLaneTime = 0f;
 
-    public Vector3[] vertices;
-
-    public Vector3[] rendVertices;
-
-    public Terrainnnn[] terrains;
+    [SerializeField]
+    private float distBehindPlayer2ZeroAlpha;
+    [SerializeField]
+    private Vector3[] vertices;
+    [SerializeField]
+    private Vector3[] rendVertices;
+    [SerializeField]
+    private Terrainnnn[] terrains;
     //TODO: make these read onlys
-    public List<TerrObject> terrObjects;
-    public List<TerrObject> attachmentTerrObjects = new List<TerrObject>();
+    [SerializeField]
+    private List<TerrObject> terrObjects;
+    [SerializeField]
+    private List<TerrObject> attachmentTerrObjects = new List<TerrObject>();
     private List<TerrObject> attachmentTerrObjs = new List<TerrObject>();
     List<RunnerThrowable> throwables = new List<RunnerThrowable>();
 
-    public RunnerPlayer player;
+    [SerializeField]
+    private RunnerPlayer player;
     private int playerLane;
 
 
     //list for value because could generate more than one instance before control point
     //index applies treadmill effect
-    public Dictionary<int, List<TerrObject>> currTerrObjsDict = new Dictionary<int, List<TerrObject>>();
+    private Dictionary<int, List<TerrObject>> currTerrObjsDict = new Dictionary<int, List<TerrObject>>();
+    private Dictionary<int, Dictionary<int, List<TerrObject>>> currTerrObjsDictV2 = new Dictionary<int, Dictionary<int, List<TerrObject>>>();
 
-    void Start()
+    private void Start()
     {
         mesh = new Mesh();
         GetComponent<MeshFilter>().mesh = mesh;
 
-        rendHeight = height + (height * fillPointCount);
-        rendWidth = width + (width * fillPointCount);
+        rendHeight = height * (1 + fillPointCount);
+        rendWidth = width * (1 + fillPointCount);
 
-        framesForLaneChange = changeLaneTime * RunnerGameObject.getGameFPS();
+        //framesForLaneChange = changeLaneTime * RunnerGameObject.getGameFPS();
 
-        changeLaneStep = 1f / framesForLaneChange;
+        //changeLaneStep = 1f / framesForLaneChange;
 
         for (int i = 0; i < terrains.Length; i++)
         {
@@ -107,19 +130,19 @@ public class SickMesh : MonoBehaviour
         targetTMSpeed = treadmillSpeed;
         startingTreadmillSpeed = treadmillSpeed;
 
-        createControlVertices();
-        refreshRenderedPoints();
+        CreateControlVertices();
+        RefreshRenderedPoints();
 
-        RunnerControls.OnInputAction += inputUpdate;
-        RunnerPlayer.changeTreamillSpeed += changeTMSpeed;
-        RunnerThrowable.throwableGenerated += addThrowable;
-        RunnerThrowable.throwableDestroyed += removeThrowable;
-        TerrObject.terrObjDestroyed += onDestroyedTerrObj;
+        RunnerControls.OnInputAction += InputUpdate;
+        RunnerPlayer.changeTreamillSpeed += ChangeTMSpeed;
+        RunnerThrowable.throwableGenerated += AddThrowable;
+        RunnerThrowable.throwableDestroyed += RemoveThrowable;
+        TerrObject.terrObjDestroyed += OnDestroyedTerrObj;
 
         attachmentTerrObjs.AddRange(attachmentTerrObjects);
     }
 
-    void createControlVertices()
+    private void CreateControlVertices()
     {
         vertices = new Vector3[(height + 1) * (width + 1)];
 
@@ -136,7 +159,7 @@ public class SickMesh : MonoBehaviour
 
 
 
-    void refreshRenderedPoints()
+    void RefreshRenderedPoints()
     {
         int rvHeight = height + fillPointCount * (height);
         int rvWidth = width + fillPointCount * (width);
@@ -363,7 +386,7 @@ public class SickMesh : MonoBehaviour
         }
 
         refreshTerrObjDict();
-        refreshRenderedPoints();
+        RefreshRenderedPoints();
     }
 
 
@@ -589,7 +612,7 @@ public class SickMesh : MonoBehaviour
         return terrObjInst;
     }
 
-    private void onDestroyedTerrObj(TerrObject terrObj)
+    private void OnDestroyedTerrObj(TerrObject terrObj)
     {
         foreach (int row in currTerrObjsDict.Keys)
         {
@@ -647,7 +670,7 @@ public class SickMesh : MonoBehaviour
 
 
 
-    void inputUpdate(RunnerControls.InputData inputAction)
+    void InputUpdate(RunnerControls.InputData inputAction)
     {
         //RunnerGameObject.PLAYER_STATE action = playerControls.getAction(Time.deltaTime);
 
@@ -730,7 +753,7 @@ public class SickMesh : MonoBehaviour
         }
     }
 
-    void changeTMSpeed(bool treadmillOn, float changeTime, float speedMultiplyer)
+    void ChangeTMSpeed(bool treadmillOn, float changeTime, float speedMultiplyer)
     {
         TMTimeTotal = 0f;
         TMSlowDownTime = changeTime;
@@ -741,12 +764,12 @@ public class SickMesh : MonoBehaviour
 
 
 
-    void addThrowable(RunnerThrowable throwable) {
+    void AddThrowable(RunnerThrowable throwable) {
         BoxCollider hitBox = throwable.GetComponent<BoxCollider>();
         hitBox.size = new Vector3(hitBox.size.x, hitBox.size.y, hitBox.size.z);
         throwables.Add(throwable); }
 
-    void removeThrowable(RunnerThrowable throwable) { throwables.Remove(throwable); }
+    void RemoveThrowable(RunnerThrowable throwable) { throwables.Remove(throwable); }
 
 
     void moveMesh()
@@ -759,18 +782,21 @@ public class SickMesh : MonoBehaviour
 
         if (changeLaneDir != 0)
         {
-            if (totalFrameCounter > framesForLaneChange)
+            if (currChangeLaneTime >= changeLaneTime)//totalFrameCounter > framesForLaneChange)
             {
                 changeLaneDir = 0;
-                totalFrameCounter = 0f;
+                //totalFrameCounter = 0f;
+                currChangeLaneTime = 0;
                 xLaneChangePositionProgress = 0f;
             }
 
             else
             {
-                totalFrameCounter++;
+                //TODO: convert this to using time instead of frames and loose the xLaneChange. That was the movement is not frame dependant!
+                //totalFrameCounter++;
+                currChangeLaneTime = Mathf.Min(currChangeLaneTime + Time.deltaTime, changeLaneTime);
 
-                float theta = changeLaneStep * totalFrameCounter * Mathf.PI;
+                float theta = currChangeLaneTime / changeLaneTime * Mathf.PI;//changeLaneStep * totalFrameCounter * Mathf.PI;
                 float progressVal = RunnerGameObject.easingFunction(theta);
 
                 float currDist = Mathf.Lerp(0, widthUnit * changeLaneDir, progressVal);
@@ -784,7 +810,7 @@ public class SickMesh : MonoBehaviour
         //applying treadmill move and lane change
         for (int i = 0; i < rendVertices.Length; i++)
         {
-            rendVertices[i] += new Vector3(change / (float)(fillPointCount + 1), 0, -speedToApply);
+            rendVertices[i] += new Vector3(change/* / (float)(fillPointCount + 1)*/, 0, -speedToApply);
         }
 
 
@@ -823,14 +849,14 @@ public class SickMesh : MonoBehaviour
         while (applyTreadmillEffect()) { safety++; if (safety > 10) { break; } }
         safety = 0;
         while (applyHorizontalWrap()) { safety++; if (safety > 10) { break; } }
-        refreshRenderedPoints();
+        RefreshRenderedPoints();
     }
 
 
 
     bool applyTreadmillEffect()
     {
-
+        //TODO: convert this to using the new double array
         if (vertices[0].z < (height - 1) * heightUnit)
         {
             Vector3[] shortenedList = new Vector3[vertices.Length - (width + 1)];
