@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "AudioSwitchCaseWrapper", menuName = "ScriptableObjects/AudioSwitchCaseWrapper", order = 1)]
-public class AudioSwitchCaseWrapper : AAudioWrapper
+public class AudioSwitchCaseWrapper : AAudioContainer
 {
     [SerializeField, GetSet("InfoType")]
     private GameInfo.INFO infoType = GameInfo.INFO.NONE;
@@ -59,12 +59,22 @@ public class AudioSwitchCaseWrapper : AAudioWrapper
         public string SwitchCaseName => switchCase;
 
         [SerializeField]
-        private List<AAudioWrapper> aaudioWrappers;
-        public List<AAudioWrapper> AAWrapers => aaudioWrappers;
+        private List<AudioWrapperEntry> audioWrapperEntries;
+        public List<AudioWrapperEntry> AudioWrapperEntries => audioWrapperEntries;
+
 
     }
 
+    [Serializable]
+    public class AudioWrapperEntry
+    {
+        [SerializeField]
+        public AAudioWrapper aAudioWrapper;
 
+        [SerializeField, Range(-60f, 0f)]
+        public float secondaryOffset = 0;
+
+    }
 
     public override void PlayAudioWrappers(GameObject soundObject)
     {
@@ -74,13 +84,20 @@ public class AudioSwitchCaseWrapper : AAudioWrapper
         {
             if (switchCase.scenarioId == currCase)
             {
-                foreach (AAudioWrapper aaw in switchCase.AAWrapers)
+                foreach (AudioWrapperEntry awe in switchCase.AudioWrapperEntries)
                 {
-                    aaw.PlayAudioWrappers(soundObject);
+                    awe.aAudioWrapper.AddOffset(LevelOffsetDb);
+                    awe.aAudioWrapper.AddOffset(awe.secondaryOffset);
+                    awe.aAudioWrapper.PlayAudioWrappers(soundObject);
                 }
+                ResetLevelOffset();
                 return;
             }
         }
     }
 
+    public override void AddOffset(float offsetDb)
+    {
+        LevelOffsetDb += offsetDb;
+    }
 }

@@ -6,9 +6,9 @@ using Random = UnityEngine.Random;
 
 public static class PSAAW_ExtensionMethods
 {
-    public static bool Contains(this List<RunnerPlayer.PlyaerStateAAudioWrapperKVP> kvpList, RunnerGameObject.PLAYER_STATE keyIndex)
+    public static bool Contains(this List<RunnerPlayer.PlayerStateAAudioWrapperKVP> kvpList, RunnerGameObject.PLAYER_STATE keyIndex)
     {
-        foreach(RunnerPlayer.PlyaerStateAAudioWrapperKVP kvp in kvpList)
+        foreach(RunnerPlayer.PlayerStateAAudioWrapperKVP kvp in kvpList)
         {
             if (kvp.key == keyIndex)
             {
@@ -18,9 +18,9 @@ public static class PSAAW_ExtensionMethods
         return false;
     }
 
-    public static AAudioWrapper GetAAW(this List<RunnerPlayer.PlyaerStateAAudioWrapperKVP> kvpList, RunnerGameObject.PLAYER_STATE keyIndex)
+    public static AAudioWrapper GetAAW(this List<RunnerPlayer.PlayerStateAAudioWrapperKVP> kvpList, RunnerGameObject.PLAYER_STATE keyIndex)
     {
-        foreach (RunnerPlayer.PlyaerStateAAudioWrapperKVP kvp in kvpList)
+        foreach (RunnerPlayer.PlayerStateAAudioWrapperKVP kvp in kvpList)
         {
             if (kvp.key == keyIndex)
             {
@@ -64,7 +64,7 @@ public class RunnerPlayer : RunnerGameObject
     Dictionary<string, AnimationClip> animDict = new Dictionary<string, AnimationClip>();
 
     [Serializable]
-    public class PlyaerStateAAudioWrapperKVP
+    public class PlayerStateAAudioWrapperKVP
     {
         [SerializeField]
         public PLAYER_STATE key = PLAYER_STATE.NONE;
@@ -78,7 +78,7 @@ public class RunnerPlayer : RunnerGameObject
     }
 
     [SerializeField]
-    public List<PlyaerStateAAudioWrapperKVP> playerAudioDict = new List<PlyaerStateAAudioWrapperKVP>();
+    public List<PlayerStateAAudioWrapperKVP> playerAudioDict = new List<PlayerStateAAudioWrapperKVP>();
 
     public GameObject LA;
     public GameObject RA;
@@ -587,8 +587,6 @@ public class RunnerPlayer : RunnerGameObject
 
 
         int currState = anim.GetCurrentAnimatorStateInfo(0).fullPathHash;
-
-        Debug.Log("anim string: " + stateString);
 
         //only exception to using startFrame with firing gun
         int torsoStartFrame = state == PLAYER_STATE.FIRE? getCurrFrame(animDict["RUN"], anim) : startFrame;

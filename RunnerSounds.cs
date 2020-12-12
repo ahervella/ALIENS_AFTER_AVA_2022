@@ -29,7 +29,7 @@ public class RunnerSounds : MonoBehaviour
     {
         AudioSource CurrentSource = GetAudioSource(soundObject);
 
-        CurrentSource.volume = Mathf.Pow(10, (acw.levelDb + Random.Range(-acw.volVrtnDb, acw.volVrtnDb)) / 20);
+        CurrentSource.volume = Mathf.Pow(10, (acw.LevelDb + Random.Range(-acw.volVrtnDb, acw.volVrtnDb)) / 20);
         CurrentSource.pitch = Mathf.Pow(2, (acw.pitchCents + Random.Range(-acw.pitchVrtnCents, acw.pitchVrtnCents)) / 1200);
         AudioClip clip = null;
 
@@ -91,7 +91,7 @@ public class RunnerSounds : MonoBehaviour
         {
             Debug.Log("<<" + obj + ">> required an additional audio source");
             AudioSource newSource = obj.AddComponent<AudioSource>();
-            newSource.outputAudioMixerGroup = obj.GetComponent<SourceProperties>().output;
+            GetSourceProperties(newSource);
             return newSource;
         }
 
@@ -107,14 +107,25 @@ public class RunnerSounds : MonoBehaviour
         }
         Debug.Log("<<" + obj + ">> required an additional audio source");
         AudioSource addedSource = obj.AddComponent<AudioSource>();
-        addedSource.outputAudioMixerGroup = obj.GetComponent<SourceProperties>().output;
+        GetSourceProperties(addedSource);
         return addedSource;
     }
-
-    public void PlayDelayed(AAudioWrapper aw, float del, GameObject soundObject)
+    public void GetSourceProperties (AudioSource source)
+    {
+        source.outputAudioMixerGroup = source.gameObject.GetComponent<SourceProperties>().output;
+        source.spatialBlend = source.gameObject.GetComponent<SourceProperties>().spatialBlend;
+        source.maxDistance = source.gameObject.GetComponent<SourceProperties>().maxDist;
+        source.rolloffMode = AudioRolloffMode.Custom;
+    }
+    public void PlayDelayed(AAudioWrapper aw, float del, GameObject soundObject, bool unstoppable)
     {
         Coroutine newCR = StartCoroutine(DelayAndPlay(aw, del, soundObject));
 
+        //If the event is unstoppable, no not add it to the coroutine list
+        if (unstoppable)
+        {
+            return;
+        }
         if (soundCRs.TryGetValue(soundObject, out var crList))
         {
             crList.Add(newCR);
@@ -127,8 +138,11 @@ public class RunnerSounds : MonoBehaviour
 
     IEnumerator DelayAndPlay(AAudioWrapper aw, float del, GameObject soundObject)
     {
-        yield return new WaitForSeconds(del);
-        aw.PlayAudioWrappers(soundObject);
+        yield return new WaitForSecondsRealtime(del);
+        if (soundObject != null)
+        {
+            aw.PlayAudioWrappers(soundObject);
+        }
     }
 
     public void StopAllDelayedSounds(GameObject go)

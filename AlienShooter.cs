@@ -16,6 +16,9 @@ public class AlienShooter : MonoBehaviour
     [SerializeField]
     private Transform spawnLocation;
 
+    [SerializeField]
+    private AAudioWrapper gunSound;
+
     //used by animation event
     private void StartGunFire()
     {
@@ -24,6 +27,7 @@ public class AlienShooter : MonoBehaviour
 
     private IEnumerator DelayedGunFire()
     {
+        FireGun();
         float randomVal = Random.Range(0, randomDelayRange);
         yield return new WaitForSecondsRealtime(randomVal);
         StartCoroutine(FireNextBullet());
@@ -32,15 +36,23 @@ public class AlienShooter : MonoBehaviour
     private IEnumerator FireNextBullet()
     {
         yield return new WaitForSecondsRealtime(delayPerShot);
+
+        FireGun();
+        
+        StartCoroutine(FireNextBullet());
+    }
+
+    private void FireGun()
+    {
         if (spawnLocation == null)
         {
             bulletObject.Instantiate(transform.position, transform);
+            RunnerSounds.Current.PlayAudioWrapper(gunSound, gameObject);
         }
         else
         {
             bulletObject.Instantiate(spawnLocation.position, spawnLocation);
+            RunnerSounds.Current.PlayAudioWrapper(gunSound, gameObject);
         }
-        
-        StartCoroutine(FireNextBullet());
     }
 }

@@ -44,6 +44,9 @@ public class TerrObject : RunnerGameObject
 
     public bool IsFlipped { get; private set; } = false;
 
+
+    public AAudioWrapper alienSound;
+
     public void OnEnable()
     {
         if (alienEye != null) { alienEye.SetActive(false); }
@@ -61,6 +64,10 @@ public class TerrObject : RunnerGameObject
 
     public void PlayAnimation()
     {
+        if (alienSound != null)
+        {
+            RunnerSounds.Current.PlayAudioWrapper(alienSound, gameObject);
+        }
         GetComponent<SpriteRenderer>().enabled = true;
         GetComponent<Animator>().enabled = true;
         played = true;
