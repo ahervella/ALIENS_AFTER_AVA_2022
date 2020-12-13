@@ -1014,12 +1014,9 @@ public class SickMesh : MonoBehaviour
                 float dist = terrObject.transform.position.z - player.transform.position.z;
                 //quadratic formula
                 float timeToClostDist = (-currTMSpeed + Mathf.Sqrt(currTMSpeed * currTMSpeed - 4 * (treadmillAccel / 2f) * (-dist)))/(treadmillAccel);
-                Debug.Log("progress... " + timeToClostDist);
                 if (timeToClostDist < terrObject.alienAttackTime && timeToClostDist > (terrObject.alienAttackTime - TerrObject.ALIEN_ATTACK_THRESHOLD ))
                 {
-                    Debug.Log("the vel, accel, and time calculated:" + currTMSpeed + "  " + treadmillAccel + "  " + timeToClostDist);
                     terrObject.PlayAnimation();
-                    Debug.Log("haza!");
                 }
             }
         }

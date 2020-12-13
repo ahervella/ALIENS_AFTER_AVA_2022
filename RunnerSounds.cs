@@ -27,8 +27,11 @@ public class RunnerSounds : MonoBehaviour
     //use this method (with the current DJ)
     public void PlayAudioClip(AudioClipWrapper acw, GameObject soundObject)
     {
-        AudioSource CurrentSource = GetAudioSource(soundObject);
-
+        AudioSource CurrentSource = TryGetAudioSource(soundObject);
+        if (CurrentSource == null)
+        {
+            return;
+        }
         CurrentSource.volume = Mathf.Pow(10, (acw.LevelDb + Random.Range(-acw.volVrtnDb, acw.volVrtnDb)) / 20);
         CurrentSource.pitch = Mathf.Pow(2, (acw.pitchCents + Random.Range(-acw.pitchVrtnCents, acw.pitchVrtnCents)) / 1200);
         AudioClip clip = null;
@@ -62,7 +65,11 @@ public class RunnerSounds : MonoBehaviour
         Debug.Log(Ambience.Current.ambLoops.Count);
         foreach (Ambience.AmbLoop loop in Ambience.Current.ambLoops)
         {
-            AudioSource CurrentSource = GetAudioSource(Ambience.Current.gameObject);
+            AudioSource CurrentSource = TryGetAudioSource(Ambience.Current.gameObject);
+            if (CurrentSource == null)
+            {
+                return;
+            }
             CurrentSource.pitch = Mathf.Pow(2, loop.pitchCents / 1200);
             CurrentSource.loop = true;
             CurrentSource.clip = loop.audioClip;
@@ -75,46 +82,62 @@ public class RunnerSounds : MonoBehaviour
         Debug.Log(Music.Current.musicLoops.Count);
         foreach (Music.MusicLoop loop in Music.Current.musicLoops)
         {
-            AudioSource CurrentSource = GetAudioSource(Music.Current.gameObject);
+            AudioSource CurrentSource = TryGetAudioSource(Music.Current.gameObject);
+            if (CurrentSource == null)
+            {
+                return;
+            }
             CurrentSource.loop = true;
             CurrentSource.clip = loop.audioClip;
             StartCoroutine(AudioFades.FadeIn(CurrentSource, 1, Mathf.Pow(10, loop.volDb / 20)));
         }
     }
 
-    //get the first available record player
-    private AudioSource GetAudioSource(GameObject obj)
+    /// <summary>
+    /// Trys to get the first available AudioSource.
+    /// Returns 
+    /// </summary>
+    /// <param name="obj">GameObject from which to play sound</param>
+    /// <returns>The audio source to be used.
+    /// Else returns null if object needs new AudioSource
+    /// and does not have a SourceProperties component</returns>
+    private AudioSource TryGetAudioSource(GameObject obj)
     {
         AudioSource[] audioSources = obj.GetComponents<AudioSource>();
 
-        if (audioSources == null) //If there are no audio sources on the object
+        if (audioSources != null)
         {
-            Debug.Log("<<" + obj + ">> required an additional audio source");
-            AudioSource newSource = obj.AddComponent<AudioSource>();
-            GetSourceProperties(newSource);
-            return newSource;
-        }
-
-        for (int i = 0; i < audioSources.Length; i++) //Checks for available audio sources
-        {
-            AudioSource thisSource = audioSources[i];
-
-            if (!thisSource.isPlaying)//If it isn't playing
+            for (int i = 0; i < audioSources.Length; i++) //Checks for available audio sources
             {
-                //Debug.Log("Source used by <<" + obj.name + ">>: " + (i + 1));
-                return thisSource; //Use this source
+                AudioSource thisSource = audioSources[i];
+
+                if (!thisSource.isPlaying)//If it isn't playing
+                {
+                    //Debug.Log("Source used by <<" + obj.name + ">>: " + (i + 1));
+                    return thisSource; //Use this source
+                }
             }
         }
+
+        SourceProperties sourceProperties = obj.GetComponent<SourceProperties>();
+
+        if (sourceProperties == null)
+        {
+            Debug.LogError("No SourceProperties Component on the gameobject: " + obj.name);
+            return null;
+        }
+
         Debug.Log("<<" + obj + ">> required an additional audio source");
         AudioSource addedSource = obj.AddComponent<AudioSource>();
-        GetSourceProperties(addedSource);
+        AssignSourceProperties(addedSource, sourceProperties);
         return addedSource;
     }
-    public void GetSourceProperties (AudioSource source)
+
+    public void AssignSourceProperties(AudioSource source, SourceProperties sp)
     {
-        source.outputAudioMixerGroup = source.gameObject.GetComponent<SourceProperties>().output;
-        source.spatialBlend = source.gameObject.GetComponent<SourceProperties>().spatialBlend;
-        source.maxDistance = source.gameObject.GetComponent<SourceProperties>().maxDist;
+        source.outputAudioMixerGroup = sp.output;
+        source.spatialBlend = sp.spatialBlend;
+        source.maxDistance = sp.maxDist;
         source.rolloffMode = AudioRolloffMode.Custom;
     }
     public void PlayDelayed(AAudioWrapper aw, float del, GameObject soundObject, bool unstoppable)
@@ -149,7 +172,7 @@ public class RunnerSounds : MonoBehaviour
     {
         if (soundCRs.TryGetValue(go, out var crList))
         {
-            foreach(Coroutine cr in crList)
+            foreach (Coroutine cr in crList)
             {
                 StopCoroutine(cr);
             }

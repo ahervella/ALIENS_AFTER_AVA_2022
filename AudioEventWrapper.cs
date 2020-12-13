@@ -5,7 +5,6 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "audioEventWrapper", menuName = "ScriptableObjects/AudioEventWrapper", order = 1)]
 public class AudioEventWrapper : AAudioContainer
 {
-    //public List<Tuple<AAudioWrapper, float>> seqAudioWrappers = new List<Tuple<AAudioWrapper, float>>();
 
     [SerializeField]
     private bool unstoppable = false;
