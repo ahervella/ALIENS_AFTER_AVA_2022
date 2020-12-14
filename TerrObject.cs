@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(Animator))]
 [RequireComponent(typeof(BoxCollider))]
@@ -52,9 +54,55 @@ public class TerrObject : RunnerGameObject
 
     public AAudioWrapper alienSound;
 
+    [SerializeField]
+    private List<LaneRule> laneRules = new List<LaneRule>();
+
+    [Serializable]
+    public class LaneRule
+    {
+        [SerializeField]
+        public int offSetFromDirection = 0;
+        [SerializeField]
+        public int minDistForConflict = 0;
+        [SerializeField]
+        public List<OBJ_TYPE> appliesToTypes = new List<OBJ_TYPE>();
+
+        public TerrObject owner { get; private set; }
+
+        public void Initialize(TerrObject owner)
+        {
+            this.owner = owner;
+        }
+
+        public bool Allowed(int laneCount, int myCol, int otherCol, TerrObject otherObj, float spawnZPos)
+        {
+            //we start with type given most checks will be against grass
+            if (!appliesToTypes.Contains(otherObj.objType))
+            {
+                return true;
+            }
+
+            myCol += owner.IsFlipped ? offSetFromDirection * -1 : offSetFromDirection;
+            //assuming first column is 0
+            myCol %= laneCount;
+
+            if (myCol != otherCol)
+            {
+                return true;
+            }
+
+            return spawnZPos - owner.transform.position.z > minDistForConflict;
+        }
+    }
+
     public void OnEnable()
     {
         if (alienEye != null) { alienEye.SetActive(false); }
+
+        foreach(LaneRule lr in laneRules)
+        {
+            lr.Initialize(this);
+        }
 
         if (objType == OBJ_TYPE.ENEMY)
         {
@@ -80,9 +128,23 @@ public class TerrObject : RunnerGameObject
        parentAttachmentObject.alienEye.SetActive(false);
     }
 
+
+    public void PlaceOnEnvironmentCoord(Vector3 coord)
+    {
+        transform.position = new Vector3(coord.x, hitBoxElevOffset() + coord.y, coord.z);
+    }
+
+    float hitBoxElevOffset()
+    {
+        return (hitBox.size.y / 2f * transform.localScale.y) * (1f - elevationOffsetPerc);
+    }
+
+
+
+
     public void RandomizeSpriteType()
     {
-        int index = Random.Range(0, animClips.Length);
+        int index = UnityEngine.Random.Range(0, animClips.Length);
         animOC[animIndex] = animClips[index];
     }
 
@@ -91,6 +153,8 @@ public class TerrObject : RunnerGameObject
         return gameObject.GetComponent<BoxCollider>().center * gameObject.transform.localScale.x;
     }
 
+    //TODO: see if you can override this for situations where the bullet wants
+    //to destroy which means we don't actually destroy it but make it dissapear and keep the go to still be able to play the sound
     private void OnDestroy()
     {
         foreach(TerrObject attachment in AttachmentObjects)
@@ -127,5 +191,69 @@ public class TerrObject : RunnerGameObject
         }
         
         alienEye.SetActive(true);
+    }
+
+    
+
+    public bool CanAddToLane(int laneCount, int myCol, TerrObject otherObj, int otherCol, float spawnZPos)
+    {
+        foreach(LaneRule lr in laneRules)
+        {
+            if (!lr.Allowed(laneCount, myCol, otherCol, otherObj, spawnZPos))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    public float GetDepthOffset(float heightUnit, float? parentDepthOffset = null)
+    {
+        return parentDepthOffset != null ? (float)parentDepthOffset + ATTACHMENT_SPACING : Random.Range(-(heightUnit) / 2f, heightUnit / 2f);
+    }
+
+    public float GetHorizontalOffset(float widthUnit)
+    {
+        //can only randomiize this offset if it's a STATIC type of object, like grass
+        return objType == OBJ_TYPE.STATIC ? Random.Range(-(widthUnit) / 2f, widthUnit / 2f) : 0f;
+    }
+
+    public float GetElevationOffset()
+    {
+        return (hitBox.size.y / 2f * transform.localScale.y) * (1f - elevationOffsetPerc);
+    }
+
+    public void GetTheoreticalSpawnInfo(int colIndex, int laneCount, out int resultColIndex, out bool wasFlipped, TerrObject parentTerrObj = null)
+    {
+        int flipMultiplyer = 1;
+        if (canFlip)
+        {
+            if (parentTerrObj != null)
+            {
+                if (parentTerrObj.IsFlipped)
+                {
+                    flipMultiplyer = -1;
+                }
+            }
+            else
+            {
+                flipMultiplyer = Random.Range(0, 2) * 2 - 1;
+            }
+        }
+
+        wasFlipped = flipMultiplyer == 1 ? false : true;
+
+        resultColIndex = (colIndex + laneOffset * flipMultiplyer) % laneCount;
+
+    }
+
+    public TerrObject InitTerrObj(Vector3 finalSpawnPos, bool wasFlipped, TerrObject parentTerrObj = null)
+    {
+        parentAttachmentObject = parentTerrObj;
+        IsFlipped = wasFlipped;
+        TerrObject terrObjInst = Instantiate(this);
+        terrObjInst.transform.position = finalSpawnPos;
+        return terrObjInst;
     }
 }

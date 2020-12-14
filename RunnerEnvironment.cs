@@ -72,12 +72,9 @@ public class RunnerEnvironment : MonoBehaviour
     private int changeLaneDir = 0;
     [SerializeField]
     private float changeLaneTime = 1.5f;
-    //private float totalFrameCounter = 0f;
-    //private float framesForLaneChange;
-    //private float changeLaneStep;
+    private float currChangeLaneTime = 0f;
     private float xLaneChangePositionProgress = 0f;
 
-    private float currChangeLaneTime = 0f;
 
     [SerializeField]
     private float distBehindPlayer2ZeroAlpha;
@@ -112,10 +109,6 @@ public class RunnerEnvironment : MonoBehaviour
 
         rendHeight = height * (1 + fillPointCount);
         rendWidth = width * (1 + fillPointCount);
-
-        //framesForLaneChange = changeLaneTime * RunnerGameObject.getGameFPS();
-
-        //changeLaneStep = 1f / framesForLaneChange;
 
         for (int i = 0; i < terrains.Length; i++)
         {
@@ -390,6 +383,23 @@ public class RunnerEnvironment : MonoBehaviour
     }
 
 
+    void refreshTerrObjDictV2()
+    {
+        foreach (var row in currTerrObjsDictV2.Values)
+        {
+            foreach(var col in row.Values)
+            {
+                foreach(TerrObject terrObject in col)
+                {
+                    Vector3 terrObjPos = terrObject.transform.position;
+                    float elevVal = getElevationAtPos(terrObjPos.x, terrObjPos.z);
+                    terrObject.PlaceOnEnvironmentCoord(new Vector3(terrObjPos.x, elevVal, terrObjPos.z));
+                    //terrObject.transform.position = new Vector3(terrObjPos.x, hitBoxElevOffset(terrObject) + elevVal, terrObjPos.z);
+                }
+            }
+        }
+    }
+
     void refreshTerrObjDict()
     {
         for (int i = 0; i < vertices.Length; i++)
@@ -511,6 +521,41 @@ public class RunnerEnvironment : MonoBehaviour
     }
 
 
+
+    void AddTerrObjV2(TerrObject terrObject, TerrObject parentInstance = null, int? parentColIndex = -1, float? parentDepthOffset = null)
+    {
+        int colIndex = parentColIndex ?? Random.Range(0, width + 1);
+        int realColIndex;
+        bool wasFlipped;
+        terrObject.GetTheoreticalSpawnInfo(colIndex, width, out realColIndex, out wasFlipped, parentInstance);
+
+        float depthOffset = terrObject.GetDepthOffset(heightUnit, parentDepthOffset);
+
+        if (!CanAddToThisLaneV2(terrObject, colIndex, depthOffset))
+        {
+            return;
+        }
+
+        float horizOffset = terrObject.GetHorizontalOffset(widthUnit);
+
+        //we don't accomodate for the terrain elevation here just yet
+        //we do that later when generating new terrain, save computation time here
+        float elevationOffset = terrObject.GetElevationOffset();
+
+        Vector3 spawnPos = new Vector3(horizOffset, elevationOffset, depthOffset);
+
+        TerrObject terrObjInst = terrObject.InitTerrObj(spawnPos, wasFlipped, parentInstance);
+
+        if (!currTerrObjsDictV2.ContainsKey(0))
+        {
+            currTerrObjsDictV2.Add(0, new Dictionary<int, List<TerrObject>>());
+        }
+
+        currTerrObjsDictV2[0][realColIndex].Add(terrObjInst);
+
+    }
+
+
     void AddTerrObj(TerrObject terrObj, TerrObject attachment = null)
     {
         int index;
@@ -577,6 +622,7 @@ public class RunnerEnvironment : MonoBehaviour
 
 
 
+
         //if its not a hazard, meaning it doesnt have to be in a designated lane, can be anywhere in the horz.
         float horizOffset = terrObj.objType == TerrObject.OBJ_TYPE.STATIC ? Random.Range(-(widthUnit) / 2f, widthUnit / 2f) : 0f;
 
@@ -625,6 +671,26 @@ public class RunnerEnvironment : MonoBehaviour
                 return;
             }
         }
+    }
+
+    //for each thing in 
+    private bool CanAddToThisLaneV2(TerrObject terrObj, int index, float vertOffset)
+    {
+        foreach (var col in currTerrObjsDictV2.Keys)
+        {
+            foreach (var rowList in currTerrObjsDictV2[col].Values)
+            {
+                foreach(TerrObject terrobj in rowList)
+                {
+                    if (!terrobj.CanAddToLane(width, col, terrObj, index, vertOffset))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     bool canAddToThisLane(int laneIndex, float vertOffset)
@@ -782,18 +848,15 @@ public class RunnerEnvironment : MonoBehaviour
 
         if (changeLaneDir != 0)
         {
-            if (currChangeLaneTime >= changeLaneTime)//totalFrameCounter > framesForLaneChange)
+            if (currChangeLaneTime >= changeLaneTime)
             {
                 changeLaneDir = 0;
-                //totalFrameCounter = 0f;
                 currChangeLaneTime = 0;
                 xLaneChangePositionProgress = 0f;
             }
 
             else
             {
-                //TODO: convert this to using time instead of frames and loose the xLaneChange. That was the movement is not frame dependant!
-                //totalFrameCounter++;
                 currChangeLaneTime = Mathf.Min(currChangeLaneTime + Time.deltaTime, changeLaneTime);
 
                 float theta = currChangeLaneTime / changeLaneTime * Mathf.PI;//changeLaneStep * totalFrameCounter * Mathf.PI;
@@ -810,7 +873,7 @@ public class RunnerEnvironment : MonoBehaviour
         //applying treadmill move and lane change
         for (int i = 0; i < rendVertices.Length; i++)
         {
-            rendVertices[i] += new Vector3(change/* / (float)(fillPointCount + 1)*/, 0, -speedToApply);
+            rendVertices[i] += new Vector3(change, 0, -speedToApply);
         }
 
 
@@ -879,6 +942,33 @@ public class RunnerEnvironment : MonoBehaviour
                     vertices[k] = shortenedList[k - width - 1];
                 }
             }
+
+
+            Dictionary<int, Dictionary<int, List<TerrObject>>> newGrid = new Dictionary<int, Dictionary<int, List<TerrObject>>>();
+            foreach (int row in currTerrObjsDictV2.Keys)
+            {
+                //if this row is at the end of the "treadmill", lets delete all the objects in that row
+                if (row >= height - 1)
+                {
+                    int colCount = currTerrObjsDictV2[row].Keys.Count;
+                    for (int colIndex = 0; colIndex < colCount; colIndex++)
+                    {
+                        int objCount = currTerrObjsDictV2[row][colIndex].Count;
+                        for (int objIndex = 0; objIndex < objCount; objIndex++)
+                        {
+                            Destroy(currTerrObjsDictV2[row][colIndex][objIndex]);
+                        }
+                    }
+                    continue;
+                }
+
+                //move all rows up by one
+                newGrid.Add(row + 1, currTerrObjsDictV2[row]);
+            }
+
+            currTerrObjsDictV2 = newGrid;
+
+
 
 
 
