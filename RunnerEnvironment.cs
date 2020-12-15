@@ -8,6 +8,7 @@ using UnityEngine;
 public class RunnerEnvironment : MonoBehaviour
 {
     private Mesh mesh;
+    private static bool V2_RIPCORD = false;
 
     [SerializeField]
     private bool drawShapes;
@@ -25,6 +26,9 @@ public class RunnerEnvironment : MonoBehaviour
     private int height;
     [SerializeField]
     private int width;
+
+    private int rvHeight;
+    private int rvWidth;
     //number of points to fill between control points (can be zero too)
     [SerializeField]
     private int fillPointCount;
@@ -78,12 +82,16 @@ public class RunnerEnvironment : MonoBehaviour
 
     [SerializeField]
     private float distBehindPlayer2ZeroAlpha;
-    [SerializeField]
+    //[SerializeField]
     private Vector3[] vertices;
-    [SerializeField]
+    //[SerializeField]
     private Vector3[] rendVertices;
+
+    private List<List<Vector3>> verticesV2 = new List<List<Vector3>>();
+    private List<List<Vector3>> rendVerticesV2 = new List<List<Vector3>>();
+
     [SerializeField]
-    private Terrainnnn[] terrains;
+    private TerrTile[] terrains;
     //TODO: make these read onlys
     [SerializeField]
     private List<TerrObject> terrObjects;
@@ -110,10 +118,16 @@ public class RunnerEnvironment : MonoBehaviour
         rendHeight = height * (1 + fillPointCount);
         rendWidth = width * (1 + fillPointCount);
 
-        for (int i = 0; i < terrains.Length; i++)
+        if (!V2_RIPCORD)
         {
-            terrains[i] = Instantiate(terrains[i]);
+            //don't think this is necessary but leave in the old for now
+            for (int i = 0; i < terrains.Length; i++)
+            {
+                terrains[i] = Instantiate(terrains[i]);
+            }
         }
+
+        
 
         player.transform.position = new Vector3((width / 2) * widthUnit, player.hitBox.size.y / 2f * player.transform.localScale.y, player.transform.position.z);//bottomMargin * heightUnit);
         playerLane = width / 2;
@@ -123,9 +137,18 @@ public class RunnerEnvironment : MonoBehaviour
         targetTMSpeed = treadmillSpeed;
         startingTreadmillSpeed = treadmillSpeed;
 
-        CreateControlVertices();
-        RefreshRenderedPoints();
-
+        if (V2_RIPCORD)
+        {
+            CreateControlVerticesV2();
+            RefreshRenderedPointsV2();
+        }
+        else
+        {
+            CreateControlVertices();
+            RefreshRenderedPoints();
+        }
+        
+        
         RunnerControls.OnInputAction += InputUpdate;
         RunnerPlayer.changeTreamillSpeed += ChangeTMSpeed;
         RunnerThrowable.throwableGenerated += AddThrowable;
@@ -133,6 +156,23 @@ public class RunnerEnvironment : MonoBehaviour
         TerrObject.terrObjDestroyed += OnDestroyedTerrObj;
 
         attachmentTerrObjs.AddRange(attachmentTerrObjects);
+    }
+
+    private void CreateControlVerticesV2()
+    {
+        verticesV2.Clear();
+
+        for (int h = 0; h < height + 1; h++)
+        {
+            verticesV2.Add(new List<Vector3>());
+
+            for (int w = 0; w < width + 1; w++)
+            {
+                //reverse the height order with height-h, where rows
+                //farthest away from our player is first
+                verticesV2[h].Add(new Vector3(w * widthUnit, 0, (height - h) * heightUnit));
+            }
+        }
     }
 
     private void CreateControlVertices()
@@ -150,7 +190,68 @@ public class RunnerEnvironment : MonoBehaviour
 
     }
 
+    void RefreshRenderedPointsV2()
+    {
+        //in case we change in inspector druing runtime,
+        //could later set turn this off if exported
+        rvHeight = height * (fillPointCount + 1);
+        rvWidth = width * (fillPointCount + 1);
 
+        rendVerticesV2.Clear();
+
+
+
+        //for (int )
+        for (int rvH = 0; rvH < rvHeight + 1; rvH++)
+        {
+            rendVerticesV2.Add(new List<Vector3>());
+        }
+
+
+        for (int h = 0, rvH = 0; h < height + 1; h++, rvH += fillPointCount + 1)
+        {
+            for (int w = 0, rvW = 0; w < width + 1; w++, rvW += fillPointCount + 1)
+            {
+                //first point of inbetweens overlaps with non inbetweens
+                Vector3 refPos1 = verticesV2[h][w];
+                rendVerticesV2[rvH][rvW] = refPos1;
+
+                if (w == width)
+                {
+                    //no w + 1 exists, let's not try to fill that in
+                    break;
+                }
+                
+                Vector3 refPos2 = verticesV2[h][w + 1];
+
+                //start at 1 because we already did the index = 0 one,
+                //save computatino time by doing it manually
+                for (int i = 1; i < fillPointCount + 1; i++)
+                {
+                    rendVerticesV2[rvH][rvW + i] = smoothERPV2(refPos1, refPos2, i);
+                }
+            }
+        }
+
+        for (int rvW = 0; rvW < rvWidth + 1; rvW++)
+        {
+            //here not rvHright + 1 because we don't need to do anything
+            //on the end edge case because those points are already filled
+            //(for the i = 0 case), we would just break anyways
+            for (int rvH = 0; rvH < rvHeight; rvH += fillPointCount + 1)
+            {
+                //this tiem we don't add the i = 0 case because it already exists
+
+                Vector3 refPos1 = rendVerticesV2[rvH][rvW];
+                Vector3 refPos2 = rendVerticesV2[rvH + fillPointCount + 1][rvW];
+
+                for (int i = 1; i < fillPointCount + 1; i++)
+                {
+                    rendVerticesV2[rvH + i][rvW] = smoothERPV2(refPos1, refPos2, i);
+                }
+            }
+        }
+    }
 
     void RefreshRenderedPoints()
     {
@@ -215,6 +316,17 @@ public class RunnerEnvironment : MonoBehaviour
 
 
 
+    Vector3 smoothERPV2(Vector3 refPos1, Vector3 refPos2, int inBetweenIndex)
+    {
+        Vector3 diff = refPos2 - refPos1;
+        float sinRadAng = (Mathf.PI) / (float)(fillPointCount + 1);
+        float theta = sinRadAng * inBetweenIndex;
+
+        float curveMultiplyer = RunnerGameObject.easingFunction(theta);
+        float lerpMultiplyer = (float)inBetweenIndex / (float)(fillPointCount + 1);
+
+        return (new Vector3(diff.x * lerpMultiplyer, diff.y * curveMultiplyer, diff.z * lerpMultiplyer) + refPos1);
+    }
 
     Vector3 smoothERP(Vector3 firstRefPoint, Vector3 secondRefPoint, int index)
     {
@@ -229,8 +341,31 @@ public class RunnerEnvironment : MonoBehaviour
 
     }
 
+    private void OnDrawGizmosV2()
+    {
+        if (!drawPoints) { return; }
+
+        List<List<Vector3>> points = drawOnlyControlPoints? verticesV2 : rendVerticesV2;
+
+
+        foreach (List<Vector3> posRow in points)
+        {
+            foreach (Vector3 pos in posRow)
+            {
+                Gizmos.DrawSphere(pos, 0.2f);
+            }
+        }
+    }
+
     private void OnDrawGizmos()
     {
+        if (V2_RIPCORD)
+        {
+            OnDrawGizmos();
+            return;
+        }
+
+
         if (/*rendVertices == null || */!drawPoints) { return; }
 
         Vector3[] points = drawOnlyControlPoints ? vertices : rendVertices;
@@ -274,24 +409,13 @@ public class RunnerEnvironment : MonoBehaviour
         if (doNotGenerateShit) { return; }
 
         if (!canGenerateOthers) { return; }
-        foreach (Terrainnnn terr in terrains)
+        foreach (TerrTile terr in terrains)
         {
 
             if (trueFromLikelihood(terr.appearanceLikelihood) && terr.canGen())
             {
-                terr.startGenerateDelay();
+                terr.StartGenerateDelay();
                 addTerrain(terr);
-
-                // Need to figure out new way to do so with changing treadmill speed, or if want at all now with no water
-                /*
-                if (!terr.canGenerateOthers)
-                {
-
-                    float delay = (terr.vertH() - 1) * heightUnit / currTMSpeed ;
-                    generateOthersDelay(delay);
-                }
-
-                */
             }
         }
         
@@ -307,6 +431,12 @@ public class RunnerEnvironment : MonoBehaviour
             {
                 if (!terrObj.canHaveAttachments)
                 {
+                    if (V2_RIPCORD)
+                    {
+                        AddTerrObjV2(terrObj);
+                        continue;
+                    }
+
                     AddTerrObj(terrObj);
                     continue;
                 }
@@ -322,6 +452,11 @@ public class RunnerEnvironment : MonoBehaviour
                     }
                 }
 
+                if (V2_RIPCORD)
+                {
+                    AddTerrObjV2(terrObj, attachment);
+                    continue;
+                }
                 AddTerrObj(terrObj, attachment);
             }
         }
@@ -347,8 +482,16 @@ public class RunnerEnvironment : MonoBehaviour
     }
 
 
+    //TODO: once in use rename to addTerrTile
+    void addTerrrainV2(TerrTile terrTile)
+    {
+        int offset = 0;
 
-    void addTerrain(Terrainnnn terrain)
+        //Vector3 posOffset = //new Vector3(verticesV//new Vector3(vertices[0].x, 0, vertices[0].z - (terrain.vertH() * heightUnit) + heightUnit);
+    }
+
+
+    void addTerrain(TerrTile terrain)
     {
         int offset = 0;
 
@@ -522,12 +665,12 @@ public class RunnerEnvironment : MonoBehaviour
 
 
 
-    void AddTerrObjV2(TerrObject terrObject, TerrObject parentInstance = null, int? parentColIndex = -1, float? parentDepthOffset = null)
+    void AddTerrObjV2(TerrObject terrObject, TerrObject attachmentObject = null, TerrObject parentInstance = null, int? parentColIndex = -1, float? parentDepthOffset = null)
     {
         int colIndex = parentColIndex ?? Random.Range(0, width + 1);
         int realColIndex;
-        bool wasFlipped;
-        terrObject.GetTheoreticalSpawnInfo(colIndex, width, out realColIndex, out wasFlipped, parentInstance);
+        int flipMultiplyer;
+        terrObject.GetTheoreticalSpawnInfo(colIndex, width, out realColIndex, out flipMultiplyer, parentInstance);
 
         float depthOffset = terrObject.GetDepthOffset(heightUnit, parentDepthOffset);
 
@@ -536,7 +679,7 @@ public class RunnerEnvironment : MonoBehaviour
             return;
         }
 
-        float horizOffset = terrObject.GetHorizontalOffset(widthUnit);
+        float horizOffset = terrObject.GetHorizontalOffset(widthUnit, flipMultiplyer);
 
         //we don't accomodate for the terrain elevation here just yet
         //we do that later when generating new terrain, save computation time here
@@ -544,7 +687,7 @@ public class RunnerEnvironment : MonoBehaviour
 
         Vector3 spawnPos = new Vector3(horizOffset, elevationOffset, depthOffset);
 
-        TerrObject terrObjInst = terrObject.InitTerrObj(spawnPos, wasFlipped, parentInstance);
+        TerrObject terrObjInst = terrObject.InitTerrObj(spawnPos, flipMultiplyer, parentInstance);
 
         if (!currTerrObjsDictV2.ContainsKey(0))
         {
@@ -553,6 +696,11 @@ public class RunnerEnvironment : MonoBehaviour
 
         currTerrObjsDictV2[0][realColIndex].Add(terrObjInst);
 
+        //now process attachment obejct to try and generate
+        if (attachmentObject != null)
+        {
+            AddTerrObjV2(attachmentObject, null, terrObjInst, realColIndex, depthOffset);
+        }
     }
 
 
@@ -629,7 +777,7 @@ public class RunnerEnvironment : MonoBehaviour
 
         if (terrObj.centerXPosWithHitBox)
         {
-            horizOffset -= terrObj.getOffsetFromHitBox().x * flipMultiplyer;
+            horizOffset -= terrObj.GetOffsetFromHitBox().x * flipMultiplyer;
         }
 
         TerrObject terrObjInst = Instantiate(terrObj);
@@ -943,34 +1091,35 @@ public class RunnerEnvironment : MonoBehaviour
                 }
             }
 
-
-            Dictionary<int, Dictionary<int, List<TerrObject>>> newGrid = new Dictionary<int, Dictionary<int, List<TerrObject>>>();
-            foreach (int row in currTerrObjsDictV2.Keys)
+            if (V2_RIPCORD)
             {
-                //if this row is at the end of the "treadmill", lets delete all the objects in that row
-                if (row >= height - 1)
+                Dictionary<int, Dictionary<int, List<TerrObject>>> newGrid = new Dictionary<int, Dictionary<int, List<TerrObject>>>();
+                foreach (int row in currTerrObjsDictV2.Keys)
                 {
-                    int colCount = currTerrObjsDictV2[row].Keys.Count;
-                    for (int colIndex = 0; colIndex < colCount; colIndex++)
+                    //if this row is at the end of the "treadmill", lets delete all the objects in that row
+                    if (row >= height - 1)
                     {
-                        int objCount = currTerrObjsDictV2[row][colIndex].Count;
-                        for (int objIndex = 0; objIndex < objCount; objIndex++)
+                        int colCount = currTerrObjsDictV2[row].Keys.Count;
+                        for (int colIndex = 0; colIndex < colCount; colIndex++)
                         {
-                            Destroy(currTerrObjsDictV2[row][colIndex][objIndex]);
+                            int objCount = currTerrObjsDictV2[row][colIndex].Count;
+                            for (int objIndex = 0; objIndex < objCount; objIndex++)
+                            {
+                                Destroy(currTerrObjsDictV2[row][colIndex][objIndex]);
+                            }
                         }
+                        continue;
                     }
-                    continue;
+
+                    //move all rows up by one
+                    newGrid.Add(row + 1, currTerrObjsDictV2[row]);
                 }
 
-                //move all rows up by one
-                newGrid.Add(row + 1, currTerrObjsDictV2[row]);
+                currTerrObjsDictV2 = newGrid;
+                return true;
             }
 
-            currTerrObjsDictV2 = newGrid;
-
-
-
-
+            
 
             //now adjust index (which are the keys for the dictionary) so that they
             //change by one row
@@ -980,14 +1129,14 @@ public class RunnerEnvironment : MonoBehaviour
             foreach (int key in currTerrObjsDict.Keys)
             {
 
-                if (key >= vertices.Length - (width+1))
+                if (key >= vertices.Length - (width + 1))
                 {
                     terrKeys2Remove.Add(key);
                     for (int t = 0; t < currTerrObjsDict[key].Count; t++)
                     {
                         Destroy(currTerrObjsDict[key][t].gameObject);
                     }
-                    
+
                 }
             }
 
@@ -1011,7 +1160,12 @@ public class RunnerEnvironment : MonoBehaviour
             currTerrObjsDict = copy;
 
             return true;
+            
         }
+
+
+
+
 
         return false;
 

@@ -131,10 +131,10 @@ public class TerrObject : RunnerGameObject
 
     public void PlaceOnEnvironmentCoord(Vector3 coord)
     {
-        transform.position = new Vector3(coord.x, hitBoxElevOffset() + coord.y, coord.z);
+        transform.position = new Vector3(coord.x, HitBoxElevOffset() + coord.y, coord.z);
     }
 
-    float hitBoxElevOffset()
+    float HitBoxElevOffset()
     {
         return (hitBox.size.y / 2f * transform.localScale.y) * (1f - elevationOffsetPerc);
     }
@@ -148,7 +148,7 @@ public class TerrObject : RunnerGameObject
         animOC[animIndex] = animClips[index];
     }
 
-    public Vector3 getOffsetFromHitBox()
+    public Vector3 GetOffsetFromHitBox()
     {
         return gameObject.GetComponent<BoxCollider>().center * gameObject.transform.localScale.x;
     }
@@ -173,6 +173,7 @@ public class TerrObject : RunnerGameObject
         for (int i = 0; i < transform.childCount; i++)
         {
             var go = transform.GetChild(i);
+            //TODO: does this save computation time? Can work either way
             if (go.gameObject == alienEye) { continue; }
             Vector3 pos = go.transform.position;
             go.transform.position = new Vector3(pos.x * flipMultiplyer, pos.y, pos.z);
@@ -187,7 +188,10 @@ public class TerrObject : RunnerGameObject
         if (alien.IsFlipped)
         {
             Vector3 eyePos = alienEye.transform.localPosition;
+            Vector3 eyeScale = alienEye.transform.localScale;
+
             alienEye.transform.localPosition = new Vector3(eyePos.x * -1, eyePos.y, eyePos.z);
+            alienEye.transform.localScale = new Vector3(eyeScale.x * -1, eyePos.y, eyePos.z);
         }
         
         alienEye.SetActive(true);
@@ -213,10 +217,20 @@ public class TerrObject : RunnerGameObject
         return parentDepthOffset != null ? (float)parentDepthOffset + ATTACHMENT_SPACING : Random.Range(-(heightUnit) / 2f, heightUnit / 2f);
     }
 
-    public float GetHorizontalOffset(float widthUnit)
+    public float GetHorizontalOffset(float widthUnit, float flipMultiplyer)
     {
         //can only randomiize this offset if it's a STATIC type of object, like grass
-        return objType == OBJ_TYPE.STATIC ? Random.Range(-(widthUnit) / 2f, widthUnit / 2f) : 0f;
+        if (objType == OBJ_TYPE.STATIC)
+        {
+            return Random.Range(-(widthUnit) / 2f, widthUnit / 2f);
+        }
+
+        if (centerXPosWithHitBox)
+        {
+            return GetOffsetFromHitBox().x * flipMultiplyer;
+        }
+
+        return 0f;
     }
 
     public float GetElevationOffset()
@@ -224,7 +238,7 @@ public class TerrObject : RunnerGameObject
         return (hitBox.size.y / 2f * transform.localScale.y) * (1f - elevationOffsetPerc);
     }
 
-    public void GetTheoreticalSpawnInfo(int colIndex, int laneCount, out int resultColIndex, out bool wasFlipped, TerrObject parentTerrObj = null)
+    public void GetTheoreticalSpawnInfo(int colIndex, int laneCount, out int resultColIndex, out int outFlipMultiplyer, TerrObject parentTerrObj = null)
     {
         int flipMultiplyer = 1;
         if (canFlip)
@@ -242,18 +256,20 @@ public class TerrObject : RunnerGameObject
             }
         }
 
-        wasFlipped = flipMultiplyer == 1 ? false : true;
+        outFlipMultiplyer = flipMultiplyer;
 
         resultColIndex = (colIndex + laneOffset * flipMultiplyer) % laneCount;
 
     }
 
-    public TerrObject InitTerrObj(Vector3 finalSpawnPos, bool wasFlipped, TerrObject parentTerrObj = null)
+    public TerrObject InitTerrObj(Vector3 finalSpawnPos, int flipMultiplyer, TerrObject parentTerrObj = null)
     {
         parentAttachmentObject = parentTerrObj;
-        IsFlipped = wasFlipped;
+        flipTerrObj(flipMultiplyer);
         TerrObject terrObjInst = Instantiate(this);
         terrObjInst.transform.position = finalSpawnPos;
+        //TODO: check if its an alien type of terr object? don't assume all attachments are aliens?
+        parentTerrObj.AddAlienAttachment(terrObjInst);
         return terrObjInst;
     }
 }
