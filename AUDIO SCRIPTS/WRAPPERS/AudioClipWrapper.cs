@@ -4,6 +4,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "audioClipWrapper", menuName = "ScriptableObjects/AudioClipWrapper", order = 1)]
 public class AudioClipWrapper : AAudioWrapper
 {
+
     public List<AudioClip> audioClips = new List<AudioClip>();
 
     [SerializeField]
@@ -23,7 +24,7 @@ public class AudioClipWrapper : AAudioWrapper
 
     override public void PlayAudioWrappers(GameObject soundObject)
     {
-        RunnerSounds.Current.PlayAudioClip(this, soundObject);
+        _ = RunnerSounds.Current.PlayAudioClipWrapper(this, soundObject);
         ResetLevelOffset();
     }
 

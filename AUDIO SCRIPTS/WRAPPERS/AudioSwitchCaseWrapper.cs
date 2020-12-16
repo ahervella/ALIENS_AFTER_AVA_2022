@@ -15,12 +15,12 @@ public class AudioSwitchCaseWrapper : AAudioContainer
         }
         set
         {
-            parseGameInfoDetails(value);
+            ParseGameInfoDetails(value);
             infoType = value;
         }
     }
 
-    private void parseGameInfoDetails(GameInfo.INFO infoType)
+    private void ParseGameInfoDetails(GameInfo.INFO infoType)
     {
         switchCases.Clear();
         GameInfo.GameInfoTypeDetails details = GameInfo.GetGameInfoTypeDetails(infoType);

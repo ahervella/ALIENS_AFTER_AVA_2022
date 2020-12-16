@@ -169,7 +169,7 @@ public class RunnerPlayer : RunnerGameObject
             && currState != PLAYER_STATE.ROLL && !IsInvincible)
         {
             looseLife(PLAYER_STATE.ROLL);
-            Debug.Log("IM SHOT!!!!");
+            //Debug.Log("IM SHOT!!!!");
             return;
         }
 
@@ -239,8 +239,8 @@ public class RunnerPlayer : RunnerGameObject
         }
 
         looseLife(terrObj);
-        Debug.Log("object: " + terrObj.name);
-        Debug.Log("IM HIT!!!!");
+        //Debug.Log("object: " + terrObj.name);
+        //Debug.Log("IM HIT!!!!");
 
     }
 
@@ -248,7 +248,7 @@ public class RunnerPlayer : RunnerGameObject
     {
         if (HasRock) { return; }
 
-        Debug.Log("GOT ROCK!");
+        //Debug.Log("GOT ROCK!");
 
         HasRock = true;
 
@@ -260,7 +260,7 @@ public class RunnerPlayer : RunnerGameObject
     {
         //if (GunBullets > 0) { return; }
 
-        Debug.Log("GOT GUN!");
+        //Debug.Log("GOT GUN!");
 
         GunBullets = AMO_SIZE;
 
@@ -298,6 +298,7 @@ public class RunnerPlayer : RunnerGameObject
         }
 
         Lives--;
+        RunnerSounds.Current.PlayerHealthUpdate(); //added to change mixer snapshots based on health in MixerEffects.cs
         lifeRecoverTotalTime = 0f;
 
         if (gameIsOver())
@@ -354,6 +355,7 @@ public class RunnerPlayer : RunnerGameObject
         if (lifeRecoverTotalTime >= lifeRecoverTime)
         {
             Lives++;
+            RunnerSounds.Current.PlayerHealthUpdate();
             lifeRecoverTotalTime = 0f;
         }
     }

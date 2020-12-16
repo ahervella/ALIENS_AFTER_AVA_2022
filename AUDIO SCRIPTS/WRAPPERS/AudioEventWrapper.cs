@@ -9,6 +9,7 @@ public class AudioEventWrapper : AAudioContainer
     [SerializeField]
     private bool unstoppable = false;
 
+    // using this getter and setter, this allows the unstoppable value given above to be overwritten by a parent wrapper
     public bool Unstoppable
     {
         get
@@ -37,11 +38,6 @@ public class AudioEventWrapper : AAudioContainer
 
     [SerializeField]
     List<SeqAudioWrapper> seqAudioWrappers = new List<SeqAudioWrapper>();
-
-    public void Awake()
-    {
-        ResetLevelOffset();
-    }
 
     override public void PlayAudioWrappers(GameObject soundObject)
     {

@@ -10,6 +10,11 @@ public abstract class AAudioContainer : AAudioWrapper
 
     public float LevelOffsetDb { get; set; }
 
+    public void OnEnable()
+    {
+        ResetLevelOffset();
+    }
+
     override protected void ResetLevelOffset()
     {
         LevelOffsetDb = levelOffsetDb;
