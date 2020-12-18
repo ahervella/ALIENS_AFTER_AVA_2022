@@ -29,7 +29,7 @@ public class RunnerDevTools : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.C))
         {
-            player.GunBullets = RunnerPlayer.AMO_SIZE;
+            RunnerPlayer.GunBullets = RunnerPlayer.AMO_SIZE;
         }
     }
 }

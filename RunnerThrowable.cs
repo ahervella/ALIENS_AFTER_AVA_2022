@@ -68,7 +68,7 @@ public class RunnerThrowable : MonoBehaviour
 
     private void OnDestroy()
     {
-        Debug.Log("throwable destroyed");
+        //Debug.Log("throwable destroyed");
         throwableDestroyed(this);
     }
 
@@ -82,7 +82,7 @@ public class RunnerThrowable : MonoBehaviour
         if (terrObj.objType == TerrObject.OBJ_TYPE.ENEMY && throwType != THROW_TYPE.ENEMY_BULLET
             || (terrObj.objType == TerrObject.OBJ_TYPE.STATIC_HAZ && throwType == THROW_TYPE.BULLET))
         {
-            Debug.Log(("went through {0}", terrObj.gameObject.name));
+            //Debug.Log(("went through {0}", terrObj.gameObject.name));
             Destroy(terrObj.gameObject);
         }
     }

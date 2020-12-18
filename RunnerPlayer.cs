@@ -6,6 +6,7 @@ using Random = UnityEngine.Random;
 
 public static class PSAAW_ExtensionMethods
 {
+    
     public static bool Contains(this List<RunnerPlayer.PlayerStateAAudioWrapperKVP> kvpList, RunnerGameObject.PLAYER_STATE keyIndex)
     {
         foreach(RunnerPlayer.PlayerStateAAudioWrapperKVP kvp in kvpList)
@@ -21,6 +22,32 @@ public static class PSAAW_ExtensionMethods
     public static AAudioWrapper GetAAW(this List<RunnerPlayer.PlayerStateAAudioWrapperKVP> kvpList, RunnerGameObject.PLAYER_STATE keyIndex)
     {
         foreach (RunnerPlayer.PlayerStateAAudioWrapperKVP kvp in kvpList)
+        {
+            if (kvp.key == keyIndex)
+            {
+                return kvp.value;
+            }
+        }
+        return null;
+    }
+
+    //TODO WE KNOW that we can use interfaces and generics to avoid this duplicated code but we haven't yet :)
+
+    public static bool Contains(this List<RunnerPlayer.HurtObjectAAudioWrapperKVP> kvpList, TerrObject.HAZ_TYPE keyIndex)
+    {
+        foreach (RunnerPlayer.HurtObjectAAudioWrapperKVP kvp in kvpList)
+        {
+            if (kvp.key == keyIndex)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static AAudioWrapper GetAAW(this List<RunnerPlayer.HurtObjectAAudioWrapperKVP> kvpList, TerrObject.HAZ_TYPE keyIndex)
+    {
+        foreach (RunnerPlayer.HurtObjectAAudioWrapperKVP kvp in kvpList)
         {
             if (kvp.key == keyIndex)
             {
@@ -57,7 +84,23 @@ public class RunnerPlayer : RunnerGameObject
     public bool canChangeState() { return canChange; }
 
     public bool HasRock { get; set; } = false;
-    public int GunBullets { get; set; } = 0;
+    public static bool HasGun { get; private set; } = false;
+
+    private static int gunBullets = 0;
+    public static int GunBullets
+    {
+        get => gunBullets;
+
+        set
+        {
+            if (value > 0)
+            {
+                HasGun = true;
+            }
+            gunBullets = value;
+        }
+
+    }
 
     public bool IsInvincible { get; set; } = false;
 
@@ -77,8 +120,29 @@ public class RunnerPlayer : RunnerGameObject
         }
     }
 
+    //TODO Same here with the duplicated code in these classes
+    [Serializable]
+    public class HurtObjectAAudioWrapperKVP
+    {
+        [SerializeField]
+        public TerrObject.HAZ_TYPE key = TerrObject.HAZ_TYPE.NONE;
+        [SerializeField]
+        public AAudioWrapper value;
+
+        public override string ToString()
+        {
+            return key.ToString();
+        }
+    }
+
     [SerializeField]
-    public List<PlayerStateAAudioWrapperKVP> playerAudioDict = new List<PlayerStateAAudioWrapperKVP>();
+    private List<PlayerStateAAudioWrapperKVP> playerMovementAudioDict = new List<PlayerStateAAudioWrapperKVP>();
+
+    [SerializeField]
+    private List<HurtObjectAAudioWrapperKVP> playerHurtAudioDict = new List<HurtObjectAAudioWrapperKVP>();
+
+    [SerializeField]
+    private AAudioWrapper lazerHitSound = null;
 
     public GameObject LA;
     public GameObject RA;
@@ -161,6 +225,11 @@ public class RunnerPlayer : RunnerGameObject
 
     private void OnTriggerEnter(Collider coll)
     {
+        if (GameIsOver())
+        {
+            return;
+        }
+
         TerrObject terrObj = coll.gameObject.GetComponent<TerrObject>();
         RunnerThrowable enemyBullet = coll.gameObject.GetComponent<RunnerThrowable>();
 
@@ -168,6 +237,7 @@ public class RunnerPlayer : RunnerGameObject
             && enemyBullet.throwType == RunnerThrowable.THROW_TYPE.ENEMY_BULLET
             && currState != PLAYER_STATE.ROLL && !IsInvincible)
         {
+            RunnerSounds.Current.PlayAudioWrapper(lazerHitSound, gameObject);
             looseLife(PLAYER_STATE.ROLL);
             //Debug.Log("IM SHOT!!!!");
             return;
@@ -179,7 +249,7 @@ public class RunnerPlayer : RunnerGameObject
         {
             if (terrObj.actionNeeded == currState)
             {
-                grabbedRock(terrObj);
+                GrabbedRock(terrObj);
             }
             return;
         }
@@ -234,7 +304,6 @@ public class RunnerPlayer : RunnerGameObject
 
         if (terrObj.objType == TerrObject.OBJ_TYPE.STATIC || terrObj.actionNeeded == currState)
         {
-
             return;
         }
 
@@ -244,7 +313,7 @@ public class RunnerPlayer : RunnerGameObject
 
     }
 
-    void grabbedRock(TerrObject rockObj)
+    void GrabbedRock(TerrObject rockObj)
     {
         if (HasRock) { return; }
 
@@ -269,24 +338,14 @@ public class RunnerPlayer : RunnerGameObject
         tempGunObj.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
     }
 
-    //Attempt at basically raycasting for fast moving objects
-    /*
-    bool terrObj2Far2Collide(TerrObject terrObj)
+    private void looseLife(TerrObject hazObject)
     {
-
-        if (terrObj.transform.position.z - transform.position.z <= minCollideDist)
+        if (playerHurtAudioDict.Contains(hazObject.hazType))
         {
-            return false;
+            RunnerSounds.Current.PlayAudioWrapper(playerHurtAudioDict.GetAAW(hazObject.hazType), gameObject);
         }
-        else
-        {
-            checkClipObjs.Add(terrObj);
-            return true;
-        }
+        looseLife(hazObject.actionNeeded);
     }
-    */
-
-    private void looseLife(TerrObject hazObject) => looseLife(hazObject.actionNeeded);
     private void looseLife(PLAYER_STATE stateThatWasNeeded)
     {
         if (currState == PLAYER_STATE.DEATH1
@@ -301,7 +360,7 @@ public class RunnerPlayer : RunnerGameObject
         RunnerSounds.Current.PlayerHealthUpdate(); //added to change mixer snapshots based on health in MixerEffects.cs
         lifeRecoverTotalTime = 0f;
 
-        if (gameIsOver())
+        if (GameIsOver())
         {
             changeCamRedTint(2f, 1, true);
         }
@@ -373,19 +432,14 @@ public class RunnerPlayer : RunnerGameObject
     {
         float changeTime = getTimeFromFrames(animDict[currState.ToString()], changeTimeInFrames);
         //for smoother animation treadmill speed change
-        changeTime = gameIsOver() && treadmillOn && currState != PLAYER_STATE.DEATH1? changeTime * 4 : changeTime;
+        changeTime = GameIsOver() && treadmillOn && currState != PLAYER_STATE.DEATH1? changeTime * 4 : changeTime;
         changeTreamillSpeed(treadmillOn, changeTime, speedMultiplyer);
     }
 
-    bool gameIsOver()
+    bool GameIsOver()
     {
         return Lives < 0;
     }
-
-    //void playAnimAudioEvent(AudioEventWrapper aew)
-    //{
-    //    RunnerSounds.Current.PlayAudioWrapper(aew, gameObject);
-    //}
 
     void playAnimAudioWrapper(AAudioWrapper aw)
     {
@@ -411,7 +465,7 @@ public class RunnerPlayer : RunnerGameObject
     //So that we can tell it fire ended without an anim clip
     void onAnimStateEnd(PLAYER_STATE animState)
     {
-        if (gameIsOver() && animState != PLAYER_STATE.DEATH1)
+        if (GameIsOver() && animState != PLAYER_STATE.DEATH1)
         {
             initDeath();
             onAnimationEnded(animState);
@@ -544,15 +598,19 @@ public class RunnerPlayer : RunnerGameObject
 
     public void fireGun()
     {
-        if (GunBullets <= 0) { return; }
-
-        GunBullets--;
+        if (!HasGun)
+        {
+            return;
+        }
 
         if (GunBullets == 0)
         {
+            HasGun = false;
             defaultInitAction(PLAYER_STATE.THROW_G);
             return;
         }
+
+        GunBullets--;
 
         defaultInitAction(PLAYER_STATE.FIRE);
     }
@@ -574,9 +632,9 @@ public class RunnerPlayer : RunnerGameObject
 
     private void PlayAAudioWrapper(PLAYER_STATE state)
     {
-        if (playerAudioDict.Contains(state))
+        if (playerMovementAudioDict.Contains(state))
         {
-            RunnerSounds.Current.PlayAudioWrapper(playerAudioDict.GetAAW(state), this.gameObject);
+            RunnerSounds.Current.PlayAudioWrapper(playerMovementAudioDict.GetAAW(state), this.gameObject);
         }
     }
 
@@ -598,7 +656,7 @@ public class RunnerPlayer : RunnerGameObject
         
 
         string LAstring = "LA_" + stateString;
-        LAstring = GunBullets > 0 && state != PLAYER_STATE.THROW_G && state != PLAYER_STATE.FIRE? LAstring + "_GUN" : LAstring;
+        LAstring = HasGun && state != PLAYER_STATE.THROW_G && state != PLAYER_STATE.FIRE? LAstring + "_GUN" : LAstring;
         int currStateLA = animLA.GetCurrentAnimatorStateInfo(0).fullPathHash;
         float startNormTimeLA = getNormTimeFromFrame(animLADict[LAstring], animLA, startFrame);
         

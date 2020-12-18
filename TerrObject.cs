@@ -9,7 +9,10 @@ public class TerrObject : RunnerGameObject
 {
     public static event System.Action<TerrObject> terrObjDestroyed = delegate { };
 
+    //TODO MERGE THESE ENUMS AND THEIR USE IN OTHER SCRIPTS
     public enum OBJ_TYPE { STATIC, STATIC_HAZ, ROCK, TEMP_GUN, ENEMY, THROWABLE };
+
+    public enum HAZ_TYPE { LOG, BUSH, TREE, ALIEN_SWIPE, ALIEN_SLASH, ALIEN_JUMP, NONE };
 
     public const float ATTACHMENT_SPACING = 0.2f;
     //public enum ACTION { JUMP, ROLL, SPRINT}
@@ -20,6 +23,8 @@ public class TerrObject : RunnerGameObject
     public bool played = false;
 
     public OBJ_TYPE objType = OBJ_TYPE.STATIC;
+
+    public HAZ_TYPE hazType = HAZ_TYPE.NONE;
 
     public PLAYER_STATE actionNeeded = PLAYER_STATE.NONE;
 

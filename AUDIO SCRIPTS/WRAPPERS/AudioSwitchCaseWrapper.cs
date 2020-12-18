@@ -29,6 +29,8 @@ public class AudioSwitchCaseWrapper : AAudioContainer
             return;
         }
 
+        switchCaseFunction = details.GetState;
+
         foreach(int id in details.StateNameDict.Keys)
         {
             string name;
@@ -76,9 +78,17 @@ public class AudioSwitchCaseWrapper : AAudioContainer
 
     }
 
+    private void OnEnable()
+    {
+        base.OnEnable();
+        switchCaseFunction = GameInfo.GetGetterMethod(infoType);
+    }
+
     public override void PlayAudioWrappers(GameObject soundObject)
     {
         int currCase = switchCaseFunction();
+
+        Debug.Log(currCase);
 
         foreach (SwitchCaseDisplayWrapper switchCase in switchCases)
         {

@@ -12,7 +12,8 @@ public class GameInfo : MonoBehaviour
     public enum INFO
     {
         NONE,
-        LIVES
+        LIVES,
+        GUN_BULLETS
     };
 
 
@@ -34,12 +35,30 @@ public class GameInfo : MonoBehaviour
             { 2, "Health 2/4" },
             { 1, "Health 1/4" },
             { 0, "Dead" }
+        }) },
+
+        { INFO.GUN_BULLETS , new GameInfoTypeDetails(GetAmmo, new Dictionary<int, string>{
+            { 3, "3 Rounds" },
+            { 2, "2 Rounds" },
+            { 1, "1 Round" },
+            { 0, "Empty" },
         }) }
     };
 
     #endregion
 
     #region GAME INFO GETTER METHODS, ADD TO THIS REGION
+
+    public static Func<int> GetGetterMethod(INFO info)
+    {
+        if (GameInfoDict.TryGetValue(info, out var details))
+        {
+            return details.GetState;
+        }
+
+        Debug.LogError("Could not find getter method for specific info type: " + info);
+        return null;
+    }
 
     /*
     EXAMPLE METHOD:
@@ -49,9 +68,14 @@ public class GameInfo : MonoBehaviour
     }
     */
 
-    private static int getLives()
+    public static int getLives()
     {
         return RunnerPlayer.Lives;
+    }
+
+    public static int GetAmmo()
+    {
+        return RunnerPlayer.GunBullets;
     }
 
     #endregion

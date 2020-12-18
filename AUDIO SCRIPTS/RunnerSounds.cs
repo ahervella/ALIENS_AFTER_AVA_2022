@@ -180,7 +180,6 @@ public class RunnerSounds : MonoBehaviour
 
         AssignSourceProperties(source, volDb, pitchCents, clip);
         source.Play();
-        Debug.Log("Clip <<" + clip.name + ">> played from <<" + soundObject.name + ">>");
         return clip;
     }
 
@@ -191,8 +190,14 @@ public class RunnerSounds : MonoBehaviour
     /// <param name="soundObject">GameObject to be played from</param>
     public void PlayAudioWrapper(AAudioWrapper aw, GameObject soundObject)
     {
+        if (aw == null || soundObject == null)
+        {
+            Debug.LogError("AudioWrapper or target Object did not exist");
+            return;
+        }
         StopAllDelayedSounds(soundObject);
         aw.PlayAudioWrappers(soundObject);
+        //Debug.Log("AudioWrapper << " + aw + " >> was played");
     }
 
     /// <summary>
@@ -252,7 +257,7 @@ public class RunnerSounds : MonoBehaviour
                 }
             }
         }
-        Debug.Log("<<" + obj.name + ">> required an additional audio source");
+        //Debug.Log("<<" + obj.name + ">> required an additional audio source");
         AudioSource addedSource = obj.AddComponent<AudioSource>();
         return addedSource;
     }
