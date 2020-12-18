@@ -45,7 +45,16 @@ public class RunnerPlayer : RunnerGameObject
     //const int JUMP_FRAME_DELAY = 2;
 
     public int startingLives;
-    public static int Lives { get; private set; }
+    private static int lives;
+    public static int Lives
+    {
+        get { return lives; }
+        private set
+        {
+            lives = value;
+            ChangedLifeCount(value);
+        }
+    }
 
     public float lifeRecoverTime;
     float lifeRecoverTotalTime = 0f;
@@ -107,6 +116,7 @@ public class RunnerPlayer : RunnerGameObject
     public static event System.Action<PLAYER_STATE> onAnimationEnded = delegate { };
     public static event System.Action<bool, float, float> changeTreamillSpeed = delegate { };
     public static event System.Action<float, int, bool> changeCamRedTint = delegate { };
+    public static event System.Action<int> ChangedLifeCount = delegate { };
     //public static event System.Action<TerrObject> removeTerrObj
  
     // Update is called once per frame
@@ -298,7 +308,6 @@ public class RunnerPlayer : RunnerGameObject
         }
 
         Lives--;
-        RunnerSounds.Current.PlayerHealthUpdate(); //added to change mixer snapshots based on health in MixerEffects.cs
         lifeRecoverTotalTime = 0f;
 
         if (gameIsOver())
@@ -355,7 +364,6 @@ public class RunnerPlayer : RunnerGameObject
         if (lifeRecoverTotalTime >= lifeRecoverTime)
         {
             Lives++;
-            RunnerSounds.Current.PlayerHealthUpdate();
             lifeRecoverTotalTime = 0f;
         }
     }

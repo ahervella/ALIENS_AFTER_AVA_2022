@@ -19,41 +19,62 @@ public class RunnerSounds : MonoBehaviour
         [SerializeField]
         public AudioClipWrapper heartbeatWrapper;
 
-        [SerializeField, Range(0f, 2f)]
-        public float secondToLastLife = 1;
+        [SerializeField]
+        public HeartbeatDelaySetting defaultHeartbeat;
 
-        [SerializeField, Range(0f, 2f)]
-        public float heartbeatDelLastLife = 1;
-
-        [SerializeField, Range(0f, 2f)]
-        public float heartbeatDelGameOver = 5;
+        [SerializeField]
+        public List<HeatbeatDSLives> heartbeatsForLives;
     }
 
     [Serializable]
-    private class MixerEffectsSettings
+    public class HeatbeatDSLives : HeartbeatDelaySetting
     {
         [SerializeField]
-        public AudioMixerSnapshot amsMuteStart;
+        public int livesForSound;
+    }
+
+    [Serializable]
+    public class HeartbeatDelaySetting
+    {
         [SerializeField]
-        public AudioMixerSnapshot amsMain;
+        [Range(0f, 10f)]
+        public float heartBeatDelay = 1;
+    }
+
+    public enum MIXER_EFFECT_SCENARIO
+    {
+        NONE,
+        MUTE_START,
+        DEFAULT_LIFE,
+        LAST_LIFE,
+        GAME_OVER
+    }
+    //1, 2, 2, 5
+    [Serializable]
+    private class MixerEffectsSetting
+    {
         [SerializeField]
-        public AudioMixerSnapshot amsLastLife;
+        public MIXER_EFFECT_SCENARIO mixerType = MIXER_EFFECT_SCENARIO.NONE;
+
         [SerializeField]
-        public AudioMixerSnapshot amsGameOver;
+        public AudioMixerSnapshot mixerSnapshot;
 
         [SerializeField]
         [Range(0f, 10f)]
-        public float startFadeTime = 1;
-        [SerializeField]
-        [Range(0f, 10f)]
-        public float healthyFadeTime = 1;
-        [SerializeField]
-        [Range(0f, 10f)]
-        public float lastLifeFadeTime = 1;
-        [SerializeField]
-        [Range(0f, 10f)]
-        public float gameOverFadeTime = 1;
+        public float transitionTime = 1;
+
+        public void SetTransitionTime()
+        {
+            if (mixerSnapshot == null)
+            {
+                Debug.LogError("This MixerEffectsSetting doesn't have a snapshot for: " + mixerType);
+                return;
+            }
+
+            mixerSnapshot.TransitionTo(transitionTime);
+        }
     }
+
 
     [Serializable]
     private class AmbLoop
@@ -108,15 +129,23 @@ public class RunnerSounds : MonoBehaviour
     private AmbienceSettings ambienceSettings = new AmbienceSettings();
 
     [SerializeField]
+    private float heatbeatRateTransitionTime;
+
+    [SerializeField]
     private MusicSettings musicSettings = new MusicSettings();
 
     [SerializeField]
-    private MixerEffectsSettings mixerEffectsSettings = new MixerEffectsSettings();
+    private List<MixerEffectsSetting> mixerEffectsSettings;
 
     static public RunnerSounds Current = null;
     private Coroutine currentHeartbeatLoop = null;
 
     private Dictionary<GameObject, List<Coroutine>> soundCRs = new Dictionary<GameObject, List<Coroutine>>();
+
+    private float targetHBDealy;
+    private float prevTargetHBDelay;
+    private float currHBDelay;
+    private float hbTransitionProgress;
 
     /// <summary>
     /// Singleton code
@@ -138,9 +167,66 @@ public class RunnerSounds : MonoBehaviour
     /// </summary>
     private void Start()
     {
-        mixerEffectsSettings.amsMain.TransitionTo(mixerEffectsSettings.startFadeTime);
+        //mixerEffectsSettings.amsMain.TransitionTo(mixerEffectsSettings.startFadeTime);
+        RunnerPlayer.ChangedLifeCount += PlayerHealthUpdate;
+        GetMixerEffectSetting(MIXER_EFFECT_SCENARIO.DEFAULT_LIFE).SetTransitionTime();
         StartAmbience();
         StartMusic();
+        StartHeartbeatCR();
+    }
+
+    /// <summary>
+    /// Gets the MixerEffectsSettings that matches the mixer type
+    /// </summary>
+    /// <param name="mixerType">mixer type to match</param>
+    /// <returns></returns>
+    private MixerEffectsSetting GetMixerEffectSetting(MIXER_EFFECT_SCENARIO mixerType)
+    {
+        foreach(var mix in mixerEffectsSettings)
+        {
+            if (mix.mixerType == mixerType)
+            {
+                return mix;
+            }
+        }
+        Debug.LogError("You suck there's no mixer for this mixer scenario type: " + mixerType);
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the HeartbeatDelaySetting that matches the life count. If none found, set get the default one.
+    /// </summary>
+    /// <param name="lifeCount">life count that matches HeartbeatDSLives's</param>
+    /// <returns></returns>
+    private HeartbeatDelaySetting GetHeartbeatDelaySetting(int lifeCount)
+    {
+        foreach(var hbs in heartbeatSettings.heartbeatsForLives)
+        {
+            if (hbs.livesForSound == lifeCount)
+            {
+                return hbs;
+            }
+        }
+        if (heartbeatSettings.defaultHeartbeat == null)
+        {
+            Debug.LogError("you go no sound for this heartbeat life at " + lifeCount + " and no default sound!");
+        }
+        return heartbeatSettings.defaultHeartbeat;
+    }
+
+    private void Update()
+    {
+        if (targetHBDealy != prevTargetHBDelay)
+        {
+            hbTransitionProgress += Time.deltaTime;
+            if (hbTransitionProgress >= 1f)
+            {
+                hbTransitionProgress = 1f;
+                prevTargetHBDelay = targetHBDealy;
+            }
+
+            currHBDelay = Mathf.Lerp(prevTargetHBDelay, targetHBDealy, hbTransitionProgress);
+        }
     }
 
     /// <summary>
@@ -358,64 +444,32 @@ public class RunnerSounds : MonoBehaviour
     /// <summary>
     /// Updates various Mixer settings and plays a heartbeat depending on the player's health
     /// </summary>
-    public void PlayerHealthUpdate()
+    public void PlayerHealthUpdate(int lives)
     {
-        int lives = GetLives();
-
         switch (lives)
         {
-            //case 1:
-            //    if (currentHeartbeatLoop != null)
-            //    {
-            //        StopCoroutine(currentHeartbeatLoop);
-            //        currentHeartbeatLoop = StartCoroutine(heartbeatLoop(heartbeatSettings.heartbeatDelGameOver));
-            //        _ = StartCoroutine(WaitAndStopHeartbeat(mixerEffectsSettings.gameOverFadeTime));
-            //    }
-            //    break;
-
             case 0:
-                mixerEffectsSettings.amsLastLife.TransitionTo(mixerEffectsSettings.lastLifeFadeTime);
-
-                if (currentHeartbeatLoop != null)
-                {
-                    StopCoroutine(currentHeartbeatLoop);
-                }
-                currentHeartbeatLoop = StartCoroutine(HeartbeatLoop(heartbeatSettings.heartbeatDelLastLife));
-
+                GetMixerEffectSetting(MIXER_EFFECT_SCENARIO.LAST_LIFE).SetTransitionTime();
                 break;
 
             case -1:
-                mixerEffectsSettings.amsGameOver.TransitionTo(mixerEffectsSettings.gameOverFadeTime);
-
-                if (currentHeartbeatLoop != null)
-                {
-                    StopCoroutine(currentHeartbeatLoop);
-                    currentHeartbeatLoop = StartCoroutine(HeartbeatLoop(heartbeatSettings.heartbeatDelGameOver));
-                    _ = StartCoroutine(WaitAndStopHeartbeat(mixerEffectsSettings.gameOverFadeTime));
-                }
+                GetMixerEffectSetting(MIXER_EFFECT_SCENARIO.GAME_OVER).SetTransitionTime();
                 break;
 
             default:
-                mixerEffectsSettings.amsMain.TransitionTo(mixerEffectsSettings.healthyFadeTime);
-                if (currentHeartbeatLoop == null)
-                {
-                    break;
-                }
-                if (currentHeartbeatLoop != null)
-                {
-                    _ = StartCoroutine(WaitAndStopHeartbeat(mixerEffectsSettings.healthyFadeTime));
-                }
-                break;
+                GetMixerEffectSetting(MIXER_EFFECT_SCENARIO.DEFAULT_LIFE).SetTransitionTime();
+                return;
         }
+
+        targetHBDealy = GetHeartbeatDelaySetting(lives).heartBeatDelay;
     }
 
     /// <summary>
-    /// Gets the current lives from RunnerPlayer
+    /// Starts the a new heartbeat that is delayed by the current heartbeat delay time.
     /// </summary>
-    /// <returns>Amount of lives the player currently has</returns>
-    private static int GetLives()
+    private void StartHeartbeatCR()
     {
-        return RunnerPlayer.Lives;
+        currentHeartbeatLoop = StartCoroutine(HeartbeatLoop());
     }
 
     /// <summary>
@@ -423,11 +477,11 @@ public class RunnerSounds : MonoBehaviour
     /// </summary>
     /// <param name="delay">Amount of time in seconds to delay after the heartbeat has finished playing</param>
     /// <returns></returns>
-    private IEnumerator HeartbeatLoop(float delay)
+    private IEnumerator HeartbeatLoop()
     {
-        yield return new WaitForSeconds(delay);
-        yield return new WaitForSeconds(PlayHeartbeat().length);
-        currentHeartbeatLoop = StartCoroutine(HeartbeatLoop(delay));
+        yield return new WaitForSeconds(currHBDelay);
+        yield return new WaitForSeconds(PlayHeartbeatACW().length);
+        StartHeartbeatCR();
     }
 
     /// <summary>
@@ -446,7 +500,7 @@ public class RunnerSounds : MonoBehaviour
     /// Plays the heartbeat from the audioWrapper specified in the heartbeatSettings
     /// </summary>
     /// <returns>The played clip</returns>
-    private AudioClip PlayHeartbeat()
+    private AudioClip PlayHeartbeatACW()
     {
         return PlayAudioClipWrapper(heartbeatSettings.heartbeatWrapper, heartbeatSettings.heartbeatSourceObj);
     }
