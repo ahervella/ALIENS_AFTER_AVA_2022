@@ -34,7 +34,9 @@ public class TerrObject : RunnerGameObject
 
     public bool canFlip = true;
 
+    [SerializeField]
     public float appearanceLikelihood = 0.2f;
+    public float AppearanceLikelihood => appearanceLikelihood;
 
     public float elevationOffsetPerc = 0f;
 

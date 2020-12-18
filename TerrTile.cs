@@ -10,17 +10,16 @@ public class TerrTile : MonoBehaviour
     const string TERRAIN_FOLDER_PATH = "Assets/RESOURCES/TERRAINS/";
 
     public TextAsset terrainFile;
-
-    public float appearanceLikelihood;
+    [SerializeField]
+    private float appearanceLikelihood;
+    public float AppearanceLikelihood => appearanceLikelihood;
 
     public Vector3[] terrainData;
     public List<List<Vector3>> terrainDataV2 = new List<List<Vector3>>();
 
     //control point vertecie Heights and Widths
-    int vertWidth = 0;
-    int vertHeight = 0;
-    public int vertW() { return vertWidth; }
-    public int vertH() { return vertHeight; }
+    public int VertWidth { get; private set; } = 0;
+    public int VertHeight { get; private set; } = 0;
 
     //multiplyer for text file floats (so user can use large numbers
     //for precision in text file)
@@ -28,11 +27,11 @@ public class TerrTile : MonoBehaviour
 
     
     public float generateDelay = 0f;
-    bool canGenerate = true;
+    [SerializeField]
+    private bool canGenerate = true;
+    public bool CanGenerate => canGenerate;
 
     public bool canGenerateOthers = true;
-
-    public bool canGen() { return canGenerate; }
 
     private void OnEnable()
     {
@@ -50,12 +49,12 @@ public class TerrTile : MonoBehaviour
         StreamReader sr = new StreamReader(TERRAIN_FOLDER_PATH + terrainFile.name + ".txt");
 
         string currLine = "";
-        vertWidth = 0;
+        VertWidth = 0;
 
         while ((currLine = sr.ReadLine()) != null)
         {
             string[] rowOfStringNums = currLine.Split(' ');
-            vertWidth = Mathf.Max(rowOfStringNums.Length, vertWidth);
+            VertWidth = Mathf.Max(rowOfStringNums.Length, VertWidth);
 
             List<float> rowOfNums = new List<float>();
 
@@ -68,18 +67,18 @@ public class TerrTile : MonoBehaviour
             parsedData.Add(rowOfNums);
         }
 
-        vertHeight = parsedData.Count;
+        VertHeight = parsedData.Count;
 
-        for (int i = 0; i < vertHeight; i++)
+        for (int i = 0; i < VertHeight; i++)
         {
             List<Vector3> rowOfPos = new List<Vector3>();
 
-            for (int k = 0; k < vertWidth; k++)
+            for (int k = 0; k < VertWidth; k++)
             {
                 //here it's more of how deep, not how tall, but want to avoid
                 //confusion with the word depth
                 float elevation = 0f;
-                float reversed_i = vertHeight - i - 1;
+                float reversed_i = VertHeight - i - 1;
 
                 if (k < parsedData.Count)
                 {
@@ -119,21 +118,21 @@ public class TerrTile : MonoBehaviour
         }
 
 
-        vertHeight = parsedData.Count;
-        vertWidth = parsedData[0].Length;
-        terrainData = new Vector3[vertWidth * vertHeight];
+        VertHeight = parsedData.Count;
+        VertWidth = parsedData[0].Length;
+        terrainData = new Vector3[VertWidth * VertHeight];
 
 
         //convert depth string vals and location to Vector3 val
-        for (int i = 0; i < vertHeight; i++)
+        for (int i = 0; i < VertHeight; i++)
         {
 
-            for (int k = 0; k < vertWidth; k++)
+            for (int k = 0; k < VertWidth; k++)
             {
-                float vertHeightVal = vertHeight - i - 1;
+                float vertHeightVal = VertHeight - i - 1;
                 float depthVal = parsedData[i][k] * elevationMultiplyer;
 
-                terrainData[i * vertWidth + k] = new Vector3(k, depthVal, vertHeightVal);
+                terrainData[i * VertWidth + k] = new Vector3(k, depthVal, vertHeightVal);
             }
         }
 
@@ -160,9 +159,9 @@ public class TerrTile : MonoBehaviour
 
     public List<List<Vector3>> OffSetDataV2(float offset)
     {
-        for(int row = 0; row < vertHeight; row++)
+        for(int row = 0; row < VertHeight; row++)
         {
-            for (int col = 0; col < vertWidth; col++)
+            for (int col = 0; col < VertWidth; col++)
             {
                 Vector3 old = terrainDataV2[row][col];
                 terrainDataV2[row][col] = new Vector3(old.x, old.y, old.z + offset);

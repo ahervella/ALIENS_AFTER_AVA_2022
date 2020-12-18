@@ -391,7 +391,7 @@ public class RunnerEnvironment : MonoBehaviour
 
     private void Update()
     {
-        updateTreadmillSpeed();
+        UpdateTreadmillSpeed();
         generateTerrain();
         generateTerrObjs();
         
@@ -403,6 +403,28 @@ public class RunnerEnvironment : MonoBehaviour
         destroyOverlappingBullet();
     }
 
+    void UpdateTreadmillSpeed()
+    {
+        //TODO: fix treadmill accel things so game can speedup
+        //increase speed for game difficulty
+        //incase of death and still
+        if (targetTMSpeed > 0.0001f)
+        {
+            treadmillSpeed += 0;//treadmillAccel * Time.deltaTime * Time.deltaTime;
+            currTMSpeed += 0;//treadmillAccel * Time.deltaTime * Time.deltaTime;
+        }
+
+        //if (treadmillSpeed % 0.01 < 0.01) { Debug.Log(currTMSpeed); }
+
+        if (TMTimeTotal < TMSlowDownTime)
+        {
+            TMTimeTotal = Mathf.Min(TMSlowDownTime, TMTimeTotal + Time.deltaTime);
+
+            float actualDelta = RunnerGameObject.easingFunction(TMTimeTotal / TMSlowDownTime * Mathf.PI);
+            currTMSpeed = Mathf.Lerp(currTMSpeed, targetTMSpeed, actualDelta);
+
+        }
+    }
 
     void generateTerrain()
     {
@@ -412,7 +434,7 @@ public class RunnerEnvironment : MonoBehaviour
         foreach (TerrTile terr in terrains)
         {
 
-            if (trueFromLikelihood(terr.appearanceLikelihood) && terr.canGen())
+            if (SelectedFromLikelihood(terr.AppearanceLikelihood) && terr.CanGenerate)
             {
                 terr.StartGenerateDelay();
                 addTerrain(terr);
@@ -427,7 +449,7 @@ public class RunnerEnvironment : MonoBehaviour
 
         foreach (TerrObject terrObj in terrObjects)
         {
-            if (trueFromLikelihood(terrObj.appearanceLikelihood))
+            if (SelectedFromLikelihood(terrObj.AppearanceLikelihood))
             {
                 if (!terrObj.canHaveAttachments)
                 {
@@ -445,7 +467,7 @@ public class RunnerEnvironment : MonoBehaviour
 
                 foreach (TerrObject attachmentTerrObj in attachmentTerrObjs)
                 {
-                    if (trueFromLikelihood(attachmentTerrObj.appearanceLikelihood))
+                    if (SelectedFromLikelihood(attachmentTerrObj.AppearanceLikelihood))
                     {
                         attachment = attachmentTerrObj;
                         break;
@@ -463,7 +485,7 @@ public class RunnerEnvironment : MonoBehaviour
     }
 
 
-    bool trueFromLikelihood(float appearanceLikelihood)
+    bool SelectedFromLikelihood(float appearanceLikelihood)
     {
         float likelihoodSelector = Random.Range(0.00001f, 1f);
         float speedFactor = currTMSpeed / treadmillSpeed;
@@ -487,7 +509,28 @@ public class RunnerEnvironment : MonoBehaviour
     {
         int offset = 0;
 
-        //Vector3 posOffset = //new Vector3(verticesV//new Vector3(vertices[0].x, 0, vertices[0].z - (terrain.vertH() * heightUnit) + heightUnit);
+        //to have the terrain spawn within the mesh boundaries
+        Vector3 posOffset = new Vector3(verticesV2[0][0].x, 0, verticesV2[0][0].z - heightUnit * (terrTile.VertHeight + 1));
+        int horizRandoOffset = Random.Range(0, width + 1);
+
+        //not terrTile.VertHeight + 1 because TerrTile heights are the vertex count
+        for (int h = 0; h < terrTile.VertHeight; h++)
+        {
+            for (int w = 0; w < terrTile.VertWidth; w++)
+            {
+                //proper wrapping depending on the random offset value
+                //doing this will also create interesting effects for when the
+                //VertWidth is wider that mesh width, such that it will cause the
+                //terrTile to wrap over itself, like a tortilla wrap...
+                int hOffset = (horizRandoOffset + w) % (width + 1);
+                //to know by how much we should move terrTile points when assigning
+                int hDiff = hOffset - w;
+
+                Vector3 terrPos = terrTile.terrainDataV2[h][w];
+
+
+            }
+        }
     }
 
 
@@ -495,22 +538,22 @@ public class RunnerEnvironment : MonoBehaviour
     {
         int offset = 0;
 
-        Vector3 posOffset = new Vector3(vertices[0].x, 0, vertices[0].z - (terrain.vertH() * heightUnit) + heightUnit);
+        Vector3 posOffset = new Vector3(vertices[0].x, 0, vertices[0].z - (terrain.VertHeight * heightUnit) + heightUnit);
 
         //here not <= because terrain heights are the vertecie count
 
         //todo: wierd shit with 30 exact? bigger nums?
         int startOffset = Random.Range(0, width + 1);
 
-        for (int i = 0; i < terrain.vertH(); i++)
+        for (int i = 0; i < terrain.VertHeight; i++)
         {
-            for (int k = 0; k < terrain.vertW(); k++)
+            for (int k = 0; k < terrain.VertWidth; k++)
             {
                 int kOffset = (startOffset + k) % (width + 1);
                 int horzDiff = kOffset - k;
 
                 int vertIndex = i * width + kOffset + offset;
-                int terrainIndex = i * terrain.vertW() + k;
+                int terrainIndex = i * terrain.VertWidth + k;
 
                 Vector3 terrPnt = terrain.terrainData[terrainIndex];
 
@@ -941,30 +984,6 @@ public class RunnerEnvironment : MonoBehaviour
         playerLane = playerLane - dir;//Mathf.Clamp(playerLane - dir, 0, width);
         Debug.Log(playerLane);
 
-    }
-
-
-    void updateTreadmillSpeed()
-    {
-        //increase speed for game difficulty
-        
-        //incase of death and still
-        if (targetTMSpeed > 0.0001f)
-        {
-            treadmillSpeed += 0;//treadmillAccel * Time.deltaTime * Time.deltaTime;
-            currTMSpeed += 0;//treadmillAccel * Time.deltaTime * Time.deltaTime;
-        }
-
-        //if (treadmillSpeed % 0.01 < 0.01) { Debug.Log(currTMSpeed); }
-
-        if (TMTimeTotal < TMSlowDownTime)
-        {
-            TMTimeTotal = Mathf.Min(TMSlowDownTime, TMTimeTotal + Time.deltaTime);
-
-            float actualDelta = RunnerGameObject.easingFunction(TMTimeTotal / TMSlowDownTime * Mathf.PI);
-            currTMSpeed = Mathf.Lerp(currTMSpeed, targetTMSpeed, actualDelta);
-
-        }
     }
 
     void ChangeTMSpeed(bool treadmillOn, float changeTime, float speedMultiplyer)
