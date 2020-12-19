@@ -223,6 +223,7 @@ public class RunnerPlayer : RunnerGameObject
         animLAIndex = animLAOC.animationClips[0].name;
         RunnerGunFire.onGunFireAnimEnd += gunFireAnimEnded;
         RunnerGunFire.onGunFired += generateThrowable;
+        RunnerGunFire.onGunThrow += generateThrowable;
 
         animRAOC = new AnimatorOverrideController(animRA.runtimeAnimatorController);
         animRA.runtimeAnimatorController = animRAOC;

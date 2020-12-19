@@ -88,8 +88,6 @@ public class AudioSwitchCaseWrapper : AAudioContainer
     {
         int currCase = switchCaseFunction();
 
-        Debug.Log("BULLETS AS SEEN ASCW: " + currCase);
-
         foreach (SwitchCaseDisplayWrapper switchCase in switchCases)
         {
             if (switchCase.scenarioId == currCase)

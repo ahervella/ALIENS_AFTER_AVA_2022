@@ -27,7 +27,7 @@ public class RunnerDevTools : MonoBehaviour
         {
             player.HasRock = true;
         }
-        if (Input.GetKeyDown(KeyCode.C))
+        if (Input.GetKeyDown(KeyCode.Z))
         {
             RunnerPlayer.GunBullets = RunnerPlayer.AMO_SIZE;
         }

@@ -173,32 +173,32 @@ public class RunnerControls : MonoBehaviour
         
 
 
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
         {
             keyState = RunnerGameObject.PLAYER_STATE.DODGE_L;
         }
 
-        else if (Input.GetKeyDown(KeyCode.RightArrow))
+        else if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
         {
             keyState = RunnerGameObject.PLAYER_STATE.DODGE_R;
         }
 
-        else if (Input.GetKeyDown(KeyCode.UpArrow))
+        else if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
         {
             keyState = RunnerGameObject.PLAYER_STATE.JUMP;
         }
 
-        else if (Input.GetKeyDown(KeyCode.DownArrow))
+        else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
         {
             keyState = RunnerGameObject.PLAYER_STATE.ROLL;
         }
 
-        else if (Input.GetKeyDown(KeyCode.R))
+        else if (Input.GetKeyDown(KeyCode.E))
         {
             keyState = RunnerGameObject.PLAYER_STATE.THROW_R;
         }
 
-        else if (Input.GetKeyDown(KeyCode.G))
+        else if (Input.GetKeyDown(KeyCode.Q))
         {
             keyState = RunnerGameObject.PLAYER_STATE.FIRE;
         }
