@@ -418,6 +418,8 @@ public class RunnerPlayer : RunnerGameObject
     {
         if (Lives >= startingLives) { return; }
 
+        if (GameIsOver()) { return; }
+
         lifeRecoverTotalTime += Time.deltaTime;
 
         if (lifeRecoverTotalTime >= lifeRecoverTime)
