@@ -18,8 +18,9 @@ public class Music : Singleton<Music>
 
     public List<MusicLoop> musicLoops = new List<MusicLoop>();
 
+    /*
     void Start()
     {
         RunnerSounds.Current.StartMusic();
-    }
+    }*/
 }

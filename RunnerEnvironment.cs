@@ -364,7 +364,7 @@ public class RunnerEnvironment : MonoBehaviour
             OnDrawGizmos();
             return;
         }
-
+        return;
 
         if (/*rendVertices == null || */!drawPoints) { return; }
 
