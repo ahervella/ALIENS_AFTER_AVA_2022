@@ -6,10 +6,10 @@ using Random = UnityEngine.Random;
 
 public static class PSAAW_ExtensionMethods
 {
-    
+
     public static bool Contains(this List<RunnerPlayer.PlayerStateAAudioWrapperKVP> kvpList, RunnerGameObject.PLAYER_STATE keyIndex)
     {
-        foreach(RunnerPlayer.PlayerStateAAudioWrapperKVP kvp in kvpList)
+        foreach (RunnerPlayer.PlayerStateAAudioWrapperKVP kvp in kvpList)
         {
             if (kvp.key == keyIndex)
             {
@@ -84,13 +84,13 @@ public class RunnerPlayer : RunnerGameObject
     }
 
     public float lifeRecoverTime;
-    float lifeRecoverTotalTime = 0f;
+    private float lifeRecoverTotalTime = 0f;
 
-    bool canChange = true;
-    bool canSprint = true;
-    Coroutine sprintCoroutine;
-    Coroutine sprintCoolDownCoroutine;
-    public bool canChangeState() { return canChange; }
+    private bool canChange = true;
+    private bool canSprint = true;
+    private Coroutine sprintCoroutine;
+    private Coroutine sprintCoolDownCoroutine;
+    public bool CanChangeState() { return canChange; }
 
     public bool HasRock { get; set; } = false;
     public static bool HasGun { get; private set; } = false;
@@ -161,7 +161,7 @@ public class RunnerPlayer : RunnerGameObject
     protected string animLAIndex;
     public AnimationClip[] animLAClips;
     Dictionary<string, AnimationClip> animLADict = new Dictionary<string, AnimationClip>();
-    void gunFireAnimEnded() => onAnimStateEnd(PLAYER_STATE.FIRE);
+    private void GunFireAnimEnded() => OnAnimStateEnd(PLAYER_STATE.FIRE);
 
     protected Animator animRA;
     protected AnimatorOverrideController animRAOC;
@@ -174,15 +174,15 @@ public class RunnerPlayer : RunnerGameObject
     Dictionary<RunnerThrowable.THROW_TYPE, RunnerThrowable> throwablesDict = new Dictionary<RunnerThrowable.THROW_TYPE, RunnerThrowable>();
 
     PLAYER_STATE currState = PLAYER_STATE.RUN;
-    
 
-    public static event System.Action<PLAYER_STATE> onAnimationStarted = delegate { };
-    public static event System.Action<PLAYER_STATE> onAnimationEnded = delegate { };
-    public static event System.Action<bool, float, float> changeTreamillSpeed = delegate { };
-    public static event System.Action<float, int, bool> changeCamRedTint = delegate { };
+
+    public static event System.Action<PLAYER_STATE> OnAnimationStarted = delegate { };
+    public static event System.Action<PLAYER_STATE> OnAnimationEnded = delegate { };
+    public static event System.Action<bool, float, float> ChangeTreamillSpeed = delegate { };
+    public static event System.Action<float, int, bool> ChangeCamRedTint = delegate { };
     public static event System.Action<int> ChangedLifeCount = delegate { };
     //public static event System.Action<TerrObject> removeTerrObj
- 
+
     // Update is called once per frame
     private void Start()
     {
@@ -221,15 +221,15 @@ public class RunnerPlayer : RunnerGameObject
         animLAOC = new AnimatorOverrideController(animLA.runtimeAnimatorController);
         animLA.runtimeAnimatorController = animLAOC;
         animLAIndex = animLAOC.animationClips[0].name;
-        RunnerGunFire.onGunFireAnimEnd += gunFireAnimEnded;
-        RunnerGunFire.onGunFired += generateThrowable;
-        RunnerGunFire.onGunThrow += generateThrowable;
+        RunnerGunFire.OnGunFireAnimEnd += GunFireAnimEnded;
+        RunnerGunFire.OnGunFired += GenerateThrowable;
+        RunnerGunFire.OnGunThrow += GenerateThrowable;
 
         animRAOC = new AnimatorOverrideController(animRA.runtimeAnimatorController);
         animRA.runtimeAnimatorController = animRAOC;
         animRAIndex = animRAOC.animationClips[0].name;
 
-        switchAnimState(PLAYER_STATE.RUN);
+        SwitchAnimState(PLAYER_STATE.RUN);
     }
 
 
@@ -249,12 +249,12 @@ public class RunnerPlayer : RunnerGameObject
             && currState != PLAYER_STATE.ROLL && !IsInvincible)
         {
             RunnerSounds.Current.PlayAudioWrapper(lazerHitSound, gameObject);
-            looseLife(PLAYER_STATE.ROLL);
+            LooseLife(PLAYER_STATE.ROLL);
             //Debug.Log("IM SHOT!!!!");
             return;
         }
 
-        if (terrObj == null) { return;  }
+        if (terrObj == null) { return; }
 
         if (terrObj.objType == TerrObject.OBJ_TYPE.ROCK)
         {
@@ -293,13 +293,13 @@ public class RunnerPlayer : RunnerGameObject
                 switch (randomTakedown)
                 {
                     case 0:
-                        defaultInitAction(PLAYER_STATE.TAKEDOWN1);
+                        DefaultInitAction(PLAYER_STATE.TAKEDOWN1);
                         break;
                     case 1:
-                        defaultInitAction(PLAYER_STATE.TAKEDOWN2);
+                        DefaultInitAction(PLAYER_STATE.TAKEDOWN2);
                         break;
                     default:
-                        defaultInitAction(PLAYER_STATE.TAKEDOWN3);
+                        DefaultInitAction(PLAYER_STATE.TAKEDOWN3);
                         break;
                 }
                 //only get the gun if its an alien shooter (which always has an
@@ -308,7 +308,7 @@ public class RunnerPlayer : RunnerGameObject
                 {
                     GotGun();
                 }
-                
+
                 return;
             }
         }
@@ -318,13 +318,13 @@ public class RunnerPlayer : RunnerGameObject
             return;
         }
 
-        looseLife(terrObj);
+        LooseLife(terrObj);
         //Debug.Log("object: " + terrObj.name);
         //Debug.Log("IM HIT!!!!");
 
     }
 
-    void GrabbedRock(TerrObject rockObj)
+    private void GrabbedRock(TerrObject rockObj)
     {
         if (HasRock) { return; }
 
@@ -336,7 +336,7 @@ public class RunnerPlayer : RunnerGameObject
         rockObj.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
     }
 
-    void GotGun(TerrObject tempGunObj = null)
+    private void GotGun(TerrObject tempGunObj = null)
     {
         //if (GunBullets > 0) { return; }
 
@@ -349,15 +349,15 @@ public class RunnerPlayer : RunnerGameObject
         tempGunObj.GetComponent<SpriteRenderer>().color = new Color(0, 0, 0, 0);
     }
 
-    private void looseLife(TerrObject hazObject)
+    private void LooseLife(TerrObject hazObject)
     {
         if (playerHurtAudioDict.Contains(hazObject.hazType))
         {
             RunnerSounds.Current.PlayAudioWrapper(playerHurtAudioDict.GetAAW(hazObject.hazType), gameObject);
         }
-        looseLife(hazObject.actionNeeded);
+        LooseLife(hazObject.actionNeeded);
     }
-    private void looseLife(PLAYER_STATE stateThatWasNeeded)
+    private void LooseLife(PLAYER_STATE stateThatWasNeeded)
     {
         if (currState == PLAYER_STATE.DEATH1
             || currState == PLAYER_STATE.HURT_F
@@ -372,22 +372,22 @@ public class RunnerPlayer : RunnerGameObject
 
         if (GameIsOver())
         {
-            changeCamRedTint(2f, 1, true);
+            ChangeCamRedTint(2f, 1, true);
         }
         else
         {
             switch (Lives)
             {
                 case 2:
-                    changeCamRedTint(2f, 3, false);
+                    ChangeCamRedTint(2f, 3, false);
                     break;
 
                 case 1:
-                    changeCamRedTint(1.5f, 5, false);
+                    ChangeCamRedTint(1.5f, 5, false);
                     break;
 
                 case 0:
-                    changeCamRedTint(1f, 10, false);
+                    ChangeCamRedTint(1f, 10, false);
                     break;
             }
         }
@@ -410,11 +410,11 @@ public class RunnerPlayer : RunnerGameObject
                 break;
         }
 
-        defaultInitAction(state);
+        DefaultInitAction(state);
 
     }
 
-    
+
     private void FixedUpdate()
     {
         if (Lives >= startingLives) { return; }
@@ -429,35 +429,46 @@ public class RunnerPlayer : RunnerGameObject
             lifeRecoverTotalTime = 0f;
         }
     }
-    
+
 
     //controled by event in animation
 
 
+    /// <summary>
+    /// Used by animation events
+    /// </summary>
+    /// <param name="aw"></param>
+    private void treadmillOff(int changeTimeInFrames) { TreadmillSpeedChange(false, changeTimeInFrames); }
 
-    void treadmillOff(int changeTimeInFrames) { treadmillSpeedChange(false, changeTimeInFrames); }
+    /// <summary>
+    /// Used by animation events
+    /// </summary>
+    /// <param name="aw"></param>
+    private void treadmillOn(int changeTimeInFrames) { TreadmillSpeedChange(true, changeTimeInFrames); }
 
-    void treadmillOn(int changeTimeInFrames) { treadmillSpeedChange(true, changeTimeInFrames); }
-
-    void treadmillSpeedChange(bool treadmillOn, int changeTimeInFrames, float speedMultiplyer = 1f)//, int changeTimeInFrames)
+    private void TreadmillSpeedChange(bool treadmillOn, int changeTimeInFrames, float speedMultiplyer = 1f)//, int changeTimeInFrames)
     {
-        float changeTime = getTimeFromFrames(animDict[currState.ToString()], changeTimeInFrames);
+        float changeTime = GetTimeFromFrames(animDict[currState.ToString()], changeTimeInFrames);
         //for smoother animation treadmill speed change
-        changeTime = GameIsOver() && treadmillOn && currState != PLAYER_STATE.DEATH1? changeTime * 4 : changeTime;
-        changeTreamillSpeed(treadmillOn, changeTime, speedMultiplyer);
+        changeTime = GameIsOver() && treadmillOn && currState != PLAYER_STATE.DEATH1 ? changeTime * 4 : changeTime;
+        ChangeTreamillSpeed(treadmillOn, changeTime, speedMultiplyer);
     }
 
-    bool GameIsOver()
+    private bool GameIsOver()
     {
         return Lives < 0;
     }
 
-    void playAnimAudioWrapper(AAudioWrapper aw)
+    /// <summary>
+    /// Used by animation events
+    /// </summary>
+    /// <param name="aw"></param>
+    private void playAnimAudioWrapper(AAudioWrapper aw)
     {
         RunnerSounds.Current.PlayAudioWrapper(aw, gameObject);
     }
 
-    void onAnimEnd(AnimationClip animClip)
+    private void onAnimEnd(AnimationClip animClip)
     {
         PLAYER_STATE animState = PLAYER_STATE.NONE;
 
@@ -470,128 +481,128 @@ public class RunnerPlayer : RunnerGameObject
             }
         }
 
-        onAnimStateEnd(animState);
+        OnAnimStateEnd(animState);
     }
 
     //So that we can tell it fire ended without an anim clip
-    void onAnimStateEnd(PLAYER_STATE animState)
+    private void OnAnimStateEnd(PLAYER_STATE animState)
     {
         if (GameIsOver() && animState != PLAYER_STATE.DEATH1)
         {
-            initDeath();
-            onAnimationEnded(animState);
+            InitDeath();
+            OnAnimationEnded(animState);
             return;
         }
 
         switch (animState)
         {
             case PLAYER_STATE.DEATH1:
-                    return;
+                return;
 
             case PLAYER_STATE.JUMP:
-                switchAnimState(PLAYER_STATE.LAND_G);
+                SwitchAnimState(PLAYER_STATE.LAND_G);
                 //controls feel better this way
-                onAnimEndSwitch();
+                OnAnimEndSwitch();
                 break;
 
 
             case PLAYER_STATE.LAND_G:
                 canChange = true;
-                switchAnimState(PLAYER_STATE.RUN);
+                SwitchAnimState(PLAYER_STATE.RUN);
                 break;
 
 
             case PLAYER_STATE.DODGE_R:
             case PLAYER_STATE.ROLL:
-                switchAnimState(PLAYER_STATE.RUN, 7);
-                onAnimEndSwitch();
+                SwitchAnimState(PLAYER_STATE.RUN, 7);
+                OnAnimEndSwitch();
                 break;
 
             case PLAYER_STATE.FIRE:
-                switchAnimState(PLAYER_STATE.RUN, getCurrFrame(animDict["RUN"], anim));
-                onAnimEndSwitch();
+                SwitchAnimState(PLAYER_STATE.RUN, GetCurrFrame(animDict["RUN"], anim));
+                OnAnimEndSwitch();
                 break;
 
             default:
-                switchAnimState(PLAYER_STATE.RUN);
-                onAnimEndSwitch();
+                SwitchAnimState(PLAYER_STATE.RUN);
+                OnAnimEndSwitch();
                 break;
         }
 
 
-        onAnimationEnded(animState);
+        OnAnimationEnded(animState);
     }
 
-    private void onAnimEndSwitch()
+    private void OnAnimEndSwitch()
     {
         canChange = true;
         //in case we switched from a sprinting anim
         if (!canSprint && sprintCoolDownCoroutine == null)
         {
-            sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
+            sprintCoolDownCoroutine = StartCoroutine(SprintCoolDown());
         }
     }
 
 
-    public void initDeath()
+    public void InitDeath()
     {
-        switchAnimState(PLAYER_STATE.DEATH1);
+        SwitchAnimState(PLAYER_STATE.DEATH1);
     }
 
 
-    public float dodge(bool dodgeRight)
+    public float Dodge(bool dodgeRight)
     {
         float delayFromDodge = 0;
 
         if (dodgeRight)
         {
-            defaultInitAction(PLAYER_STATE.DODGE_R);
-            delayFromDodge = getNormTimeFromFrame(animDict[PLAYER_STATE.DODGE_R.ToString()], anim, DODGE_FRAME_DELAY);
+            DefaultInitAction(PLAYER_STATE.DODGE_R);
+            delayFromDodge = GetNormTimeFromFrame(animDict[PLAYER_STATE.DODGE_R.ToString()], anim, DODGE_FRAME_DELAY);
         }
         else
         {
-            defaultInitAction(PLAYER_STATE.DODGE_L);
-            delayFromDodge = getNormTimeFromFrame(animDict[PLAYER_STATE.DODGE_L.ToString()], anim, DODGE_FRAME_DELAY);
+            DefaultInitAction(PLAYER_STATE.DODGE_L);
+            delayFromDodge = GetNormTimeFromFrame(animDict[PLAYER_STATE.DODGE_L.ToString()], anim, DODGE_FRAME_DELAY);
         }
 
         return delayFromDodge;
 
     }
 
-    public void jump()
+    public void Jump()
     {
-        defaultInitAction(PLAYER_STATE.JUMP);
+        DefaultInitAction(PLAYER_STATE.JUMP);
 
     }
 
-    public void roll()
+    public void Roll()
     {
-        defaultInitAction(PLAYER_STATE.ROLL);
+        DefaultInitAction(PLAYER_STATE.ROLL);
     }
 
 
 
-    public void sprint()
+    public void Sprint()
     {
         if (!canSprint || !canChange) { return; }
-        switchAnimState(PLAYER_STATE.SPRINT);
-        treadmillSpeedChange(true, 6, 1f + SPRINT_SPEED_PERCENT_BOOST);
-        sprintCoroutine = StartCoroutine(sprintInitTimer());
+        SwitchAnimState(PLAYER_STATE.SPRINT);
+        TreadmillSpeedChange(true, 6, 1f + SPRINT_SPEED_PERCENT_BOOST);
+        sprintCoroutine = StartCoroutine(SprintInitTimer());
     }
 
-    IEnumerator sprintInitTimer()
+    private IEnumerator SprintInitTimer()
     {
         canSprint = false;
         yield return new WaitForSecondsRealtime(SPRINT_TIME);
-        switchAnimState(PLAYER_STATE.RUN);
+        SwitchAnimState(PLAYER_STATE.RUN);
         sprintCoroutine = null;
-        sprintCoolDownCoroutine = StartCoroutine(sprintCoolDown());
+        sprintCoolDownCoroutine = StartCoroutine(SprintCoolDown());
     }
 
-    IEnumerator sprintCoolDown()
+    private IEnumerator SprintCoolDown()
     {
-        onAnimationEnded(PLAYER_STATE.SPRINT);
-        treadmillSpeedChange(true, 6);
+        OnAnimationEnded(PLAYER_STATE.SPRINT);
+        TreadmillSpeedChange(true, 6);
         yield return new WaitForSecondsRealtime(SPRINT_COOL_DOWN_TIME);
         canSprint = true;
         sprintCoolDownCoroutine = null;
@@ -600,14 +611,14 @@ public class RunnerPlayer : RunnerGameObject
 
 
 
-    public void throwRock()
+    public void ThrowRock()
     {
         if (!HasRock) { return; }
-        defaultInitAction(PLAYER_STATE.THROW_R);
+        DefaultInitAction(PLAYER_STATE.THROW_R);
         HasRock = false;
     }
 
-    public void fireGun()
+    public void FireGun()
     {
         if (!HasGun)
         {
@@ -617,28 +628,28 @@ public class RunnerPlayer : RunnerGameObject
         if (GunBullets == 0)
         {
             HasGun = false;
-            defaultInitAction(PLAYER_STATE.THROW_G);
+            DefaultInitAction(PLAYER_STATE.THROW_G);
             return;
         }
 
         GunBullets--;
 
-        defaultInitAction(PLAYER_STATE.FIRE);
+        DefaultInitAction(PLAYER_STATE.FIRE);
     }
 
 
-    void defaultInitAction(PLAYER_STATE state)
+    private void DefaultInitAction(PLAYER_STATE state)
     {
-        switchAnimState(state);
+        SwitchAnimState(state);
         canChange = false;
         if (sprintCoroutine != null) { StopCoroutine(sprintCoroutine); sprintCoroutine = null; }
     }
 
-    void switchAnimState(PLAYER_STATE state, int startFrame = 0)
+    private void SwitchAnimState(PLAYER_STATE state, int startFrame = 0)
     {
         currState = state;
         PlayAAudioWrapper(state);
-        StartCoroutine(switchAnim(state, startFrame));
+        StartCoroutine(SwitchAnim(state, startFrame));
     }
 
     private void PlayAAudioWrapper(PLAYER_STATE state)
@@ -649,9 +660,9 @@ public class RunnerPlayer : RunnerGameObject
         }
     }
 
-    IEnumerator switchAnim(PLAYER_STATE state, int startFrame = 0)
+    private IEnumerator SwitchAnim(PLAYER_STATE state, int startFrame = 0)
     {
-        onAnimationStarted(state);
+        OnAnimationStarted(state);
 
 
         string stateString = state.ToString();
@@ -660,24 +671,24 @@ public class RunnerPlayer : RunnerGameObject
         int currState = anim.GetCurrentAnimatorStateInfo(0).fullPathHash;
 
         //only exception to using startFrame with firing gun
-        int torsoStartFrame = state == PLAYER_STATE.FIRE? getCurrFrame(animDict["RUN"], anim) : startFrame;
-        float startNormTime = getNormTimeFromFrame(animDict[stateString], anim, torsoStartFrame);
+        int torsoStartFrame = state == PLAYER_STATE.FIRE ? GetCurrFrame(animDict["RUN"], anim) : startFrame;
+        float startNormTime = GetNormTimeFromFrame(animDict[stateString], anim, torsoStartFrame);
 
-        
-        
+
+
 
         string LAstring = "LA_" + stateString;
-        LAstring = HasGun && state != PLAYER_STATE.THROW_G && state != PLAYER_STATE.FIRE? LAstring + "_GUN" : LAstring;
+        LAstring = HasGun && state != PLAYER_STATE.THROW_G && state != PLAYER_STATE.FIRE ? LAstring + "_GUN" : LAstring;
         int currStateLA = animLA.GetCurrentAnimatorStateInfo(0).fullPathHash;
-        float startNormTimeLA = getNormTimeFromFrame(animLADict[LAstring], animLA, startFrame);
-        
+        float startNormTimeLA = GetNormTimeFromFrame(animLADict[LAstring], animLA, startFrame);
+
 
         string RAstring = "RA_" + stateString;
         //TODO: get firing anim while holding rock
-        RAstring = HasRock && state != PLAYER_STATE.THROW_R && state != PLAYER_STATE.FIRE? RAstring + "_ROCK" : RAstring;
-        
+        RAstring = HasRock && state != PLAYER_STATE.THROW_R && state != PLAYER_STATE.FIRE ? RAstring + "_ROCK" : RAstring;
+
         int currStateRA = animRA.GetCurrentAnimatorStateInfo(0).fullPathHash;
-        float startNormTimeRA = getNormTimeFromFrame(animRADict[RAstring], animRA, startFrame);
+        float startNormTimeRA = GetNormTimeFromFrame(animRADict[RAstring], animRA, startFrame);
 
         /*
         anim.PlayInFixedTime(currState, 0, startNormTime);
@@ -702,12 +713,12 @@ public class RunnerPlayer : RunnerGameObject
 
 
 
-    public void generateThrowable(RunnerThrowable.THROW_TYPE throwType)
+    public void GenerateThrowable(RunnerThrowable.THROW_TYPE throwType)
     {
         throwablesDict[throwType].Instantiate(transform.position);
     }
 
-    int getCurrFrame(AnimationClip animClip, Animator animator)
+    private int GetCurrFrame(AnimationClip animClip, Animator animator)
     {
         float normTime = animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
         float animLength = animClip.length;
@@ -715,12 +726,12 @@ public class RunnerPlayer : RunnerGameObject
         return (int)(normTime * animLength * animFrameRate);
     }
 
-    float getTimeFromFrames(AnimationClip animClip, int frameCount)
+    private float GetTimeFromFrames(AnimationClip animClip, int frameCount)
     {
-        return animClip.frameRate / RunnerGameObject.getGameFPS() * frameCount;
+        return animClip.frameRate / RunnerGameObject.GetGameFPS() * frameCount;
     }
 
-    float getNormTimeFromFrame(AnimationClip animClip, Animator animator, int frame)
+    private float GetNormTimeFromFrame(AnimationClip animClip, Animator animator, int frame)
     {
         float normTime = animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
         float animLength = animClip.length;

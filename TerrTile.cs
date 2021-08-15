@@ -122,17 +122,17 @@ public class TerrTile : MonoBehaviour
         VertWidth = parsedData[0].Length;
         terrainData = new Vector3[VertWidth * VertHeight];
 
-
         //convert depth string vals and location to Vector3 val
         for (int i = 0; i < VertHeight; i++)
         {
-
+            terrainDataV2.Add(new List<Vector3>());
             for (int k = 0; k < VertWidth; k++)
             {
                 float vertHeightVal = VertHeight - i - 1;
                 float depthVal = parsedData[i][k] * elevationMultiplyer;
 
                 terrainData[i * VertWidth + k] = new Vector3(k, depthVal, vertHeightVal);
+                terrainDataV2[i].Add(new Vector3(k, depthVal, vertHeightVal));
             }
         }
 

@@ -10,7 +10,7 @@ public class RunnerThrowable : MonoBehaviour
     public enum THROW_TYPE { BULLET, ENEMY_BULLET, ROCK, GUN};
     const float GRAV = 4.89f;
 
-    TerrObject terrObj;
+    private TerrObject terrObj;
 
     public THROW_TYPE throwType;
 
@@ -20,14 +20,14 @@ public class RunnerThrowable : MonoBehaviour
     public Vector3 spawnOffset;
 
     public Vector2 throwVelocity;
-    Vector3 vel;
+    private Vector3 vel;
 
     public bool applyGrav;
 
     public float dist2Disappear;
 
-    public static event System.Action<RunnerThrowable> throwableGenerated = delegate { };
-    public static event System.Action<RunnerThrowable> throwableDestroyed = delegate { };
+    public static event System.Action<RunnerThrowable> ThrowableGenerated = delegate { };
+    public static event System.Action<RunnerThrowable> ThrowableDestroyed = delegate { };
 
     //TODO: make this inherit a TerrObj?
     public RunnerThrowable Instantiate(Vector3 startPos, Transform parent = null)
@@ -39,7 +39,7 @@ public class RunnerThrowable : MonoBehaviour
         inst.terrObj = GetComponent<TerrObject>();
         inst.vel = new Vector3(0, throwVelocity.y, throwVelocity.x);
 
-        throwableGenerated(inst);
+        ThrowableGenerated(inst);
         return inst;
 
     }
@@ -69,7 +69,7 @@ public class RunnerThrowable : MonoBehaviour
     private void OnDestroy()
     {
         //Debug.Log("throwable destroyed");
-        throwableDestroyed(this);
+        ThrowableDestroyed(this);
     }
 
     

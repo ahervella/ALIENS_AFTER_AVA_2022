@@ -9,7 +9,7 @@ using Random = UnityEngine.Random;
 [RequireComponent(typeof(SpriteRenderer))]
 public class TerrObject : RunnerGameObject
 {
-    public static event System.Action<TerrObject> terrObjDestroyed = delegate { };
+    public static event System.Action<TerrObject> TerrObjDestroyed = delegate { };
 
     //TODO MERGE THESE ENUMS AND THEIR USE IN OTHER SCRIPTS
     public enum OBJ_TYPE { STATIC, STATIC_HAZ, ROCK, TEMP_GUN, ENEMY, THROWABLE };
@@ -164,10 +164,10 @@ public class TerrObject : RunnerGameObject
             Destroy(attachment);
         }
 
-        terrObjDestroyed(this);
+        TerrObjDestroyed(this);
     }
 
-    public void flipTerrObj(int flipMultiplyer)
+    public void FlipTerrObj(int flipMultiplyer)
     {
         
         IsFlipped = flipMultiplyer > 0 ? false : true;
@@ -267,11 +267,11 @@ public class TerrObject : RunnerGameObject
     public TerrObject InitTerrObj(Vector3 finalSpawnPos, int flipMultiplyer, TerrObject parentTerrObj = null)
     {
         parentAttachmentObject = parentTerrObj;
-        flipTerrObj(flipMultiplyer);
+        FlipTerrObj(flipMultiplyer);
         TerrObject terrObjInst = Instantiate(this);
         terrObjInst.transform.position = finalSpawnPos;
         //TODO: check if its an alien type of terr object? don't assume all attachments are aliens?
-        parentTerrObj.AddAlienAttachment(terrObjInst);
+        parentTerrObj?.AddAlienAttachment(terrObjInst);
         return terrObjInst;
     }
 }

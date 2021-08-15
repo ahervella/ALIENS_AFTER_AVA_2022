@@ -29,7 +29,7 @@ public class GameInfo : Singleton<GameInfo>
         }) }
          */
 
-        { INFO.LIVES , new GameInfoTypeDetails(getLives, new Dictionary<int, string>{
+        { INFO.LIVES , new GameInfoTypeDetails(GetLives, new Dictionary<int, string>{
             { 4, "Health 4/4" },
             { 3, "Health 3/4" },
             { 2, "Health 2/4" },
@@ -68,7 +68,7 @@ public class GameInfo : Singleton<GameInfo>
     }
     */
 
-    public static int getLives()
+    public static int GetLives()
     {
         return RunnerPlayer.Lives;
     }

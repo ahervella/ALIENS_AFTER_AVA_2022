@@ -38,9 +38,9 @@ public class RunnerControls : MonoBehaviour
             this.state = state;
         }
 
-        public Vector2 getStartPos() { return startPos; }
-        public Vector2 getEndPos() { return endPos; }
-        public RunnerGameObject.PLAYER_STATE getState() { return state; }
+        public Vector2 GetStartPos() { return startPos; }
+        public Vector2 GetEndPos() { return endPos; }
+        public RunnerGameObject.PLAYER_STATE GetState() { return state; }
     }
 
     class TouchTracker
@@ -84,7 +84,7 @@ public class RunnerControls : MonoBehaviour
             }
         }
 
-        public void addTimeDist(float deltaTime, Vector2 newPos)
+        public void AddTimeDist(float deltaTime, Vector2 newPos)
         {
             if (finishedTouch) { return; }
 
@@ -130,13 +130,13 @@ public class RunnerControls : MonoBehaviour
         if (mashKeyTimer >= SINGLE_MASH_TAP_TIME_CAP) { resetKeyShit(); }
 
         InputData touchInputData = getTouchInputData();
-        if (touchInputData.getState() != RunnerGameObject.PLAYER_STATE.NONE)
+        if (touchInputData.GetState() != RunnerGameObject.PLAYER_STATE.NONE)
         {
             OnInputAction(touchInputData);
         }
 
         InputData keyInputData = getKeyInputData();
-        if (keyInputData.getState() != RunnerGameObject.PLAYER_STATE.NONE)
+        if (keyInputData.GetState() != RunnerGameObject.PLAYER_STATE.NONE)
         {
             OnInputAction(keyInputData);
         }
@@ -241,7 +241,7 @@ public class RunnerControls : MonoBehaviour
 
             if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Ended)
             {
-                currTouchTracker.addTimeDist(Time.fixedDeltaTime, touch.position);
+                currTouchTracker.AddTimeDist(Time.fixedDeltaTime, touch.position);
                 touchDict.Remove(touch.fingerId);
 
                 Debug.Log(touch.fingerId);
@@ -249,7 +249,7 @@ public class RunnerControls : MonoBehaviour
 
             else
             {
-                currTouchTracker.addTimeDist(Time.fixedDeltaTime, touch.position);
+                currTouchTracker.AddTimeDist(Time.fixedDeltaTime, touch.position);
             }
 
             //cache the at least one touchTraker, or the last that isn't NONE

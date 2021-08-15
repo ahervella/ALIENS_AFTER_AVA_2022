@@ -21,13 +21,13 @@ public class RunnerGameObject : MonoBehaviour
     protected string animIndex;
 
 
-    public static float easingFunction(float theta)
+    public static float EasingFunction(float theta)
     {
         float result = Mathf.Sin(theta - Mathf.PI / 2f) * 0.5f + 0.5f;
         return result < 0.0001 ? 0 : result;
     }
 
-    public static float getGameFPS() { return GAME_FPS; }
+    public static float GetGameFPS() { return GAME_FPS; }
 
     protected void Awake()
     {

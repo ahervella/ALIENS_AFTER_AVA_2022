@@ -13,7 +13,7 @@ public class SourceProperties : MonoBehaviour
     [Range(0f, 100f)]
     public float maxDist = 100;
 
-    void Awake()
+    private void Awake()
     {
         foreach (AudioSource source in GetComponents<AudioSource>())
         {

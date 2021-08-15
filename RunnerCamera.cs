@@ -52,9 +52,9 @@ public class RunnerCamera : MonoBehaviour
 
     private void Start()
     {
-        RunnerPlayer.onAnimationStarted += animStart;
-        RunnerPlayer.onAnimationEnded += animEnd;
-        RunnerPlayer.changeCamRedTint += setFlashing;
+        RunnerPlayer.OnAnimationStarted += AnimStart;
+        RunnerPlayer.OnAnimationEnded += AnimEnd;
+        RunnerPlayer.ChangeCamRedTint += SetFlashing;
 
         cam = GetComponent<Camera>();
 
@@ -80,7 +80,7 @@ public class RunnerCamera : MonoBehaviour
             deltaTimeTotal += Time.deltaTime; //* actionSmoothMultiplyer;
             deltaTimeTotal = Mathf.Min(deltaTimeTotal, SphericalEaseTime);
 
-            actualDelta = RunnerGameObject.easingFunction(deltaTimeTotal / SphericalEaseTime * Mathf.PI);
+            actualDelta = RunnerGameObject.EasingFunction(deltaTimeTotal / SphericalEaseTime * Mathf.PI);
         }
         
         
@@ -90,24 +90,24 @@ public class RunnerCamera : MonoBehaviour
         cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFOVOffset, actualDelta);
 
 
-        flashRedTint();
+        FlashRedTint();
     }
 
 
 
-    private void animStart(RunnerPlayer.PLAYER_STATE state)
+    private void AnimStart(RunnerPlayer.PLAYER_STATE state)
     {
-        offsetChange(state, true);
+        OffsetChange(state, true);
 
     }
 
-    private void animEnd(RunnerPlayer.PLAYER_STATE state)
+    private void AnimEnd(RunnerPlayer.PLAYER_STATE state)
     {
-        offsetChange(state, false);
+        OffsetChange(state, false);
 
     }
 
-    private void offsetChange(RunnerPlayer.PLAYER_STATE state, bool startingAnim)
+    private void OffsetChange(RunnerPlayer.PLAYER_STATE state, bool startingAnim)
     {
         if (!actionOffsetDict.ContainsKey(state)) { return; }
 
@@ -126,7 +126,7 @@ public class RunnerCamera : MonoBehaviour
     }
 
 
-    void setFlashing(float loopDuration, int loopCount, bool isDead)
+    void SetFlashing(float loopDuration, int loopCount, bool isDead)
     {
 
         tintLoopTime = loopDuration * loopCount;
@@ -138,7 +138,7 @@ public class RunnerCamera : MonoBehaviour
     }
     
 
-    void flashRedTint()
+    void FlashRedTint()
     {
         if (tintDeltaTimeTotal >= tintLoopTime) { return; }
 

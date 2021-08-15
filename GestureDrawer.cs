@@ -18,11 +18,11 @@ public class GestureDrawer : MonoBehaviour
 
     public void renderShit(RunnerControls.InputData inputData)
     {
-        if (inputData.getStartPos() == inputData.getEndPos()) { return; }
+        if (inputData.GetStartPos() == inputData.GetEndPos()) { return; }
 
         Vector3[] positions = new Vector3[2];
-        positions[0] = Camera.main.ScreenToWorldPoint(new Vector3(inputData.getStartPos().x, inputData.getStartPos().y, zOffset));
-        positions[1] = Camera.main.ScreenToWorldPoint(new Vector3(inputData.getEndPos().x, inputData.getEndPos().y, zOffset));
+        positions[0] = Camera.main.ScreenToWorldPoint(new Vector3(inputData.GetStartPos().x, inputData.GetStartPos().y, zOffset));
+        positions[1] = Camera.main.ScreenToWorldPoint(new Vector3(inputData.GetEndPos().x, inputData.GetEndPos().y, zOffset));
         line.positionCount = 2;
         line.SetPositions(positions);
     }
