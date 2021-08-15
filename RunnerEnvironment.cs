@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 
 //requires mesh
@@ -91,8 +93,10 @@ public class RunnerEnvironment : MonoBehaviour
     //[SerializeField]
     private Vector3[] rendVertices;
 
-    private List<List<Vector3>> verticesV2 = new List<List<Vector3>>();
-    private List<List<Vector3>> rendVerticesV2 = new List<List<Vector3>>();
+    //private List<List<Vector3>> verticesV2 = new List<List<Vector3>>();
+    private Vector3[,] verticesV2;
+    private Vector3[,] rendVerticesV2;
+    //private List<List<Vector3>> rendVerticesV2 = new List<List<Vector3>>();
 
     [SerializeField]
     private TerrTile[] terrains;
@@ -173,17 +177,17 @@ public class RunnerEnvironment : MonoBehaviour
 
     private void CreateControlVerticesV2()
     {
-        verticesV2.Clear();
+        verticesV2 = new Vector3[height + 1, width + 1];
+        /*
+        verticesV2.Clear();*/
 
         for (int h = 0; h < height + 1; h++)
         {
-            verticesV2.Add(new List<Vector3>());
-
             for (int w = 0; w < width + 1; w++)
             {
                 //reverse the height order with height-h, where rows
                 //farthest away from our player is first
-                verticesV2[h].Add(new Vector3(w * widthUnit, 0, (height - h) * heightUnit));
+                verticesV2[h, w] = new Vector3(w * widthUnit, 0, (height - h) * heightUnit);
             }
         }
     }
@@ -210,15 +214,15 @@ public class RunnerEnvironment : MonoBehaviour
         rvHeight = height * (fillPointCount + 1);
         rvWidth = width * (fillPointCount + 1);
 
-        rendVerticesV2.Clear();
+        rendVerticesV2 = new Vector3[rvHeight + 1, rvWidth + 1];
 
 
-
+        /*
         //for (int )
         for (int rvH = 0; rvH < rvHeight + 1; rvH++)
         {
             rendVerticesV2.Add(new List<Vector3>());
-        }
+        }*/
 
 
         for (int h = 0, rvH = 0; h < height + 1; h++, rvH += fillPointCount + 1)
@@ -226,9 +230,9 @@ public class RunnerEnvironment : MonoBehaviour
             for (int w = 0, rvW = 0; w < width + 1; w++, rvW += fillPointCount + 1)
             {
                 //first point of inbetweens overlaps with non inbetweens
-                Vector3 refPos1 = verticesV2[h][w];
+                Vector3 refPos1 = verticesV2[h, w];
                 //rendVerticesV2[rvH][rvW] = refPos1;
-                rendVerticesV2[rvH].Add(refPos1);
+                rendVerticesV2[rvH, rvW] = refPos1;
 
                 if (w == width)
                 {
@@ -236,14 +240,14 @@ public class RunnerEnvironment : MonoBehaviour
                     break;
                 }
 
-                Vector3 refPos2 = verticesV2[h][w + 1];
+                Vector3 refPos2 = verticesV2[h, w + 1];
 
                 //start at 1 because we already did the index = 0 one,
                 //save computatino time by doing it manually
                 for (int i = 1; i < fillPointCount + 1; i++)
                 {
                     //rendVerticesV2[rvH][rvW + i] = SmoothERPV2(refPos1, refPos2, i);
-                    rendVerticesV2[rvH].Add(SmoothERPV2(refPos1, refPos2, i));
+                    rendVerticesV2[rvH, i + rvW] = SmoothERPV2(refPos1, refPos2, i);
                 }
             }
         }
@@ -257,13 +261,13 @@ public class RunnerEnvironment : MonoBehaviour
             {
                 //this tiem we don't add the i = 0 case because it already exists
 
-                Vector3 refPos1 = rendVerticesV2[rvH][rvW];
-                Vector3 refPos2 = rendVerticesV2[rvH + fillPointCount + 1][rvW];
+                Vector3 refPos1 = rendVerticesV2[rvH, rvW];
+                Vector3 refPos2 = rendVerticesV2[rvH + fillPointCount + 1, rvW];
 
                 for (int i = 1; i < fillPointCount + 1; i++)
                 {
                     //rendVerticesV2[rvH + i][rvW] = SmoothERPV2(refPos1, refPos2, i);
-                    rendVerticesV2[rvH + i].Add(SmoothERPV2(refPos1, refPos2, i));
+                    rendVerticesV2[rvH + i, rvW] = SmoothERPV2(refPos1, refPos2, i);
                 }
             }
         }
@@ -359,6 +363,7 @@ public class RunnerEnvironment : MonoBehaviour
 
     private void OnDrawGizmosV2()
     {
+        /*
         if (!drawPoints) { return; }
 
         List<List<Vector3>> points = drawOnlyControlPoints ? verticesV2 : rendVerticesV2;
@@ -370,7 +375,7 @@ public class RunnerEnvironment : MonoBehaviour
             {
                 Gizmos.DrawSphere(pos, 0.2f);
             }
-        }
+        }*/
     }
 
     private void OnDrawGizmos()
@@ -540,7 +545,7 @@ public class RunnerEnvironment : MonoBehaviour
         int offset = 0;
 
         //to have the terrain spawn within the mesh boundaries
-        Vector3 posOffset = new Vector3(verticesV2[0][0].x, 0, verticesV2[0][0].z - heightUnit * (terrTile.VertHeight - 1));
+        Vector3 posOffset = new Vector3(verticesV2[0, 0].x, 0, verticesV2[0, 0].z - heightUnit * (terrTile.VertHeight - 1));
         int horizRandoOffset = Random.Range(0, width + 1);
 
         //not terrTile.VertHeight + 1 because TerrTile heights are the vertex count
@@ -558,8 +563,8 @@ public class RunnerEnvironment : MonoBehaviour
 
                 Vector3 terrPos = terrTile.terrainDataV2[h][w];
                 float terrTileElevation = terrPos.y * terrTileElevMultiplyer;
-                float actualElevation = terrTile.canGenerateOthers && terrPos.y >= 0 ? Mathf.Max(verticesV2[h][w].y, terrTileElevation) : terrTileElevation;
-                verticesV2[h][w + horizDiff] = new Vector3((terrPos.x + horizDiff) * widthUnit, actualElevation, terrPos.z * heightUnit) + posOffset;
+                float actualElevation = terrTile.canGenerateOthers && terrPos.y >= 0 ? Mathf.Max(verticesV2[h, w].y, terrTileElevation) : terrTileElevation;
+                verticesV2[h, w + horizDiff] = new Vector3((terrPos.x + horizDiff) * widthUnit, actualElevation, terrPos.z * heightUnit) + posOffset;
             }
         }
         RefreshTerrObjDictV2();
@@ -695,7 +700,7 @@ public class RunnerEnvironment : MonoBehaviour
 
         for (int r = 0; r < height + 1; r++)
         {
-            if (verticesV2[r][0].z < zVal)
+            if (verticesV2[r, 0].z < zVal)
             {
                 rowFront = r;
 
@@ -721,7 +726,7 @@ public class RunnerEnvironment : MonoBehaviour
 
         for (int c = 0; c < width + 1; c++)
         {
-            if (verticesV2[0][c].x > xVal)
+            if (verticesV2[0, c].x > xVal)
             {
                 //for wrapping
                 if (c == 0)
@@ -745,10 +750,10 @@ public class RunnerEnvironment : MonoBehaviour
             }
         }
 
-        refNW = verticesV2[rowBehind][colLeft];
-        refNE = verticesV2[rowBehind][colRight];
-        refSW = verticesV2[rowFront][colLeft];
-        refSE = verticesV2[rowFront][colRight];
+        refNW = verticesV2[rowBehind, colLeft];
+        refNE = verticesV2[rowBehind, colRight];
+        refSW = verticesV2[rowFront, colLeft];
+        refSE = verticesV2[rowFront, colRight];
 
         float diffNWlev = refNE.y - refNW.y;
         float diffSWlev = refSE.y - refSW.y;
@@ -1165,11 +1170,11 @@ public class RunnerEnvironment : MonoBehaviour
 
         if (V2_RIPCORD)
         {
-            for (int row = 0; row < verticesV2.Count; row++)
+            for (int row = 0; row < height + 1/*verticesV2.Count*/; row++)
             {
-                for (int vertex = 0; vertex < verticesV2[row].Count; vertex++)
+                for (int vertex = 0; vertex < width + 1/*verticesV2[row].Count*/; vertex++)
                 {
-                    verticesV2[row][vertex] += new Vector3(change, 0, -speedToApply);
+                    verticesV2[row, vertex] += new Vector3(change, 0, -speedToApply);
                 }
             }
 
@@ -1245,18 +1250,19 @@ public class RunnerEnvironment : MonoBehaviour
 
     private bool ApplyTreadmillEffectV2()
     {
-        if (verticesV2[0][0].z < (height - 1) * heightUnit)
+        if (verticesV2[0, 0].z < (height - 1) * heightUnit)
         {
             //remove last row, and add a new fresh flat first row one heightUnit above current first one
-            verticesV2.Remove(verticesV2[height]);
+            //verticesV2.Remove(verticesV2[height]);
 
-            List<Vector3> newFirstRow = new List<Vector3>();
+            //TODO: make sure this shit moving up the entire array after first row by 1 row
+            //Vector3[,] dumby = new Vector3[height+1, width+1];
+            Array.Copy(verticesV2, 0, verticesV2, width + 1, height * (width + 1));
+
             for (int lane = 0; lane < width + 1; lane++)
             {
-                newFirstRow.Add(new Vector3(verticesV2[0][lane].x, 0, verticesV2[0][lane].z + heightUnit));
+                verticesV2[0, lane].z += heightUnit;// = new Vector3(verticesV2[0, lane].x, 0, verticesV2[0, lane].z + heightUnit);
             }
-
-            verticesV2.Insert(0, newFirstRow);
 
             Dictionary<int, Dictionary<int, List<TerrObject>>> newGrid = new Dictionary<int, Dictionary<int, List<TerrObject>>>();
             foreach (int row in currTerrObjsDictV2.Keys)
@@ -1369,17 +1375,44 @@ public class RunnerEnvironment : MonoBehaviour
     {
         //divided by two here so that we gaurantee a wrap update on every left or right shift
         //(in case it happens to be tangent with the widthUnit somehow and miss a wrap when moving)
-        if (verticesV2[0][0].x > widthUnit * 0.5f || verticesV2[0][0].x < -widthUnit * 0.5f)
+        if (verticesV2[0, 0].x > widthUnit * 0.5f || verticesV2[0, 0].x < -widthUnit * 0.5f)
         {
-            bool movingRight = verticesV2[0][0].x > 0;
+            bool movingRight = verticesV2[0, 0].x > 0;
             //int modifier = movingRight ? 1 : 0;
             //int invModifier = movingRight ? 0 : 1;
             int dirModifier = movingRight ? 1 : -1;
 
             playerLane += dirModifier;
 
-            for (int h = 0; h < verticesV2.Count; h++)
+            for (int h = 0; h < height + 1; h++)
             {
+
+                if (movingRight)
+                {
+                    Vector3 rightMostPoint = verticesV2[h, width];
+
+                    for (int lane = width; lane > 0; lane--)
+                    {
+                        verticesV2[h, lane] = verticesV2[h, lane - 1];
+                    }
+
+                    verticesV2[h, 0] = rightMostPoint;
+                }
+
+                else
+                {
+                    Vector3 leftMostPoint = verticesV2[h, 0];
+
+                    for (int lane = 0; lane > width; lane++)
+                    {
+                        verticesV2[h, lane] = verticesV2[h, lane + 1];
+                    }
+
+                    verticesV2[h, width] = leftMostPoint;
+                }
+
+
+                /*
                 List<Vector3> newRow = new List<Vector3>();
 
                 if (movingRight)
@@ -1397,7 +1430,7 @@ public class RunnerEnvironment : MonoBehaviour
                     newRow.Add(newFirstInRow);
                 }
 
-                verticesV2[h] = newRow;
+                verticesV2[h] = newRow;*/
             }
 
             //Now move all of the terrain objects as well
@@ -1540,7 +1573,7 @@ public class RunnerEnvironment : MonoBehaviour
         int startRowIndex = 0;
         for(int i = 0; i < rows.Count; i++)
         {
-            float diff = player.transform.position.z - (verticesV2[rows[i]][0].z + heightUnit / 2f);
+            float diff = player.transform.position.z - (verticesV2[rows[i], 0].z + heightUnit / 2f);
             if (diff > 0)
             {
                 startRowIndex = i;
@@ -1655,6 +1688,20 @@ public class RunnerEnvironment : MonoBehaviour
     {
         if (V2_RIPCORD)
         {
+            var verticesInSingleArray = new Vector3[rendVerticesV2.Length];
+            for (int row = 0; row < rvHeight + 1; row++)
+            {
+                for (int lane = 0; lane < rvWidth + 1; lane++)
+                {
+                    verticesInSingleArray[row * (rvWidth + 1) + lane] = rendVerticesV2[row, lane];
+                }
+            }
+
+            mesh.vertices = verticesInSingleArray;
+
+            //Vector3[] verticesInSingleArray = new Vector3[(rvHeight + 1) * (rvWidth + 1)];
+            //Buffer.BlockCopy(rendVerticesV2, 0, verticesInSingleArray, 0, rendVerticesV2.Length);
+            /*
             int topRendMargin = topMargin * (1 + fillPointCount);
             int bottomRendMargin = bottomMargin * (1 + fillPointCount);
             Vector3[] verticesInSingleArray = new Vector3[(rvHeight + 1 - topRendMargin - bottomRendMargin) * (rvWidth + 1)];
@@ -1667,6 +1714,7 @@ public class RunnerEnvironment : MonoBehaviour
             }
 
             mesh.vertices = verticesInSingleArray;
+            */
         }
         else
         {
