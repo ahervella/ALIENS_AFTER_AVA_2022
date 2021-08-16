@@ -15,7 +15,7 @@ public class TerrTile : MonoBehaviour
     public float AppearanceLikelihood => appearanceLikelihood;
 
     public Vector3[] terrainData;
-    public List<List<Vector3>> terrainDataV2 = new List<List<Vector3>>();
+    public Vector3[,] terrainDataV2;
 
     //control point vertecie Heights and Widths
     public int VertWidth { get; private set; } = 0;
@@ -121,18 +121,18 @@ public class TerrTile : MonoBehaviour
         VertHeight = parsedData.Count;
         VertWidth = parsedData[0].Length;
         terrainData = new Vector3[VertWidth * VertHeight];
+        terrainDataV2 = new Vector3[VertHeight, VertWidth];
 
         //convert depth string vals and location to Vector3 val
         for (int i = 0; i < VertHeight; i++)
         {
-            terrainDataV2.Add(new List<Vector3>());
             for (int k = 0; k < VertWidth; k++)
             {
                 float vertHeightVal = VertHeight - i - 1;
                 float depthVal = parsedData[i][k] * elevationMultiplyer;
 
                 terrainData[i * VertWidth + k] = new Vector3(k, depthVal, vertHeightVal);
-                terrainDataV2[i].Add(new Vector3(k, depthVal, vertHeightVal));
+                terrainDataV2[i, k] = new Vector3(k, depthVal, vertHeightVal);
             }
         }
 
@@ -157,14 +157,14 @@ public class TerrTile : MonoBehaviour
         canGenerate = true;
     }
 
-    public List<List<Vector3>> OffSetDataV2(float offset)
+    public Vector3[,] OffSetDataV2(float offset)
     {
         for(int row = 0; row < VertHeight; row++)
         {
             for (int col = 0; col < VertWidth; col++)
             {
-                Vector3 old = terrainDataV2[row][col];
-                terrainDataV2[row][col] = new Vector3(old.x, old.y, old.z + offset);
+                Vector3 old = terrainDataV2[row, col];
+                terrainDataV2[row, col] = new Vector3(old.x, old.y, old.z + offset);
             }
         }
 
