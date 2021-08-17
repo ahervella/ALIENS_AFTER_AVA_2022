@@ -11,7 +11,11 @@ public class RunnerEnvironment : MonoBehaviour
 {
     private Mesh mesh;
 
-    private static bool V2_RIPCORD = true;
+    [SerializeField]
+    private bool V2_RIPCORD = true;
+
+    [SerializeField]
+    private bool V2_TERROBJ_ARRAYS = true;
 
     [SerializeField]
     private bool drawShapes;
@@ -85,9 +89,10 @@ public class RunnerEnvironment : MonoBehaviour
     private float currChangeLaneTime = 0f;
     private float xLaneChangePositionProgress = 0f;
 
-
     [SerializeField]
-    private float distBehindPlayer2ZeroAlpha;
+    private float distDiff2Alpha;
+    [SerializeField]
+    private float dist2ZeroAlpha;
     //[SerializeField]
     private Vector3[] vertices;
     //[SerializeField]
@@ -116,7 +121,7 @@ public class RunnerEnvironment : MonoBehaviour
     private GameObject runnerCam;
 
     [SerializeField]
-    private float lookAtCamZDiff;
+    private float stopLookAtCamZDiff;
 
     //list for value because could generate more than one instance before control point
     //index applies treadmill effect
@@ -125,7 +130,8 @@ public class RunnerEnvironment : MonoBehaviour
     /// <summary>
     /// row x col so that its easier to move rows up
     /// </summary>
-    private Dictionary<int, Dictionary<int, List<TerrObject>>> currTerrObjsDictV2 = new Dictionary<int, Dictionary<int, List<TerrObject>>>();
+    private Dictionary<int, Dictionary<int, TerrObject[]>> currTerrObjsDictV2 = new Dictionary<int, Dictionary<int, TerrObject[]>>();
+    private Dictionary<int, Dictionary<int, List<TerrObject>>> currTerrObjsDictV2LISTS = new Dictionary<int, Dictionary<int, List<TerrObject>>>();
 
     private void Start()
     {
@@ -514,9 +520,11 @@ public class RunnerEnvironment : MonoBehaviour
                 if (V2_RIPCORD)
                 {
                     AddTerrObjV2(terrObj, attachment);
-                    continue;
                 }
-                AddTerrObj(terrObj, attachment);
+                else
+                {
+                    AddTerrObj(terrObj, attachment);
+                }
             }
         }
     }
@@ -610,7 +618,30 @@ public class RunnerEnvironment : MonoBehaviour
 
     private void RefreshTerrObjDictV2()
     {
+        if (!V2_TERROBJ_ARRAYS)
+        {
+            RefreshTerrObjDictV2LISTS();
+            return;
+        }
+
         foreach (var row in currTerrObjsDictV2.Values)
+        {
+            foreach (var col in row.Values)
+            {
+                foreach (TerrObject terrObject in col)
+                {
+                    Vector3 terrObjPos = terrObject.transform.position;
+                    float elevVal = GetElevationAtPosV2(terrObjPos.x, terrObjPos.z);
+                    terrObject.PlaceOnEnvironmentCoord(new Vector3(terrObjPos.x, elevVal, terrObjPos.z));
+                    //terrObject.transform.position = new Vector3(terrObjPos.x, hitBoxElevOffset(terrObject) + elevVal, terrObjPos.z);
+                }
+            }
+        }
+    }
+
+    private void RefreshTerrObjDictV2LISTS()
+    {
+        foreach (var row in currTerrObjsDictV2LISTS.Values)
         {
             foreach (var col in row.Values)
             {
@@ -834,12 +865,12 @@ public class RunnerEnvironment : MonoBehaviour
 
 
 
-    private void AddTerrObjV2(TerrObject terrObject, TerrObject attachmentObject = null, TerrObject parentInstance = null, int? parentColIndex = -1, float? parentDepthOffset = null)
+    private void AddTerrObjV2(TerrObject terrObject, TerrObject attachmentObject = null, TerrObject parentInstance = null, int? parentColIndex = null, float? parentDepthOffset = null)
     {
         int colIndex = parentColIndex ?? Random.Range(0, width + 1);
         int realColIndex;
         int flipMultiplyer;
-        terrObject.GetTheoreticalSpawnInfo(colIndex, width, out realColIndex, out flipMultiplyer, parentInstance);
+        terrObject.GetTheoreticalSpawnInfo(colIndex, width + 1, out realColIndex, out flipMultiplyer, parentInstance);
 
         float depthOffset = terrObject.GetDepthOffset(heightUnit, parentDepthOffset);
 
@@ -854,21 +885,42 @@ public class RunnerEnvironment : MonoBehaviour
         //we do that later when generating new terrain, save computation time here
         float elevationOffset = terrObject.GetElevationOffset();
 
-        Vector3 spawnPos = new Vector3(horizOffset, elevationOffset, depthOffset);
+        Vector3 spawnPos = new Vector3(horizOffset + verticesV2[0, realColIndex].x, elevationOffset, depthOffset + verticesV2[0, 0].z);
 
         TerrObject terrObjInst = terrObject.InitTerrObj(spawnPos, flipMultiplyer, parentInstance);
 
-        if (!currTerrObjsDictV2.ContainsKey(0))
+        if (V2_TERROBJ_ARRAYS)
         {
-            currTerrObjsDictV2.Add(0, new Dictionary<int, List<TerrObject>>());
+            if (!currTerrObjsDictV2.ContainsKey(0))
+            {
+                currTerrObjsDictV2.Add(0, new Dictionary<int, TerrObject[]>());
+            }
+
+            if (!currTerrObjsDictV2[0].ContainsKey(realColIndex))
+            {
+                currTerrObjsDictV2[0].Add(realColIndex, new TerrObject[] { terrObjInst });
+            }
+            else
+            {
+                TerrObject[] largerArray = new TerrObject[currTerrObjsDictV2[0][realColIndex].Length + 1];
+                Array.Copy(currTerrObjsDictV2[0][realColIndex], largerArray, largerArray.Length - 1);
+                largerArray[largerArray.Length - 1] = terrObjInst;
+                currTerrObjsDictV2[0][realColIndex] = largerArray;
+            }
         }
-        if (!currTerrObjsDictV2[0].ContainsKey(realColIndex))
+        else
         {
-            currTerrObjsDictV2[0].Add(realColIndex, new List<TerrObject>());
+            if (!currTerrObjsDictV2LISTS.ContainsKey(0))
+            {
+                currTerrObjsDictV2LISTS.Add(0, new Dictionary<int, List<TerrObject>>());
+            }
+
+            if (!currTerrObjsDictV2LISTS[0].ContainsKey(realColIndex))
+            {
+                currTerrObjsDictV2LISTS[0].Add(realColIndex, new List<TerrObject>());
+            }
+            currTerrObjsDictV2LISTS[0][realColIndex].Add(terrObjInst);
         }
-
-
-        currTerrObjsDictV2[0][realColIndex].Add(terrObjInst);
 
         //now process attachment obejct to try and generate
         if (attachmentObject != null)
@@ -998,9 +1050,34 @@ public class RunnerEnvironment : MonoBehaviour
     //for each thing in 
     private bool CanAddToThisLaneV2(TerrObject terrObj, int index, float vertOffset)
     {
+        if (!V2_TERROBJ_ARRAYS)
+        {
+            return CanAddToThisLaneV2LISTS(terrObj, index, vertOffset);
+        }
+
+
         foreach (var row in currTerrObjsDictV2.Keys)
         {
             foreach (var colList in currTerrObjsDictV2[row].Values)
+            {
+                foreach (TerrObject terrobj in colList)
+                {
+                    if (!terrobj.CanAddToLane(width, row, terrObj, index, vertOffset))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private bool CanAddToThisLaneV2LISTS(TerrObject terrObj, int index, float vertOffset)
+    {
+        foreach (var row in currTerrObjsDictV2LISTS.Keys)
+        {
+            foreach (var colList in currTerrObjsDictV2LISTS[row].Values)
             {
                 foreach (TerrObject terrobj in colList)
                 {
@@ -1178,13 +1255,29 @@ public class RunnerEnvironment : MonoBehaviour
                 }
             }
 
-            foreach (Dictionary<int, List<TerrObject>> row in currTerrObjsDictV2.Values)
+            if (V2_TERROBJ_ARRAYS)
             {
-                foreach(List<TerrObject> objectsAtPoint in row.Values)
+                foreach (Dictionary<int, TerrObject[]> row in currTerrObjsDictV2.Values)//List<TerrObject>> row in currTerrObjsDictV2.Values)
                 {
-                    foreach(TerrObject obj in objectsAtPoint)
+                    foreach (TerrObject[] objectsAtPoint in row.Values)
                     {
-                        obj.transform.position += new Vector3(change, 0, -speedToApply);
+                        foreach (TerrObject obj in objectsAtPoint)
+                        {
+                            obj.transform.position += new Vector3(change, 0, -speedToApply);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (Dictionary<int, List<TerrObject>> row in currTerrObjsDictV2LISTS.Values)
+                {
+                    foreach (List<TerrObject> objectsAtPoint in row.Values)
+                    {
+                        foreach (TerrObject obj in objectsAtPoint)
+                        {
+                            obj.transform.position += new Vector3(change, 0, -speedToApply);
+                        }
                     }
                 }
             }
@@ -1267,18 +1360,24 @@ public class RunnerEnvironment : MonoBehaviour
                 verticesV2[0, lane].y = 0;
             }
 
-            Dictionary<int, Dictionary<int, List<TerrObject>>> newGrid = new Dictionary<int, Dictionary<int, List<TerrObject>>>();
+            if (!V2_TERROBJ_ARRAYS)
+            {
+                ApplyTreadmillEffectV2LISTS();
+                return true;
+            }
+
+            Dictionary<int, Dictionary<int, TerrObject[]>> newGrid = new Dictionary<int, Dictionary<int, TerrObject[]>>();//List<TerrObject>>>();
             foreach (int row in currTerrObjsDictV2.Keys)
             {
                 //if this row is at the end of the "treadmill", lets delete all the objects in that row
-                if (row >= height - 1)
+                if (row > height)
                 {
                     foreach (int colIndex in currTerrObjsDictV2[row].Keys)
                     {
-                        int objCount = currTerrObjsDictV2[row][colIndex].Count;
+                        int objCount = currTerrObjsDictV2[row][colIndex].Length;
                         for (int objIndex = 0; objIndex < objCount; objIndex++)
                         {
-                            Destroy(currTerrObjsDictV2[row][colIndex][objIndex]);
+                            Destroy(currTerrObjsDictV2[row][colIndex][objIndex].gameObject);
                         }
                     }
                     continue;
@@ -1294,6 +1393,31 @@ public class RunnerEnvironment : MonoBehaviour
         return false;
     }
 
+    private void ApplyTreadmillEffectV2LISTS()
+    {
+        Dictionary<int, Dictionary<int, List<TerrObject>>> newGrid = new Dictionary<int, Dictionary<int, List<TerrObject>>>();
+        foreach (int row in currTerrObjsDictV2LISTS.Keys)
+        {
+            //if this row is at the end of the "treadmill", lets delete all the objects in that row
+            if (row > height)
+            {
+                foreach (int colIndex in currTerrObjsDictV2LISTS[row].Keys)
+                {
+                    int objCount = currTerrObjsDictV2LISTS[row][colIndex].Count;
+                    for (int objIndex = 0; objIndex < objCount; objIndex++)
+                    {
+                        Destroy(currTerrObjsDictV2LISTS[row][colIndex][objIndex].gameObject);
+                    }
+                }
+                continue;
+            }
+
+            //move all rows up by one
+            newGrid.Add(row + 1, currTerrObjsDictV2LISTS[row]);
+        }
+
+        currTerrObjsDictV2LISTS = newGrid;
+    }
 
     private bool ApplyTreadmillEffect()
     {
@@ -1439,55 +1563,87 @@ public class RunnerEnvironment : MonoBehaviour
                 verticesV2[h] = newRow;*/
             }
 
-            //Now move all of the terrain objects as well
-            Dictionary<int, Dictionary<int, List<TerrObject>>> updateCurrTerrObjsDictV2 = new Dictionary<int, Dictionary<int, List<TerrObject>>>();
 
-            foreach (int rowKey in currTerrObjsDictV2.Keys)
+
+            if (V2_TERROBJ_ARRAYS)
             {
-                updateCurrTerrObjsDictV2.Add(rowKey, new Dictionary<int, List<TerrObject>>());
+                Dictionary<int, Dictionary<int, TerrObject[]>> updateCurrTerrObjsDictV22 = new Dictionary<int, Dictionary<int, TerrObject[]>>();
+                foreach (int rowKey in currTerrObjsDictV2.Keys)
+                {
+                    updateCurrTerrObjsDictV22.Add(rowKey, new Dictionary<int, TerrObject[]>());
+                    foreach (int colKey in currTerrObjsDictV2[rowKey].Keys)
+                    {
+                        if (movingRight && colKey == width)
+                        {
+                            updateCurrTerrObjsDictV22[rowKey].Add(0, currTerrObjsDictV2[rowKey][colKey]);
+                        }
+                        else if (!movingRight && colKey == 0)
+                        {
+                            updateCurrTerrObjsDictV22[rowKey].Add(width, currTerrObjsDictV2[rowKey][colKey]);
+                        }
+                        else
+                        {
+                            updateCurrTerrObjsDictV22[rowKey].Add(colKey + dirModifier, currTerrObjsDictV2[rowKey][colKey]);
+                        }
+                    }
+                }
 
-                foreach (int colKey in currTerrObjsDictV2[rowKey].Keys)
+                currTerrObjsDictV2 = updateCurrTerrObjsDictV22;
+                return true;
+            }
+
+
+
+
+            //Now move all of the terrain objects as well
+            Dictionary<int, Dictionary<int, List<TerrObject>>> updateCurrTerrObjsDictV2LISTS = new Dictionary<int, Dictionary<int, List<TerrObject>>>();
+
+            foreach (int rowKey in currTerrObjsDictV2LISTS.Keys)
+            {
+                updateCurrTerrObjsDictV2LISTS.Add(rowKey, new Dictionary<int, List<TerrObject>>());
+
+                foreach (int colKey in currTerrObjsDictV2LISTS[rowKey].Keys)
                 {
                     //for each of the three scenarios, make the new list if we haven't gotten to it yet for
                     //the specific lane (colKey), add the list of terr objects in a shifted manner or wrapped,
                     //move their position accordingly if wrapping
                     if (colKey == width && movingRight)
                     {
-                        if (!updateCurrTerrObjsDictV2[rowKey].ContainsKey(0))
+                        if (!updateCurrTerrObjsDictV2LISTS[rowKey].ContainsKey(0))
                         {
-                            updateCurrTerrObjsDictV2[rowKey].Add(0, new List<TerrObject>());
+                            updateCurrTerrObjsDictV2LISTS[rowKey].Add(0, currTerrObjsDictV2LISTS[rowKey][colKey]);
                         }
-                        updateCurrTerrObjsDictV2[rowKey][0].AddRange(currTerrObjsDictV2[rowKey][colKey]);
-                        foreach (TerrObject to in updateCurrTerrObjsDictV2[rowKey][0])
+
+                        foreach (TerrObject to in updateCurrTerrObjsDictV2LISTS[rowKey][0])
                         {
                             to.transform.position -= new Vector3((width+1) * widthUnit, 0, 0);
                         }
                     }
                     else if (colKey == 0 && !movingRight)
                     {
-                        if (!updateCurrTerrObjsDictV2[rowKey].ContainsKey(width))
+                        if (!updateCurrTerrObjsDictV2LISTS[rowKey].ContainsKey(width))
                         {
-                            updateCurrTerrObjsDictV2[rowKey].Add(width, new List<TerrObject>());
+                            updateCurrTerrObjsDictV2LISTS[rowKey].Add(width, currTerrObjsDictV2LISTS[rowKey][colKey]);
                         }
-                        updateCurrTerrObjsDictV2[rowKey][width].AddRange(currTerrObjsDictV2[rowKey][colKey]);
-                        foreach(TerrObject to in updateCurrTerrObjsDictV2[rowKey][width])
+                        //updateCurrTerrObjsDictV2[rowKey][width].AddRange(currTerrObjsDictV2[rowKey][colKey]);
+                        foreach(TerrObject to in updateCurrTerrObjsDictV2LISTS[rowKey][width])
                         {
                             to.transform.position += new Vector3((width + 1) * widthUnit, 0, 0);
                         }
                     }
                     else
                     {
-                        if (!updateCurrTerrObjsDictV2[rowKey].ContainsKey(colKey + dirModifier))
+                        if (!updateCurrTerrObjsDictV2LISTS[rowKey].ContainsKey(colKey + dirModifier))
                         {
-                            updateCurrTerrObjsDictV2[rowKey].Add(colKey + dirModifier, new List<TerrObject>());
+                            updateCurrTerrObjsDictV2LISTS[rowKey].Add(colKey + dirModifier, currTerrObjsDictV2LISTS[rowKey][colKey]);
                         }
-                        updateCurrTerrObjsDictV2[rowKey][colKey + dirModifier].AddRange(currTerrObjsDictV2[rowKey][colKey]);
+                        //updateCurrTerrObjsDictV2[rowKey][colKey + dirModifier].AddRange(currTerrObjsDictV2[rowKey][colKey]);
                     }
                     
                 }
             }
 
-            currTerrObjsDictV2 = updateCurrTerrObjsDictV2;
+            currTerrObjsDictV2LISTS = updateCurrTerrObjsDictV2LISTS;
             return true;
         }
 
@@ -1574,13 +1730,20 @@ public class RunnerEnvironment : MonoBehaviour
 
     private void UpdateTerrObjAlpha2()
     {
+        if (!V2_TERROBJ_ARRAYS)
+        {
+            UpdateTerrObjAlpha2LISTS();
+            return;
+        }
+
+
         List<int> rows = new List<int>(currTerrObjsDictV2.Keys);
         rows.Sort();
         int startRowIndex = 0;
         for(int i = 0; i < rows.Count; i++)
         {
-            float diff = player.transform.position.z - (verticesV2[rows[i], 0].z + heightUnit / 2f);
-            if (diff > 0)
+            float diff = (verticesV2[rows[i], 0].z + heightUnit / 2f) - player.transform.position.z;
+            if (diff < distDiff2Alpha || diff > stopLookAtCamZDiff)
             {
                 startRowIndex = i;
                 break;
@@ -1593,15 +1756,59 @@ public class RunnerEnvironment : MonoBehaviour
             {
                 foreach(TerrObject to in currTerrObjsDictV2[rows[k]][col])
                 {
-                    float diff = player.transform.position.z - to.transform.position.z;
-                    if (diff > 0f)
+                    float diff = to.transform.position.z - player.transform.position.z;
+                    if (diff < distDiff2Alpha)
                     {
                         SpriteRenderer sr = to.GetComponent<SpriteRenderer>();
-                        float multiplyer = (distBehindPlayer2ZeroAlpha - diff) / distBehindPlayer2ZeroAlpha;
-                        multiplyer = multiplyer < 0 ? 0f : multiplyer;
+                        float multiplyer = (dist2ZeroAlpha - (distDiff2Alpha - diff)) / dist2ZeroAlpha;
+                        multiplyer = Mathf.Clamp(multiplyer, 0, 1);//multiplyer > 0 ? 0f : multiplyer;
 
                         /*currTerrObjsDict[key][t].GetComponent< SpriteRenderer >()*/
                         sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, multiplyer * sr.color.a);
+                    }
+                    if (diff > stopLookAtCamZDiff)
+                    {
+                        to.transform.LookAt(runnerCam.transform.position + new Vector3(0f, to.hitBox.size.y / 8f, 0f));
+                    }
+                }
+            }
+        }
+    }
+
+    private void UpdateTerrObjAlpha2LISTS()
+    {
+        List<int> rows = new List<int>(currTerrObjsDictV2LISTS.Keys);
+        rows.Sort();
+        int startRowIndex = 0;
+        for (int i = 0; i < rows.Count; i++)
+        {
+            float diff = (verticesV2[rows[i], 0].z + heightUnit / 2f) - player.transform.position.z;
+            if (diff < distDiff2Alpha || diff > stopLookAtCamZDiff)
+            {
+                startRowIndex = i;
+                break;
+            }
+        }
+
+        for (int k = startRowIndex; k < rows.Count; k++)
+        {
+            foreach (int col in currTerrObjsDictV2LISTS[rows[k]].Keys)
+            {
+                foreach (TerrObject to in currTerrObjsDictV2LISTS[rows[k]][col])
+                {
+                    float diff = to.transform.position.z - player.transform.position.z;
+                    if (diff < distDiff2Alpha)
+                    {
+                        SpriteRenderer sr = to.GetComponent<SpriteRenderer>();
+                        float multiplyer = (dist2ZeroAlpha - (distDiff2Alpha - diff)) / dist2ZeroAlpha;
+                        multiplyer = Mathf.Clamp(multiplyer, 0, 1);//multiplyer > 0 ? 0f : multiplyer;
+
+                        /*currTerrObjsDict[key][t].GetComponent< SpriteRenderer >()*/
+                        sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, multiplyer * sr.color.a);
+                    }
+                    if (diff > stopLookAtCamZDiff)
+                    {
+                        to.transform.LookAt(runnerCam.transform.position + new Vector3(0f, to.hitBox.size.y / 8f, 0f));
                     }
                 }
             }
@@ -1620,13 +1827,13 @@ public class RunnerEnvironment : MonoBehaviour
                 if (diff > 0f)
                 {
                     SpriteRenderer sr = currTO.GetComponent<SpriteRenderer>();
-                    float multiplyer = (distBehindPlayer2ZeroAlpha - diff) / distBehindPlayer2ZeroAlpha;
+                    float multiplyer = (dist2ZeroAlpha - diff) / dist2ZeroAlpha;
                     multiplyer = multiplyer < 0 ? 0f : multiplyer;
 
                     /*currTerrObjsDict[key][t].GetComponent< SpriteRenderer >()*/
                     sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, multiplyer * sr.color.a);
                 }
-                if (diff < lookAtCamZDiff)
+                if (diff < stopLookAtCamZDiff)
                 {
                     currTO.transform.LookAt(runnerCam.transform.position + new Vector3(0f, currTO.hitBox.size.y / 8f, 0f));
                 }
@@ -1663,15 +1870,29 @@ public class RunnerEnvironment : MonoBehaviour
 
         if (V2_RIPCORD)
         {
-
-            foreach (int row in currTerrObjsDictV2.Keys)
+            if (V2_TERROBJ_ARRAYS)
             {
-                if (currTerrObjsDictV2[row].ContainsKey(lane))
+
+                foreach (int row in currTerrObjsDictV2.Keys)
                 {
-                    objectsInLane.AddRange(currTerrObjsDictV2[row][lane]);
+                    if (currTerrObjsDictV2[row].ContainsKey(lane))
+                    {
+                        objectsInLane.AddRange(currTerrObjsDictV2[row][lane]);
+                    }
                 }
+                return objectsInLane;
             }
-            return objectsInLane;
+            else
+            {
+                foreach (int row in currTerrObjsDictV2LISTS.Keys)
+                {
+                    if (currTerrObjsDictV2LISTS[row].ContainsKey(lane))
+                    {
+                        objectsInLane.AddRange(currTerrObjsDictV2LISTS[row][lane]);
+                    }
+                }
+                return objectsInLane;
+            }
         }
 
 
