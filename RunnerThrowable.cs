@@ -79,7 +79,7 @@ public class RunnerThrowable : MonoBehaviour
         if (terrObj == null) { return; }
 
         //destroy any hazard if its a bullet, else only aliens if its anything else (rock or thrown gun)
-        if (terrObj.objType == TerrObject.OBJ_TYPE.ENEMY && throwType != THROW_TYPE.ENEMY_BULLET
+        if ((terrObj.objType == TerrObject.OBJ_TYPE.ENEMY && throwType != THROW_TYPE.ENEMY_BULLET)
             || (terrObj.objType == TerrObject.OBJ_TYPE.STATIC_HAZ && throwType == THROW_TYPE.BULLET))
         {
             //Debug.Log(("went through {0}", terrObj.gameObject.name));
