@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "AudioSwitchCaseWrapper", menuName = "ScriptableObjects/AudioSwitchCaseWrapper", order = 1)]
+[CreateAssetMenu(fileName = "AudioSwitchCaseWrapper", menuName = "ScriptableObjects/Audio/AudioSwitchCaseWrapper", order = 1)]
 public class AudioSwitchCaseWrapper : AAudioContainer
 {
     [SerializeField, GetSet("InfoType")]

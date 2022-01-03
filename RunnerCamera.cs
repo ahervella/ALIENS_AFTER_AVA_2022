@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [RequireComponent(typeof(Camera))]
@@ -9,6 +11,12 @@ public class RunnerCamera : MonoBehaviour
 
     Color CLEAR_TINT = new Color(1, 1, 1, 0);
     Color RED_TINT = new Color(1, 0, 0, 0);
+
+    [SerializeField]
+    private IntPropertySO livesSO = null;
+
+    [SerializeField]
+    private List<CameraFlashSettings> flashSettings = null;
 
     public Material camTintMat;
 
@@ -52,9 +60,10 @@ public class RunnerCamera : MonoBehaviour
 
     private void Start()
     {
+        livesSO.RegisterForPropertyChanged( OnLivesChanged );
+
         RunnerPlayer.onAnimationStarted += animStart;
         RunnerPlayer.onAnimationEnded += animEnd;
-        RunnerPlayer.changeCamRedTint += setFlashing;
 
         cam = GetComponent<Camera>();
 
@@ -70,6 +79,20 @@ public class RunnerCamera : MonoBehaviour
         camTintMat.SetColor("_Color", CLEAR_TINT);
     }
 
+    void OnLivesChanged( int previous, int current )
+    {
+        int delta = current - previous;
+        CameraFlashSettings settings = flashSettings.FirstOrDefault( x => x.deltaAmount == delta );
+        if ( settings == null )
+        {
+            Debug.LogWarning( $"No camera flash settings found for a health delta of [{delta}]" );
+            return;
+        }
+        Debug.Log($"Starting flash camera settings for a health delta of [{delta}] with settings of [{settings.ToString()}]");
+        StopCoroutine( "FlashCoroutine" );
+        StartCoroutine( "FlashCoroutine", settings );        
+    }
+
     private void FixedUpdate()
     {
         float actualDelta = smoothSpeed;
@@ -82,15 +105,13 @@ public class RunnerCamera : MonoBehaviour
 
             actualDelta = RunnerGameObject.easingFunction(deltaTimeTotal / SphericalEaseTime * Mathf.PI);
         }
-        
-        
+
+
         //because player position is const changing, rot is not
         transform.position = Vector3.Lerp(transform.position, targetPosOffset + playerRef.position, actualDelta);
         transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(targetRotOffset), actualDelta);
         cam.fieldOfView = Mathf.Lerp(cam.fieldOfView, targetFOVOffset, actualDelta);
 
-
-        flashRedTint();
     }
 
 
@@ -125,45 +146,46 @@ public class RunnerCamera : MonoBehaviour
         deltaTimeTotal = 0f;
     }
 
-
-    void setFlashing(float loopDuration, int loopCount, bool isDead)
+    IEnumerator FlashCoroutine( CameraFlashSettings settings )
     {
-
-        tintLoopTime = loopDuration * loopCount;
-        tintLoopCount = loopCount;
-        tintDeltaTimeTotal = 0f;
-        tintIsDead = isDead;
-
-
-    }
-    
-
-    void flashRedTint()
-    {
-        if (tintDeltaTimeTotal >= tintLoopTime) { return; }
-
-        tintDeltaTimeTotal = Mathf.Min(tintLoopTime, tintDeltaTimeTotal + Time.fixedDeltaTime);
-
-        float singleHalfLoopTime = tintLoopTime / (float)(tintLoopCount * 2);
-        int halfLoopsDone = Mathf.FloorToInt(tintDeltaTimeTotal / singleHalfLoopTime);
-        
-        float delta = (tintDeltaTimeTotal - (singleHalfLoopTime * halfLoopsDone)) / singleHalfLoopTime;
-
-        Color src = halfLoopsDone % 2 == 0 ? CLEAR_TINT : RED_TINT;
-        Color end = halfLoopsDone % 2 == 0 ? RED_TINT : CLEAR_TINT;
-
-        if (tintIsDead)
+        float currentTime = 0;
+        while ( currentTime < settings.loopCount * settings.loopDuration)
         {
-            delta = tintDeltaTimeTotal / tintLoopTime;
-            src = CLEAR_TINT;
-            end = RED_TINT;
+            Debug.Log($"FlashCoroutine : [{currentTime}]");
+            float singleHalfLoopTime = settings.loopDuration / 2;
+            int halfLoopsDone = Mathf.FloorToInt(currentTime / singleHalfLoopTime);
 
+            float delta = (currentTime - (singleHalfLoopTime * halfLoopsDone)) / singleHalfLoopTime;
+
+            Color src = halfLoopsDone % 2 == 0 ? CLEAR_TINT : settings.flashColor;
+            Color end = halfLoopsDone % 2 == 0 ? settings.flashColor : CLEAR_TINT;
+
+            Color colVal = Color.Lerp(src, end, delta);
+
+            camTintMat.SetColor("_Color", colVal);
+
+            currentTime += Time.deltaTime;
+
+            yield return null;
         }
+    }
 
-        
+    [Serializable]
+    public class CameraFlashSettings
+    {
+        [SerializeField]
+        public float loopDuration = 1f;
+        [SerializeField]
+        public float loopCount = 1;
+        [SerializeField]
+        public Color flashColor = Color.red;
+        [SerializeField]
+        public int deltaAmount = -1;
 
-        Color colVal = Color.Lerp(src, end, delta);
-
-        camTintMat.SetColor("_Color", colVal);
+        public override string ToString()
+        {
+            return $"duration : [{loopDuration}] - count : [{loopCount}]";
+        }
     }
 }
+

@@ -7,16 +7,16 @@ public class RunnerDevTools : MonoBehaviour
     [SerializeField]
     private bool enableDevTools = false, enableInvincibility = false;
 
+    [SerializeField]
+    private BoolPropertySO invincibleSO = null;
+
     private RunnerPlayer player;
 
     private void Awake()
     {
-        player = GetComponent<RunnerPlayer>();
-        if (enableInvincibility)
-        {
-            player.IsInvincible = true;
-        }
+        invincibleSO.ModifyValue(enableInvincibility);
     }
+
     void Update()
     {
         if (!enableDevTools)
