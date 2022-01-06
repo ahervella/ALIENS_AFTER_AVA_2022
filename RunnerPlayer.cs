@@ -398,7 +398,7 @@ public class RunnerPlayer : RunnerGameObject
     }
 
     
-    private void FixedUpdate()
+    private void Update()
     {
         if (Lives >= startingLives) { return; }
 
