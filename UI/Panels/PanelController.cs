@@ -5,7 +5,7 @@ using UnityEngine;
 public class PanelController : MonoBehaviour
 {
     [SerializeField]
-    private PanelsEnum panel = PanelsEnum.aliens;
+    private PanelsEnum panel = PanelsEnum.ALIENS;
     [SerializeField]
     private PanelsEnumPropertySO panelsSO = null;
 
@@ -15,7 +15,7 @@ public class PanelController : MonoBehaviour
     {
         child = transform.GetChild(0).gameObject;
         panelsSO.RegisterForPropertyChanged( OnPanelsEnumChanged );
-        OnPanelsEnumChanged( PanelsEnum.aliens, panelsSO.Value );
+        OnPanelsEnumChanged( PanelsEnum.ALIENS, panelsSO.Value );
     }
 
     void OnPanelsEnumChanged( PanelsEnum previous, PanelsEnum current )

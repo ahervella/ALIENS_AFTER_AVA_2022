@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class SetPanelButton : MonoBehaviour, IDisposable
 {
     [SerializeField]
-    private PanelsEnum panel = PanelsEnum.aliens;
+    private PanelsEnum panel = PanelsEnum.ALIENS;
     [SerializeField]
     private PanelsEnumPropertySO panelsSO = null;
 
@@ -18,7 +18,7 @@ public class SetPanelButton : MonoBehaviour, IDisposable
         button = GetComponent<Button>();
         button.onClick.AddListener(SetPanel);
         panelsSO.RegisterForPropertyChanged(OnPanelsEnumChanged);
-        OnPanelsEnumChanged(PanelsEnum.collectables, panelsSO.Value);
+        OnPanelsEnumChanged(PanelsEnum.COLLECTABLES, panelsSO.Value);
     }
 
     public void SetPanel()

@@ -15,7 +15,7 @@ public class PanelsHeaderText : MonoBehaviour, IDisposable
     {
         text = GetComponent<Text>();
         panelsSO.RegisterForPropertyChanged(OnPanelsSOChanged);
-        OnPanelsSOChanged(PanelsEnum.aliens, panelsSO.Value);
+        OnPanelsSOChanged(PanelsEnum.ALIENS, panelsSO.Value);
     }
 
     void OnPanelsSOChanged(PanelsEnum previous, PanelsEnum current)
