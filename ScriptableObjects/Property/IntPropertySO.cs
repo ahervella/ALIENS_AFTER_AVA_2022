@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 [CreateAssetMenu(fileName = "_IntPropertySO", menuName = "ScriptableObjects/Property/IntPropertySO", order = 2)]
 public class IntPropertySO : PropertySO<int>
@@ -21,20 +22,22 @@ public class IntPropertySO : PropertySO<int>
         int min = minValueSO == null ? minValue : minValueSO.Value;
         int max = maxValueSO == null ? maxValue : maxValueSO.Value;
 
-        if (Value > max || Value < min)
+        if ( Value < max  && Value > min )
         {
+            SetValue(Mathf.Clamp(Value + change, min, max));
             return;
         }
 
-        if (Value + change > max)
+        if (Value > max && change < 0)
         {
-            change = max - Value;
-        }
-        if (Value - change < min)
-        {
-            change = min - Value;
+            SetValue(Value + change);
+            return;
         }
 
-        SetValue(Value + change);
+        if (Value < min && change > 0)
+        {
+            SetValue(Value + change);
+            return;
+        }
     }
 }

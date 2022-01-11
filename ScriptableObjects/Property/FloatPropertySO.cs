@@ -20,19 +20,22 @@ public class FloatPropertySO : PropertySO<float>
         float min = minValueSO == null ? minValue : minValueSO.Value;
         float max = maxValueSO == null ? maxValue : maxValueSO.Value;
 
-        if (Value > max || Value < min)
+        if (Value < max && Value > min)
         {
+            SetValue(Mathf.Clamp(Value + change, min, max));
             return;
         }
 
-        if (Value + change > max)
+        if (Value > max && change < 0)
         {
-            change = max - Value;
+            SetValue(Value + change);
+            return;
         }
-        if (Value - change < min)
+
+        if (Value < min && change > 0)
         {
-            change = min - Value;
+            SetValue(Value + change);
+            return;
         }
-        SetValue(Value + change);
     }
 }

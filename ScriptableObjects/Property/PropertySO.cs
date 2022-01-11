@@ -4,58 +4,57 @@ using UnityEngine;
 [Serializable]
 public abstract class PropertySO<T> : PropertySO
 {
-  public delegate void PropertyChanged( T oldValue, T newValue );
+    public delegate void PropertyChanged(T oldValue, T newValue);
 
-  PropertyChanged OnPropertyChanged;
+    PropertyChanged OnPropertyChanged;
 
-  [SerializeField]
-  T startingValue = default( T );
+    [SerializeField]
+    private T startingValue = default(T);
 
-  [NonSerialized]
-  T currentValue;
+    [NonSerialized]
+    private T currentValue;
 
-  public T Value => currentValue;
+    public T Value => currentValue;
 
-  private void OnEnable()
-  {
-    ResetToStart();
-  }
+    private void OnEnable()
+    {
+        ResetToStart();
+    }
 
-  public T RegisterForPropertyChanged( PropertyChanged method )
-  {
-    OnPropertyChanged += method;
-    return Value;
-  }
+    public T RegisterForPropertyChanged(PropertyChanged method)
+    {
+        OnPropertyChanged += method;
+        return Value;
+    }
 
-  public void DeRegisterForPropertyChanged( PropertyChanged method )
-  {
-    OnPropertyChanged -= method;
-  }
+    public void DeRegisterForPropertyChanged(PropertyChanged method)
+    {
+        OnPropertyChanged -= method;
+    }
 
-  protected void SetValue( T newValue )
-  {
-    T oldValue = currentValue;
-    currentValue = newValue;
-    OnPropertyChanged?.Invoke( oldValue, newValue );
-  }
+    protected void SetValue(T newValue)
+    {
+        T oldValue = currentValue;
+        currentValue = newValue;
+        OnPropertyChanged?.Invoke(oldValue, newValue);
+    }
 
-  public abstract void ModifyValue( T mod );
+    public abstract void ModifyValue(T mod);
 
-  public void ResetToStart()
-  {
-    SetValue( startingValue );
-  }
+    public void ResetToStart()
+    {
+        SetValue(startingValue);
+    }
 }
-
 
 
 public abstract class PropertySO : ScriptableObject
 {
-  [SerializeField]
-  public string Name = null;
-  [SerializeField]
-  protected string Description = null;
+    [SerializeField]
+    public string Name = null;
+    [SerializeField]
+    protected string Description = null;
 
-  [SerializeField]
-  public Sprite icon = null;
+    [SerializeField]
+    public Sprite icon = null;
 }

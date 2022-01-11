@@ -21,7 +21,7 @@ public class HealthDisplayManager : MonoBehaviour
         List<int> enabled = new List<int>();
         switch (current)
         {
-            case (< 0):
+            case (-1):
                 enabled = new List<int>() { 0, 1, 2, 3 };
                 break;
             case (0):
