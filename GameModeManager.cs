@@ -21,6 +21,6 @@ public class GameModeManager : MonoBehaviour, IDisposable
 
     void OnGameModeChanged(GameModeEnum previous, GameModeEnum current)
     {
-        Time.timeScale = current == GameModeEnum.menu ? 0 : 1;
+        Time.timeScale = current == GameModeEnum.MENU ? 0 : 1;
     }
 }

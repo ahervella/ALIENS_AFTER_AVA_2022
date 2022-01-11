@@ -4,6 +4,6 @@ using UnityEngine;
 
 public enum GameModeEnum 
 {
-    play,
-    menu
+    PLAY,
+    MENU
 }

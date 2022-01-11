@@ -4,9 +4,9 @@ using UnityEngine;
 
 public enum PanelsEnum
 {
-    remedies,
-    equipment,
-    aliens,
-    collectables,
-    settings
+    REMEDIES,
+    EQUIPMENT,
+    ALIENS,
+    COLLECTABLES,
+    SETTINGS
 }

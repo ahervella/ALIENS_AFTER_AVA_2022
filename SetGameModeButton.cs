@@ -7,7 +7,7 @@ using UnityEngine.UI;
 public class SetGameModeButton : MonoBehaviour, IDisposable
 {
     [SerializeField]
-    private GameModeEnum gameMode = GameModeEnum.menu;
+    private GameModeEnum gameMode = GameModeEnum.MENU;
     [SerializeField]
     private GameModeEnumPropertySO gameModeSO = null;
 
@@ -18,7 +18,7 @@ public class SetGameModeButton : MonoBehaviour, IDisposable
         button = GetComponent<Button>();
         button.onClick.AddListener(SetPanel);
         gameModeSO.RegisterForPropertyChanged(OnGameModeChanged);
-        OnGameModeChanged(GameModeEnum.menu, gameModeSO.Value);
+        OnGameModeChanged(GameModeEnum.MENU, gameModeSO.Value);
     }
 
     public void SetPanel()
