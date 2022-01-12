@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "audioClipWrapper", menuName = "ScriptableObjects/AudioClipWrapper", order = 1)]
+[CreateAssetMenu(fileName = "audioClipWrapper", menuName = "ScriptableObjects/Audio/AudioClipWrapper", order = 1)]
 public class AudioClipWrapper : AAudioWrapper
 {
 

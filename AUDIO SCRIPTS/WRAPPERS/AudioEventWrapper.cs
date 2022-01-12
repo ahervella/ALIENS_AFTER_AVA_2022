@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "audioEventWrapper", menuName = "ScriptableObjects/AudioEventWrapper", order = 1)]
+[CreateAssetMenu(fileName = "audioEventWrapper", menuName = "ScriptableObjects/Audio/AudioEventWrapper", order = 1)]
 public class AudioEventWrapper : AAudioContainer
 {
 

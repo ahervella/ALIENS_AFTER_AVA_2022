@@ -71,6 +71,13 @@ public class RunnerPlayer : RunnerGameObject
 
     //const int JUMP_FRAME_DELAY = 2;
 
+    [SerializeField]
+    private BoolPropertySO invincibleSO = null;
+    [SerializeField]
+    private IntPropertySO livesSO = null;
+    [SerializeField]
+    private FloatPropertySO livesRegenSO = null;
+
     public int startingLives;
     private static int lives;
     public static int Lives
@@ -83,7 +90,6 @@ public class RunnerPlayer : RunnerGameObject
         }
     }
 
-    public float lifeRecoverTime;
     private float lifeRecoverTotalTime = 0f;
 
     private bool canChange = true;
@@ -110,8 +116,6 @@ public class RunnerPlayer : RunnerGameObject
         }
 
     }
-
-    public bool IsInvincible { get; set; } = false;
 
     Dictionary<string, AnimationClip> animDict = new Dictionary<string, AnimationClip>();
 
@@ -179,7 +183,7 @@ public class RunnerPlayer : RunnerGameObject
     public static event System.Action<PLAYER_STATE> OnAnimationStarted = delegate { };
     public static event System.Action<PLAYER_STATE> OnAnimationEnded = delegate { };
     public static event System.Action<bool, float, float> ChangeTreamillSpeed = delegate { };
-    public static event System.Action<float, int, bool> ChangeCamRedTint = delegate { };
+	
     public static event System.Action<int> ChangedLifeCount = delegate { };
     //public static event System.Action<TerrObject> removeTerrObj
 
@@ -246,7 +250,7 @@ public class RunnerPlayer : RunnerGameObject
 
         if (enemyBullet != null
             && enemyBullet.throwType == RunnerThrowable.THROW_TYPE.ENEMY_BULLET
-            && currState != PLAYER_STATE.ROLL && !IsInvincible)
+            && currState != PLAYER_STATE.ROLL && !invincibleSO.Value )
         {
             RunnerSounds.Current.PlayAudioWrapper(lazerHitSound, gameObject);
             LooseLife(PLAYER_STATE.ROLL);
@@ -274,7 +278,7 @@ public class RunnerPlayer : RunnerGameObject
             return;
         }
 
-        if (IsInvincible)
+        if ( invincibleSO.Value )
         {
             return;
         }
@@ -367,30 +371,10 @@ public class RunnerPlayer : RunnerGameObject
             return;
         }
 
+        livesSO.ModifyValue( -1 );
+
         Lives--;
         lifeRecoverTotalTime = 0f;
-
-        if (GameIsOver())
-        {
-            ChangeCamRedTint(2f, 1, true);
-        }
-        else
-        {
-            switch (Lives)
-            {
-                case 2:
-                    ChangeCamRedTint(2f, 3, false);
-                    break;
-
-                case 1:
-                    ChangeCamRedTint(1.5f, 5, false);
-                    break;
-
-                case 0:
-                    ChangeCamRedTint(1f, 10, false);
-                    break;
-            }
-        }
 
         PLAYER_STATE state = PLAYER_STATE.NONE;
 
@@ -415,7 +399,7 @@ public class RunnerPlayer : RunnerGameObject
     }
 
 
-    private void FixedUpdate()
+    private void Update()
     {
         if (Lives >= startingLives) { return; }
 
@@ -423,8 +407,9 @@ public class RunnerPlayer : RunnerGameObject
 
         lifeRecoverTotalTime += Time.deltaTime;
 
-        if (lifeRecoverTotalTime >= lifeRecoverTime)
+        if (lifeRecoverTotalTime >= livesRegenSO.Value )
         {
+            livesSO.ModifyValue( 1 );
             Lives++;
             lifeRecoverTotalTime = 0f;
         }

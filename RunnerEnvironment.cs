@@ -418,6 +418,9 @@ public class RunnerEnvironment : MonoBehaviour
 
     private void Update()
     {
+        // TODO: Update this to eventually be based on gamemode
+        if (Time.timeScale == 0) { return; }
+
         UpdateTreadmillSpeed();
         GenerateTerrain();
         GenerateTerrObjs();
