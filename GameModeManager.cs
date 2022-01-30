@@ -7,7 +7,7 @@ public class GameModeManager : MonoBehaviour, IDisposable
 {
 
     [SerializeField]
-    private GameModeEnumPropertySO gameModeSO = null;
+    private PSO_CurrentGameMode gameModeSO = null;
 
     public void Dispose()
     {

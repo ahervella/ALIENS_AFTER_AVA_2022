@@ -7,7 +7,7 @@ public class GameModeController : MonoBehaviour
     [SerializeField]
     private GameModeEnum gameMode = GameModeEnum.MENU;
     [SerializeField]
-    private GameModeEnumPropertySO gameModeSO = null;
+    private PSO_CurrentGameMode gameModeSO = null;
 
     GameObject child;
 
