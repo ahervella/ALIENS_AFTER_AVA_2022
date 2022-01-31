@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SO_TerrZoneWrapper : MonoBehaviour
+[CreateAssetMenu(fileName = "SO_TerrZoneWrapper", menuName = "ScriptableObjects/StaticData/SO_TerrZoneWrapper")]
+public class SO_TerrZoneWrapper : ScriptableObject
 {
     public SO_TerrZoneWrapper(
         int zone,
@@ -16,28 +17,42 @@ public class SO_TerrZoneWrapper : MonoBehaviour
         //List<TerrAddonWeightWrapper> terrFoleyAddons
         )
     {
-        Zone = zone;
-        StartSpeed = startSpeed;
-        SpeedIncPerMin = speedIncPerMin;
-        AddonSpawnLikelihood = addonSpawnLikelihood;
-        AddonSpawnIncPerMin = addonSpawnIncPerMin;
-        FoleySpawnLikelihood = foleySpawnLikelihood;
-        TileDistance2Boss = tileDistance2Boss;
-    } 
+        this.zone = zone;
+        this.startSpeed = startSpeed;
+        this.speedIncPerMin = speedIncPerMin;
+        this.addonSpawnLikelihood = addonSpawnLikelihood;
+        this.addonSpawnIncPerMin = addonSpawnIncPerMin;
+        this.foleySpawnLikelihood = foleySpawnLikelihood;
+        this.tileDistance2Boss = tileDistance2Boss;
+    }
 
-    public int Zone { get; private set; }
+    [SerializeField]
+    private int zone;
+    public int Zone => zone;
 
-    public float StartSpeed { get; private set; }
+    [SerializeField]
+    private float startSpeed;
+    public float StartSpeed => startSpeed;
 
-    public float SpeedIncPerMin { get; private set; }
+    [SerializeField]
+    private float speedIncPerMin;
+    public float SpeedIncPerMin => speedIncPerMin;
 
-    public float AddonSpawnLikelihood { get; private set; }
+    [SerializeField]
+    private float addonSpawnLikelihood;
+    public float AddonSpawnLikelihood => addonSpawnLikelihood;
 
-    public float AddonSpawnIncPerMin { get; private set; }
+    [SerializeField]
+    private float addonSpawnIncPerMin;
+    public float AddonSpawnIncPerMin => addonSpawnIncPerMin;
 
-    public float FoleySpawnLikelihood { get; private set; }
+    [SerializeField]
+    private float foleySpawnLikelihood;
+    public float FoleySpawnLikelihood => foleySpawnLikelihood;
 
-    public float TileDistance2Boss { get; private set; }
+    [SerializeField]
+    private float tileDistance2Boss;
+    public float TileDistance2Boss => tileDistance2Boss;
 
     //public List<TerrAddonWeightWrapper> TerrAddons;
 

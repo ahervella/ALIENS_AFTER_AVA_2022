@@ -10,7 +10,7 @@ public class EnvNodeGenerator : MonoBehaviour
     [SerializeField]
     private List<SO_TerrZoneWrapper> zoneWrappers;
 
-    public TerrAddon GetNewAddon(int rowIndex, int colIndex, Data2D<TerrAddon[]> currAddons)
+    public TerrAddon GetNewAddon(int colIndex, int rowIndex, Data2D<TerrAddon[]> currAddons)
     {
         return default;
     }

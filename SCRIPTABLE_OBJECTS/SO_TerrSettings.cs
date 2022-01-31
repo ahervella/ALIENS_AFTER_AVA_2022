@@ -2,29 +2,43 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[CreateAssetMenu(fileName = "SO_TerrSettings", menuName = "ScriptableObjects/StaticData/SO_TerrSettings")]
 public class SO_TerrSettings : ScriptableObject
 {
-    public Vector2 TileDims { get; private set; }
 
-    public float FloorHeight { get; private set; }
+    [SerializeField]
+    private Vector2 tileDims;
+    public Vector2 TileDims => tileDims;
 
-    public int FloorCount { get; private set; }
+    [SerializeField]
+    private float floorHeight;
+    public float FloorHeight => floorHeight;
 
-    public int LaneCount { get; private set; }
+    [SerializeField]
+    private int floorCount;
+    public int FloorCount => floorCount;
 
-    public int TileRows { get; private set; }
+    [SerializeField]
+    private int laneCount;
+    public int LaneCount => laneCount;
 
-    public int TileCols { get; private set; }
+    [SerializeField]
+    private int tileCols;
+    public int TileCols => tileCols;
 
-    [HideInInspector]
-    public int PointRows => TileRows + 1;
+    [SerializeField]
+    private int tileRows;
+    public int TileRows => tileRows;
 
-    [HideInInspector]
     public int PointCols => TileCols + 1;
 
-    public int InterCount { get; private set; }
+    public int PointRows => TileRows + 1;
 
-    public int InterRows => PointRows + TileRows * InterCount;
+    [SerializeField]
+    private int interCount;
+    public int InterCount => interCount;
 
     public int InterCols => PointCols + TileCols * InterCount;
+
+    public int InterRows => PointRows + TileRows * InterCount;
 }

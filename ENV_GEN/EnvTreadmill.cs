@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Linq;
 using System;
 
-[RequireComponent(typeof(Mesh))]
+[RequireComponent(typeof(MeshRenderer))]
 public class EnvTreadmill : MonoBehaviour
 {
     [SerializeField]
@@ -39,6 +39,9 @@ public class EnvTreadmill : MonoBehaviour
     private int tileDistanceTraveled;
 
     private Mesh mesh;
+    Vector3[] meshVerticies = null;
+
+    private float currSpeed;
 
     private float newRowThreshold;
 
@@ -52,13 +55,16 @@ public class EnvTreadmill : MonoBehaviour
 
         currZone.RegisterForPropertyChanged(OnZoneWrapperChange);
 
+        InitData2D();
+
         transform.position = Vector3.zero;
 
-        newRowThreshold = settings.TileDims.y * settings.TileRows;
+        currSpeed = -1 * currZoneWrapper.StartSpeed * settings.TileDims.y;
+
+        newRowThreshold = settings.TileDims.y;
 
         targetLaneChange = null;
 
-        InitData2D();
     }
 
     private void OnZoneWrapperChange(int oldValue, int newValue)
@@ -71,11 +77,12 @@ public class EnvTreadmill : MonoBehaviour
     {
         OnZoneWrapperChange(0, currZone.Value);
 
-        generatedTerrAddons = new Data2D<TerrAddon[]>(settings.TileRows, settings.TileCols, InitNewTerrAddonFloors);
+        generatedTerrAddons = new Data2D<TerrAddon[]>(settings.TileCols, settings.TileRows, InitNewTerrAddonFloors);
 
         Func<float> newFloat = () => 0f;
-        renderedGroundPoints = new Data2D<float>(settings.PointRows, settings.PointCols, newFloat);
-        renderedInterPoints = new Data2D<float>(settings.InterRows, settings.InterCols, newFloat);
+        renderedGroundPoints = new Data2D<float>(settings.PointCols, settings.PointRows, newFloat);
+        renderedInterPoints = new Data2D<float>(settings.InterCols, settings.InterRows, newFloat);
+        UpdateMeshRender();
     }
 
     private TerrAddon[] InitNewTerrAddonFloors()
@@ -87,6 +94,60 @@ public class EnvTreadmill : MonoBehaviour
         }
         return floorAddons;
     }
+
+    private void UpdateMeshRender()
+    {
+        renderedGroundPoints.PrintData("renderedGroundPoints");
+
+        meshVerticies = Data2D<float>.ConvertToMeshArray(renderedGroundPoints, settings.TileDims);
+        foreach (Vector3 pos in meshVerticies)
+        {
+            GameObject blah = new GameObject();
+            blah.transform.localPosition = pos;
+        }
+        mesh.vertices = meshVerticies;
+        mesh.triangles = CreateMeshTriangles();
+        mesh.RecalculateNormals();
+    }
+
+    //private void OnDrawGizmos()
+    //{
+    //    if (meshVerticies == null) { return; }
+    //    foreach(Vector3 vertex in meshVerticies)
+    //    {
+    //        Gizmos.DrawSphere(vertex + transform.position, 0.5f);
+    //    }
+    //}
+
+
+
+
+    private int[] CreateMeshTriangles()
+    {
+        int totalTileCount = settings.TileCols * settings.TileRows;
+        int totalTriangleVertCount = totalTileCount * 6;
+        int[] meshTriangles = new int[totalTriangleVertCount];
+
+        for (int r = 0, t = 0; r < settings.TileRows; r++)
+        {
+            for (int c = 0; c < settings.TileCols; c++)
+            {
+                int topRowOffset = settings.PointCols * r;
+                int bottomRowOffset = topRowOffset + settings.PointCols;
+
+                meshTriangles[t++] = bottomRowOffset + c;
+                meshTriangles[t++] = topRowOffset + c;
+                meshTriangles[t++] = topRowOffset + c + 1;
+
+                meshTriangles[t++] = topRowOffset + c + 1;
+                meshTriangles[t++] = bottomRowOffset + c + 1;
+                meshTriangles[t++] = bottomRowOffset + c;
+            }
+        }
+        return meshTriangles;
+    }
+
+
 
     private void LoadZoneStart()
     {
@@ -102,10 +163,9 @@ public class EnvTreadmill : MonoBehaviour
 
     private void TickTreadmillVertMove()
     {
-        float posVert = transform.position.z;
-        posVert -= currZoneWrapper.StartSpeed * Time.fixedDeltaTime;
+        float posVert = currSpeed * Time.fixedDeltaTime;
 
-        if (posVert >= newRowThreshold)
+        if (posVert + transform.position.z <= -newRowThreshold)
         {
             posVert += settings.TileDims.y;
 
@@ -114,7 +174,7 @@ public class EnvTreadmill : MonoBehaviour
             RemoveLastAddonRow();
         }
 
-        PositionChange(0, 0, posVert - transform.position.z);
+        PositionChange(0, 0, posVert);
     }
 
 
@@ -123,6 +183,7 @@ public class EnvTreadmill : MonoBehaviour
         generatedTerrAddons.ShiftRows(-1);
         renderedGroundPoints.ShiftRows(-1);
         renderedInterPoints.ShiftRows(-(1 + settings.InterCount));
+        UpdateMeshRender();
 
         //TODO: make sure we some how compensate for objects that are
         //multiple tiles long (whether we place the player the same
@@ -136,9 +197,9 @@ public class EnvTreadmill : MonoBehaviour
     /// </summary>
     private void SpawnNewAddonRow()
     {
-        for (int r = 0; r < settings.TileRows; r++)
+        for (int c = 0; c < settings.TileCols; c++)
         {
-            TerrAddon addonPrefab = generator.GetNewAddon(r, 0, generatedTerrAddons);
+            TerrAddon addonPrefab = generator.GetNewAddon(c, 0, generatedTerrAddons);
 
             //if the generator returned null, means it wasn't able to generate anything
             //new here due to rules or other restrictions
@@ -147,7 +208,7 @@ public class EnvTreadmill : MonoBehaviour
                 continue;
             }
 
-            TerrAddon[] addonFloorGroup = generatedTerrAddons.GetElement(r, 0);
+            TerrAddon[] addonFloorGroup = generatedTerrAddons.GetElement(c, 0);
 
             //If the first floor was occupied and the generator still gave us back
             //a newAddon, then that means its for the first empty floor
@@ -156,7 +217,7 @@ public class EnvTreadmill : MonoBehaviour
                 if (addonFloorGroup[f] == null)
                 {
                     TerrAddon instance = Instantiate(addonPrefab, transform);
-                    Vector3 spawnLocalPos = GetLocalTileCenter(r, 0, f);
+                    Vector3 spawnLocalPos = GetLocalTileCenter(c, 0, f);
                     instance.transform.localPosition = spawnLocalPos;
 
                     addonFloorGroup[f] = instance;
@@ -165,14 +226,14 @@ public class EnvTreadmill : MonoBehaviour
                 }
             }
 
-            generatedTerrAddons.SetElement(addonFloorGroup, r, 0);
+            generatedTerrAddons.SetElement(addonFloorGroup, c, 0);
         }
     }
 
-    private Vector3 GetLocalTileCenter(int rowIndex, int colIndex, int floorIndex)
+    private Vector3 GetLocalTileCenter(int colIndex, int rowIndex, int floorIndex)
     {
-        float x = (rowIndex + 0.5f) * settings.TileDims.x;
-        float y = (colIndex + 0.5f) * settings.TileDims.y;
+        float x = (colIndex + 0.5f) * settings.TileDims.x;
+        float y = (settings.TileRows - rowIndex - 0.5f) * settings.TileDims.y;
         float elevation = floorIndex * settings.FloorHeight;
         return new Vector3(x, elevation, y);
     }
@@ -180,21 +241,22 @@ public class EnvTreadmill : MonoBehaviour
 
     private void RemoveLastAddonRow()
     {
-        int c = settings.TileCols - 1;
+        int r = settings.TileRows - 1;
 
-        for (int r = 0; r < settings.TileRows; r++)
+        for (int c = 0; c < settings.TileCols; c++)
         {
-            TerrAddon[] addonFloorGroup = generatedTerrAddons.GetElement(r, c);
+            TerrAddon[] addonFloorGroup = generatedTerrAddons.GetElement(c, r);
 
             for(int i = 0; i < settings.FloorCount; i++)
             {
                 if (addonFloorGroup[i] != null)
                 {
                     Destroy(addonFloorGroup[i]);
+                    addonFloorGroup[i] = null;
                 }
             }
 
-            generatedTerrAddons.SetElement(null, r, c);
+            generatedTerrAddons.SetElement(null, c, r);
         }
     }
 
@@ -212,6 +274,7 @@ public class EnvTreadmill : MonoBehaviour
         generatedTerrAddons.ShiftColsWrapped(dir);
         renderedGroundPoints.ShiftColsWrapped(dir);
         renderedInterPoints.ShiftColsWrapped(dir * (1 + settings.InterCount));
+        UpdateMeshRender();
 
         //TODO: make sure we compensate for objects wider than 1 tile such that we
         //have a wide enough environment (relative to the maximum width of a terrAddon)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+[CreateAssetMenu(fileName = "PSO_LaneChange", menuName = "ScriptableObjects/Delegates/PSO_LaneChange")]
 public class PSO_LaneChange : PropertySO<LaneChange>
 {
     public override void ModifyValue(LaneChange mod)
@@ -21,10 +22,15 @@ public class LaneChange
         int modDir = Mathf.Clamp(dir, -1, 1);
         float modTime = Mathf.Min(time, 0f);
 
-        Dir = modDir;
-        Time = modTime;
+        dir = modDir;
+        time = modTime;
     }
 
-    public int Dir { get; private set; }
-    public float Time { get; private set; }
+    [SerializeField]
+    private int dir;
+    public int Dir => dir;
+
+    [SerializeField]
+    private float time;
+    public float Time => time;
 }
