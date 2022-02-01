@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TerrAddon : MonoBehaviour, ITerrNode
+public abstract class TerrAddon : MonoBehaviour, ITerrNode
 {
     [SerializeField]
     private Vector2Int dimensions;

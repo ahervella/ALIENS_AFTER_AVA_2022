@@ -1,0 +1,20 @@
+﻿public enum InputEnum
+{
+    NAV_LEFT,
+    NAV_RIGHT,
+    NAV_UP,
+    NAV_DOWN,
+    NAV_SELECT,
+    NAV_BACK,
+    GAME_LEFT,
+    GAME_RIGHT,
+    GAME_JUMP,
+    GAME_SPRINT,
+    GAME_ROLL,
+    GAME_FIRE_WEAPON,
+    GAME_PREV_WEAPON,
+    GAME_NEXT_WEAPON,
+    GAME_EQUIPMENT_1,
+    GAME_EQUIPMENT_2,
+    GAME_PAUSE
+}

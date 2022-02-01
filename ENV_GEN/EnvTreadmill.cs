@@ -97,14 +97,14 @@ public class EnvTreadmill : MonoBehaviour
 
     private void UpdateMeshRender()
     {
-        renderedGroundPoints.PrintData("renderedGroundPoints");
+        //renderedGroundPoints.PrintData("renderedGroundPoints");
 
         meshVerticies = Data2D<float>.ConvertToMeshArray(renderedGroundPoints, settings.TileDims);
-        foreach (Vector3 pos in meshVerticies)
-        {
-            GameObject blah = new GameObject();
-            blah.transform.localPosition = pos;
-        }
+        //foreach (Vector3 pos in meshVerticies)
+        //{
+        //    GameObject blah = new GameObject();
+        //    blah.transform.localPosition = pos;
+        //}
         mesh.vertices = meshVerticies;
         mesh.triangles = CreateMeshTriangles();
         mesh.RecalculateNormals();

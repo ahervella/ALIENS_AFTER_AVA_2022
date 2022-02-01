@@ -171,7 +171,7 @@ public class Data2D<T>
     }
 
     /// <summary>
-    /// Convert a 2D float dataa to a 1D Vector3 array
+    /// Convert a 2D float data to a 1D Vector3 array
     /// </summary>
     /// <param name="data"></param>
     /// <returns></returns>

@@ -23,6 +23,10 @@ public abstract class PropertySO<T> : PropertySO
 
     public T RegisterForPropertyChanged(PropertyChanged method)
     {
+        //deregister first because this revoes all method instance
+        //of this name, such that we make sure each method is registered
+        //only once
+        OnPropertyChanged -= method;
         OnPropertyChanged += method;
         return Value;
     }
