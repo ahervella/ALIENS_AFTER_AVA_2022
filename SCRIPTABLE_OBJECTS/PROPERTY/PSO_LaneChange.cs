@@ -15,15 +15,20 @@ public class PSO_LaneChange : PropertySO<LaneChange>
 [Serializable]
 public class LaneChange
 {
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="dir">the direction the player is moving to</param>
+    /// <param name="time">time for evnironment to move</param>
     public LaneChange(int dir, float time)
     {
 
         //Only let lane changes happen one at a time, with a min of 0 time
         int modDir = Mathf.Clamp(dir, -1, 1);
-        float modTime = Mathf.Min(time, 0f);
+        float modTime = Mathf.Max(time, 0f);
 
-        dir = modDir;
-        time = modTime;
+        this.dir = modDir;
+        this.time = modTime;
     }
 
     [SerializeField]

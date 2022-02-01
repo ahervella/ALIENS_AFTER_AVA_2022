@@ -90,7 +90,7 @@ public class Data2D<T>
     {
         if (horzDir == 0) { return; }
 
-        T[,] shiftedData = new T[rows, cols];
+        T[,] shiftedData = new T[cols, rows];
 
         if (horzDir > 0)
         {
@@ -117,7 +117,7 @@ public class Data2D<T>
 
             for (int r = 0; r < rows; r++)
             {
-                for (int c = 0; c < cols; c++)
+                for (int c = 1; c < cols; c++)
                 {
                     shiftedData[c - 1, r] = data[c, r];
                 }

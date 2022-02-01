@@ -41,6 +41,8 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private IntPropertySO currLurkCode;
 
+    private PlayerActionEnum currAction = PlayerActionEnum.RUN;
+
     private void Awake()
     {
         RegisterForInputs();
@@ -53,67 +55,115 @@ public class PlayerRunner : MonoBehaviour
         inputManager.RegisterForInput(InputEnum.GAME_JUMP, InputManager_Jump);
         inputManager.RegisterForInput(InputEnum.GAME_SPRINT, InputManager_Sprint);
         inputManager.RegisterForInput(InputEnum.GAME_ROLL, InputManager_Roll);
-        inputManager.RegisterForInput(InputEnum.GAME_FIRE_WEAPON, InputManager_FireWeapon);
-        inputManager.RegisterForInput(InputEnum.GAME_PREV_WEAPON, InputManager_PrevWeapon);
-        inputManager.RegisterForInput(InputEnum.GAME_NEXT_WEAPON, InputManager_NextWeapon);
-        inputManager.RegisterForInput(InputEnum.GAME_EQUIPMENT_1, InputManager_Equipment1);
-        inputManager.RegisterForInput(InputEnum.GAME_EQUIPMENT_2, InputManager_Equipment2);
         inputManager.RegisterForInput(InputEnum.GAME_PAUSE, InputManager_Pause);
     }
 
     private void InputManager_DodgeLeft()
     {
-        Debug.Log("DodgeLeft");
+        Debug.Log("Input_DodgeLeft");
+        if (currAction == PlayerActionEnum.RUN || currAction == PlayerActionEnum.FALL)
+        {
+            StartAction(PlayerActionEnum.DODGE_L);
+        }
     }
 
     private void InputManager_DodgeRight()
     {
-        Debug.Log("DodgeRight");
+        Debug.Log("Input_DodgeRight");
+        if (currAction == PlayerActionEnum.RUN || currAction == PlayerActionEnum.FALL)
+        {
+            StartAction(PlayerActionEnum.DODGE_R);
+        }
     }
 
     private void InputManager_Jump()
     {
-        Debug.Log("Jump");
+        Debug.Log("Input_Jump");
+        if (currAction == PlayerActionEnum.RUN)
+        {
+            StartAction(PlayerActionEnum.JUMP);
+        }
+
+        else if (currAction == PlayerActionEnum.SPRINT)
+        {
+            StartAction(PlayerActionEnum.LONG_JUMP);
+        }
     }
 
     private void InputManager_Sprint()
     {
-        Debug.Log("Sprint");
+        Debug.Log("Input_Sprint");
+        if (currAction == PlayerActionEnum.RUN)
+        {
+            StartAction(PlayerActionEnum.SPRINT);
+        }
     }
 
     private void InputManager_Roll()
     {
-        Debug.Log("Roll");
-    }
-
-    private void InputManager_FireWeapon()
-    {
-        Debug.Log("FireWeapon");
-    }
-
-    private void InputManager_PrevWeapon()
-    {
-        Debug.Log("PrevWeapon");
-    }
-
-    private void InputManager_NextWeapon()
-    {
-        Debug.Log("NextWeapon");
-    }
-
-    private void InputManager_Equipment1()
-    {
-        Debug.Log("Equipment1");
-    }
-
-    private void InputManager_Equipment2()
-    {
-        Debug.Log("Equipment2");
+        Debug.Log("Input_Roll");
+        if (currAction == PlayerActionEnum.RUN)
+        {
+            StartAction(PlayerActionEnum.ROLL);
+        }
     }
 
     private void InputManager_Pause()
     {
         Debug.Log("Pause");
+        //Pause Game
+    }
+
+    private void StartAction(PlayerActionEnum action)
+    {
+        switch (action)
+        {
+            case PlayerActionEnum.RUN:
+                //For each:
+                //StartAnim
+                //ChangeCameraAngle
+                break;
+            case PlayerActionEnum.DODGE_L:
+                //Also trigger lane change left
+                StartCoroutine(StartLaneChange(-1));
+                break;
+            case PlayerActionEnum.DODGE_R:
+                StartCoroutine(StartLaneChange(1));
+                //Also trigger lane change right
+                break;
+            case PlayerActionEnum.FALL:
+                break;
+            case PlayerActionEnum.JUMP:
+                break;
+            case PlayerActionEnum.LJ_FALL:
+                break;
+            case PlayerActionEnum.LONG_JUMP:
+                break;
+            case PlayerActionEnum.ROLL:
+                break;
+            case PlayerActionEnum.SPRINT:
+                break;
+            case PlayerActionEnum.HURT_CENTER:
+                break;
+            case PlayerActionEnum.HURT_LOWER:
+                break;
+            case PlayerActionEnum.HURT_UPPER:
+                break;
+            case PlayerActionEnum.HURT_AIR:
+                break;
+        }
+
+        currAction = action;
+    }
+
+    private IEnumerator StartLaneChange(int dir)
+    {
+        yield return new WaitForSeconds(settings.LaneChangeDelay);
+        laneChange.ModifyValue(new LaneChange(dir, settings.LaneChangeTime));
+        yield return new WaitForSeconds(settings.LaneChangeTime);
+        StartAction(PlayerActionEnum.RUN);
+        //StartAnim
+        //ChangeCameraAngle
     }
 }
 

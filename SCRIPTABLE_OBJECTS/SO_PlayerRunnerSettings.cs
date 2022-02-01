@@ -12,4 +12,12 @@ public class SO_PlayerRunnerSettings : ScriptableObject
     [SerializeField]
     private float startingEnergyBlocks;
     public float StartingEnergyBlocks => startingEnergyBlocks;
+
+    [SerializeField]
+    private float laneChangeTime;
+    public float LaneChangeTime => laneChangeTime;
+
+    [SerializeField]
+    private float laneChangeDelay;
+    public float LaneChangeDelay => laneChangeDelay;
 }

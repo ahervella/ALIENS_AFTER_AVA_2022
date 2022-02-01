@@ -54,6 +54,7 @@ public class EnvTreadmill : MonoBehaviour
         GetComponent<MeshFilter>().mesh = mesh;
 
         currZone.RegisterForPropertyChanged(OnZoneWrapperChange);
+        laneChange.RegisterForPropertyChanged(OnLaneChange);
 
         InitData2D();
 
@@ -262,11 +263,17 @@ public class EnvTreadmill : MonoBehaviour
 
     private void OnLaneChange(LaneChange prevLC, LaneChange newLC)
     {
-        ShiftTerrainColumns(newLC.Dir);
+        //-1 because direction is the player movement direction,
+        //environment shifts in opposite direction
+        ShiftTerrainColumns(-1 * newLC.Dir);
+
+        //immediately offset the x delta of the grid
         float deltaX = newLC.Dir * settings.TileDims.x;
         PositionChange(deltaX, 0, 0);
-        targetLaneChange = newLC;
+
+        //Start the treadmill horizontal tween to default x position
         colShiftPerc = 0;
+        targetLaneChange = newLC;
     }
 
     private void ShiftTerrainColumns(int dir)
@@ -306,9 +313,10 @@ public class EnvTreadmill : MonoBehaviour
 
     private float EasedPercent(float origPerc)
     {
-        float theta = origPerc * Mathf.PI / 2f;
-        float result = Mathf.Cos(theta);
-        return result < 0.0001 ? 0 : result;
+        float maxTheta = Mathf.PI / 2f;
+        float theta = origPerc * maxTheta;
+        float result = Mathf.Sin(theta);
+        return theta < 0 ? 0 : (theta > maxTheta ? 1 : result);
     }
 
     private void PositionChange(float x, float y, float z)
