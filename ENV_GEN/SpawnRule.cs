@@ -11,27 +11,27 @@ using UnityEngine;
 public class SpawnRule : MonoBehaviour
 {
     [SerializeField]
-    private TerrAddonEnum allegedType;
+    private TerrAddonEnum allegedType = default;
     public TerrAddonEnum AllegedType() => allegedType;
 
     [SerializeField]
-    private RuleCondition condition;
+    private RuleCondition condition = default;
     public RuleCondition Condition => condition;
 
     [SerializeField]
-    private RuleReference reference;
+    private RuleReference reference = default;
     public RuleReference Reference => reference;
 
     [SerializeField]
-    private RuleFloor affectedFloors;
+    private RuleFloor affectedFloors = default;
     public RuleFloor AffectedFloors => affectedFloors;
 
     [SerializeField]
-    private int lowerLim;
+    private int lowerLim = default;
     public int LowerLim => lowerLim;
 
     [SerializeField]
-    private int upperLim;
+    private int upperLim = default;
     public int UpperLim => upperLim;
 }
 

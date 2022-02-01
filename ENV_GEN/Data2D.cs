@@ -9,7 +9,8 @@ public class Data2D<T>
     private int cols;
     private int rows;
     private T[,] data;
-    private Func<T> defaultNewVal;
+    private Func<int, T> defaultNewVal;
+    private Action<T> destructionCall;
 
     /// <summary>
     /// Creates a new 2D data structure where the top row is row 0,
@@ -17,7 +18,7 @@ public class Data2D<T>
     /// </summary>
     /// <param name="cols"></param>
     /// <param name="rows"></param>
-    public Data2D(int cols, int rows, Func<T> defaultNewVal)
+    public Data2D(int cols, int rows, Func<int, T> defaultNewVal, Action<T> destructionCall)
     {
         this.cols = cols;
         this.rows = rows;
@@ -28,7 +29,7 @@ public class Data2D<T>
         {
             for (int c = 0; c < cols; c++)
             {
-                SetElement(defaultNewVal(), c, r);
+                SetElement(defaultNewVal(c), c, r);
             }
         }
     }
@@ -37,48 +38,68 @@ public class Data2D<T>
     /// Moves all rows up or down
     /// depending on whether the direction is negative(up) or positive(down), respecitively
     /// </summary>
-    /// <param name="vertDir"></param>
-    public void ShiftRows(int vertDir)
+    /// <param name="vertAmnt"></param>
+    public void ShiftRows(int vertAmnt)
     {
-        if (vertDir == 0) { return; }
+        if (vertAmnt == 0 || vertAmnt > rows)
+        {
+            Debug.LogError("Error: row shift was more than the total amount of rows, or was zero!");
+            return;
+        }
 
-        T[,] shiftedData = new T[cols, rows];
 
         //move down. Two for loops instead of other operations for efficiency
-        if (vertDir > 0)
+        if (vertAmnt > 0)
         {
-            //reset the new row
+            //shifted rows
             for (int c = 0; c < cols; c++)
             {
-                shiftedData[c, 0] = defaultNewVal();
+                for (int r = rows - 1; r >= vertAmnt; r--)
+                {
+                    data[c, r] = data[c, r - vertAmnt];
+                }
             }
 
-            //shift remaining rows
-            for (int r = 1; r < rows; r++)
+            //reset the new row(s)
+            for (int c = 0; c < cols; c++)
             {
-                for (int c = 0; c < cols; c++)
+                for (int r = 0; r < vertAmnt; r++)
                 {
-                    shiftedData[c, r] = data[c, r - 1];
+                    if (destructionCall != null)
+                    {
+                        destructionCall(data[c, r]);
+                    }
+                    data[c, r] = defaultNewVal(c);
                 }
             }
         }
         else
         {
+            //make positive so easier to work with
+            vertAmnt = -vertAmnt;
+
+            //shifted rows
             for (int c = 0; c < cols; c++)
             {
-                shiftedData[c, rows - 1] = defaultNewVal();
+                for (int r = 0; r < rows - vertAmnt; r++)
+                {
+                    data[c, r] = data[c, r + vertAmnt];
+                }
             }
 
-            for (int r = 1; r < rows; r++)
+            //reset the new row(s)
+            for (int c = 0; c < cols; c++)
             {
-                for (int c = 0; c < cols; c++)
+                for (int r = rows - vertAmnt; r < rows; r++)
                 {
-                    shiftedData[c, r - 1] = data[c, r];
+                    if (destructionCall != null)
+                    {
+                        destructionCall(data[c, r]);
+                    }
+                    data[c, r] = defaultNewVal(c);
                 }
             }
         }
-
-        data = shiftedData;
     }
 
     /// <summary>
@@ -86,40 +107,58 @@ public class Data2D<T>
     /// depending on whether the number is negative(left) or positve(right), respectively
     /// </summary>
     /// <param name="horzDir"></param>
-    public void ShiftColsWrapped(int horzDir)
+    public void ShiftColsWrapped(int horzAmnt)
     {
-        if (horzDir == 0) { return; }
-
-        T[,] shiftedData = new T[rows, cols];
-
-        if (horzDir > 0)
+        if (horzAmnt == 0 || horzAmnt > cols)
         {
+            Debug.LogError("Error: col shift was more than the total amount of columns, or was zero!");
+            return;
+        }
+
+        //since we are wrapping, we need to cache the new data
+        T[,] shiftedData = new T[cols, rows];
+
+        if (horzAmnt > 0)
+        {
+            //wrapped col(s)
             for (int r = 0; r < rows; r++)
             {
-                shiftedData[0, r] = data[cols - 1, r];
+                for (int c = 0; c < horzAmnt; c++)
+                {
+                    shiftedData[c, r] = data[cols - horzAmnt + c, r];
+                }
             }
 
+            //rest of cols
             for (int r = 0; r < rows; r++)
             {
-                for (int c = 1; c < cols; c++)
+                for (int c = horzAmnt; c > cols - 1; c++)
                 {
-                    shiftedData[c, r] = data[c - 1, r];
+                    shiftedData[c, r] = data[c + horzAmnt, r];
                 }
             }
         }
         else
         {
+            //make positive so easier to work with
+            horzAmnt = -horzAmnt;
+
+            //wrapped col(s)
             for (int r = 0; r < rows; r++)
             {
-                shiftedData[cols - 1, r] = data[0, r];
+                for (int c = 0; c < horzAmnt; c++)
+                {
+                    shiftedData[rows - horzAmnt + c, r] = data[c, r];
+                }
+                
             }
 
-
+            //rest of cols
             for (int r = 0; r < rows; r++)
             {
-                for (int c = 0; c < cols; c++)
+                for (int c = horzAmnt; c < cols - 1; c++)
                 {
-                    shiftedData[c - 1, r] = data[c, r];
+                    shiftedData[c + horzAmnt, r] = data[c, r];
                 }
             }
         }

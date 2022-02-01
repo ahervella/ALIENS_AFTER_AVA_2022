@@ -27,10 +27,10 @@ public class LaneChange
     }
 
     [SerializeField]
-    private int dir;
+    private int dir = default;
     public int Dir => dir;
 
     [SerializeField]
-    private float time;
+    private float time = default;
     public float Time => time;
 }
