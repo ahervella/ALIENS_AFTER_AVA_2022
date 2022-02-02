@@ -24,12 +24,13 @@ public class Data2D<T>
         this.rows = rows;
         this.data = new T[cols, rows];
         this.defaultNewVal = defaultNewVal;
+        this.destructionCall = destructionCall;
 
         for (int r = 0; r < rows; r++)
         {
             for (int c = 0; c < cols; c++)
             {
-                SetElement(defaultNewVal(c), c, r);
+                data[c, r] = defaultNewVal(c);
             }
         }
     }
@@ -72,34 +73,48 @@ public class Data2D<T>
                     data[c, r] = defaultNewVal(c);
                 }
             }
+            return;
         }
-        else
+
+        //make positive so easier to work with
+        vertAmnt = -vertAmnt;
+
+        //shifted rows
+        for (int c = 0; c < cols; c++)
         {
-            //make positive so easier to work with
-            vertAmnt = -vertAmnt;
-
-            //shifted rows
-            for (int c = 0; c < cols; c++)
+            for (int r = 0; r < rows - vertAmnt; r++)
             {
-                for (int r = 0; r < rows - vertAmnt; r++)
-                {
-                    data[c, r] = data[c, r + vertAmnt];
-                }
-            }
-
-            //reset the new row(s)
-            for (int c = 0; c < cols; c++)
-            {
-                for (int r = rows - vertAmnt; r < rows; r++)
-                {
-                    if (destructionCall != null)
-                    {
-                        destructionCall(data[c, r]);
-                    }
-                    data[c, r] = defaultNewVal(c);
-                }
+                data[c, r] = data[c, r + vertAmnt];
             }
         }
+
+        //reset the new row(s)
+        for (int c = 0; c < cols; c++)
+        {
+            for (int r = rows - vertAmnt; r < rows; r++)
+            {
+                if (destructionCall != null)
+                {
+                    destructionCall(data[c, r]);
+                }
+                data[c, r] = defaultNewVal(c);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Resets the element at the given location using the
+    /// destroy and default valie methods
+    /// </summary>
+    /// <param name="colIndex"></param>
+    /// <param name="rowIndex"></param>
+    public void ResetElement(int colIndex, int rowIndex)
+    {
+        if (destructionCall != null)
+        {
+            destructionCall(data[colIndex, rowIndex]);
+        }
+        data[colIndex, rowIndex] = defaultNewVal(colIndex);
     }
 
     /// <summary>
@@ -116,11 +131,11 @@ public class Data2D<T>
         }
 
         //since we are wrapping, we need to cache the new data
-        T[,] shiftedData = new T[cols, rows];
+        T[,] shiftedData = new T[horzAmnt, rows];
 
         if (horzAmnt > 0)
         {
-            //wrapped col(s)
+            //cache wrapped col(s)
             for (int r = 0; r < rows; r++)
             {
                 for (int c = 0; c < horzAmnt; c++)
@@ -132,38 +147,54 @@ public class Data2D<T>
             //rest of cols
             for (int r = 0; r < rows; r++)
             {
-                for (int c = horzAmnt; c > cols - 1; c++)
+                for (int c = cols - 1; c > horzAmnt; c--)
                 {
-                    shiftedData[c, r] = data[c + horzAmnt, r];
+                    data[c, r] = data[c - horzAmnt, r];
                 }
             }
-        }
-        else
-        {
-            //make positive so easier to work with
-            horzAmnt = -horzAmnt;
 
-            //wrapped col(s)
+            //apply cached wrapped ones
             for (int r = 0; r < rows; r++)
             {
                 for (int c = 0; c < horzAmnt; c++)
                 {
-                    shiftedData[rows - horzAmnt + c, r] = data[c, r];
+                    data[c, r] = shiftedData[c, r];
                 }
-                
             }
 
-            //rest of cols
-            for (int r = 0; r < rows; r++)
+            return;
+        }
+
+        //make positive so easier to work with
+        horzAmnt = -horzAmnt;
+
+        //cache wrapped col(s)
+        for (int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < horzAmnt; c++)
             {
-                for (int c = horzAmnt; c < cols - 1; c++)
-                {
-                    shiftedData[c + horzAmnt, r] = data[c, r];
-                }
+                shiftedData[c, r] = data[c, r];
+            }
+                
+        }
+
+        //rest of cols
+        for (int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < cols - horzAmnt; c++)
+            {
+                data[c, r] = data[c + horzAmnt, r];
             }
         }
 
-        data = shiftedData;
+        //apply cached wrapped ones
+        for (int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < horzAmnt; c++)
+            {
+                data[rows - horzAmnt + c, r] = shiftedData[c, r];
+            }
+        }
     }
 
     /// <summary>
@@ -207,35 +238,5 @@ public class Data2D<T>
         }
 
         Debug.LogFormat("End of Data2D '{0}'", name);
-    }
-
-    /// <summary>
-    /// Convert a 2D float data to a 1D Vector3 array
-    /// </summary>
-    /// <param name="data"></param>
-    /// <returns></returns>
-    public static Vector3[] ConvertToMeshArray(Data2D<float> data2D, Vector2 units)
-    {
-        Vector3[] meshData = new Vector3[data2D.data.Length];
-
-        int meshIndex = 0;
-        int cols = data2D.data.GetUpperBound(0) + 1;
-        int rows = data2D.data.GetUpperBound(1) + 1;
-
-        for (int r = 0; r < rows; r++)
-        {
-            for (int c = 0; c < cols; c++)
-            {
-                //since Data2Ds have row index 0 at the top, and if we want the bottom row to be at unity
-                //location Vector3(x, elevation, 0), we need to get the difference of rows and r
-
-                //NOTE: in unity, selecting the mesh (which is attached to the envTreadmill node) has
-                //the selection point in the middle of the mesh, but the actual transformation point of reference
-                //will be zero zero if we do the follow.
-                meshData[meshIndex++] = new Vector3(c * units.x, data2D.data[c, r], (rows - r - 1) * units.y);
-            }
-        }
-
-        return meshData;
     }
 }

@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
 using System;
+
+using static HelperUtil;
 
 [RequireComponent(typeof(MeshRenderer))]
 public class EnvTreadmill : MonoBehaviour
@@ -94,7 +95,10 @@ public class EnvTreadmill : MonoBehaviour
     {
         foreach(TerrAddon addon in addons)
         {
-            Destroy(addon);
+            if (addon != null)
+            {
+                Destroy(addon);
+            }
         }
     }
 
@@ -102,7 +106,7 @@ public class EnvTreadmill : MonoBehaviour
     {
         //renderedGroundPoints.PrintData("renderedGroundPoints");
 
-        meshVerticies = Data2D<float>.ConvertToMeshArray(renderedGroundPoints, settings.TileDims);
+        meshVerticies = ConvertToMeshArray(renderedGroundPoints, settings.PointCols, settings.PointRows, settings.TileDims);
         mesh.vertices = meshVerticies;
         mesh.triangles = CreateMeshTriangles();
         mesh.RecalculateNormals();
@@ -117,6 +121,37 @@ public class EnvTreadmill : MonoBehaviour
     //    }
     //}
 
+
+    /// <summary>
+    /// Convert a 2D float dataa to a 1D Vector3 array
+    /// </summary>
+    /// <param name="data2D"></param>
+    /// <param name="cols"></param>
+    /// <param name="rows"></param>
+    /// <param name="units"></param>
+    /// <returns></returns>
+    private Vector3[] ConvertToMeshArray(Data2D<float> data2D, int cols, int rows, Vector2 units)
+    {
+        Vector3[] meshData = new Vector3[cols * rows];
+
+        int meshIndex = 0;
+
+        for (int r = 0; r < settings.PointRows; r++)
+        {
+            for (int c = 0; c < settings.PointCols; c++)
+            {
+                //since Data2Ds have row index 0 at the top, and if we want the bottom row to be at unity
+                //location Vector3(x, elevation, 0), we need to get the difference of rows and r
+
+                //NOTE: in unity, selecting the mesh (which is attached to the envTreadmill node) has
+                //the selection point in the middle of the mesh, but the actual transformation point of reference
+                //will be zero zero if we do the follow.
+                meshData[meshIndex++] = new Vector3(c * units.x, data2D.GetElement(c, r), (rows - r - 1) * units.y);
+            }
+        }
+
+        return meshData;
+    }
 
     private int[] CreateMeshTriangles()
     {
@@ -160,7 +195,7 @@ public class EnvTreadmill : MonoBehaviour
             ShiftTerrainRowsDown();
         }
 
-        PositionChange(0, 0, posVert);
+        PositionChange(transform, 0, 0, posVert);
     }
 
 
@@ -240,7 +275,7 @@ public class EnvTreadmill : MonoBehaviour
 
         //immediately offset the x delta of the grid
         float deltaX = newLC.Dir * settings.TileDims.x;
-        PositionChange(deltaX, 0, 0);
+        PositionChange(transform, deltaX, 0, 0);
 
         //Start the treadmill horizontal tween to default x position
         colShiftPerc = 0;
@@ -270,25 +305,11 @@ public class EnvTreadmill : MonoBehaviour
         float startXPos = targetLaneChange.Dir * settings.TileDims.x;
         float horizPos = Mathf.Lerp(startXPos, 0, easedColShiftPerc);
 
-        PositionChange(horizPos - transform.position.x, 0, 0);
+        PositionChange(transform, horizPos - transform.position.x, 0, 0);
 
         if (horizPos == 0)
         {
             targetLaneChange = null;
         }
-    }
-
-
-    private float EasedPercent(float origPerc)
-    {
-        float maxTheta = Mathf.PI / 2f;
-        float theta = origPerc * maxTheta;
-        float result = Mathf.Sin(theta);
-        return theta < 0 ? 0 : (theta > maxTheta ? 1 : result);
-    }
-
-    private void PositionChange(float x, float y, float z)
-    {
-        transform.position = new Vector3(transform.position.x + x, transform.position.y + y, transform.position.z + z);
     }
 }
