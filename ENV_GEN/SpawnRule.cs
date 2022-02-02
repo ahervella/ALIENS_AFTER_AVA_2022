@@ -34,18 +34,3 @@ public class SpawnRule : MonoBehaviour
     private int upperLim = default;
     public int UpperLim => upperLim;
 }
-
-public enum RuleCondition
-{
-    WITHIN_PERIMETER, ADJACENT, INFRONT_OF, BEHIND
-}
-
-public enum RuleReference
-{
-    EDGES, CENTER
-}
-
-public enum RuleFloor
-{
-    FIRST, SECOND, ALL
-}
