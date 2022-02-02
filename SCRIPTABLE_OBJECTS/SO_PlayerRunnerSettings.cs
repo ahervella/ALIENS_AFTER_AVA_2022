@@ -5,6 +5,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "SO_PlayerRunnerSettings", menuName = "ScriptableObjects/StaticData/SO_PlayerRunnerSettings")]
 public class SO_PlayerRunnerSettings : ScriptableObject
 {
+    //TODO: evaluate once working runner level if we want to break these up
     [SerializeField]
     private float lifeRecoveryTime;
     public float LifeRecoveryTime => lifeRecoveryTime;
