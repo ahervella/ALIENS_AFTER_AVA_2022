@@ -24,7 +24,7 @@ public static class HelperUtil
     public static float EasedPercent(float origPerc)
     {
         float theta = origPerc * Mathf.PI / 2f;
-        float result = Mathf.Cos(theta);
-        return result < 0.0001 ? 0 : result;
+        float result = Mathf.Sin(theta);
+        return result < 0.0001 ? 0 : (result > 0.9999? 1 : result);
     }
 }
