@@ -8,7 +8,7 @@ public class PSO_LaneChange : PropertySO<LaneChange>
 {
     public override void ModifyValue(LaneChange mod)
     {
-        SetValue(new LaneChange(mod.Dir, mod.Time));
+        SetValue(mod);
     }
 }
 

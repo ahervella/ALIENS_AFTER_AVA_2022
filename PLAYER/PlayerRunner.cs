@@ -8,11 +8,11 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private SO_InputManager inputManager;
 
-    //[SerializeField]
-    //private PSO_TargetCameraAngle targetCameraAngle;
+    [SerializeField]
+    private PSO_TargetCameraAngle targetCameraAngle;
 
-    //[SerializeField]
-    //private List<CameraAngleWrapper> cameraAnglesMap;
+    [SerializeField]
+    private List<SO_CameraAngleWrapper> cameraAnglesMap = new List<SO_CameraAngleWrapper>();
 
     [SerializeField]
     private IntPropertySO currLives;
@@ -22,6 +22,9 @@ public class PlayerRunner : MonoBehaviour
 
     [SerializeField]
     private SO_PlayerRunnerSettings settings;
+
+    [SerializeField]
+    private SO_TerrSettings terrSettings;
 
     //[SerializeField]
     //private PlayerSounds sounds;
@@ -46,6 +49,19 @@ public class PlayerRunner : MonoBehaviour
     private void Awake()
     {
         RegisterForInputs();
+        SetPlayerStartPosition();
+    }
+
+    private void Start()
+    {
+        StartAction(PlayerActionEnum.RUN);
+    }
+
+    private void SetPlayerStartPosition()
+    {
+        float x = terrSettings.LaneCount / 2f * terrSettings.TileDims.x;
+        float z = settings.StartRowsFromEnd * terrSettings.TileDims.y;
+        transform.position = new Vector3(x, 0, z);
     }
 
     private void RegisterForInputs()
@@ -116,12 +132,20 @@ public class PlayerRunner : MonoBehaviour
 
     private void StartAction(PlayerActionEnum action)
     {
+        foreach (SO_CameraAngleWrapper caw in cameraAnglesMap)
+        {
+            if (caw.Action == currAction)
+            {
+                targetCameraAngle.ModifyValue(caw.CameraAngle);
+                break;
+            }
+        }
+
         switch (action)
         {
             case PlayerActionEnum.RUN:
                 //For each:
                 //StartAnim
-                //ChangeCameraAngle
                 break;
             case PlayerActionEnum.DODGE_L:
                 //Also trigger lane change left

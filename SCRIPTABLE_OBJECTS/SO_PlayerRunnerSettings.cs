@@ -21,4 +21,8 @@ public class SO_PlayerRunnerSettings : ScriptableObject
     [SerializeField]
     private float laneChangeDelay;
     public float LaneChangeDelay => laneChangeDelay;
+
+    [SerializeField]
+    private float startRowsFromEnd = 1;
+    public float StartRowsFromEnd => startRowsFromEnd;
 }
