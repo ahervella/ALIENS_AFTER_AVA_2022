@@ -134,7 +134,7 @@ public class PlayerRunner : MonoBehaviour
     {
         foreach (SO_CameraAngleWrapper caw in cameraAnglesMap)
         {
-            if (caw.Action == currAction)
+            if (caw.Action == action)
             {
                 targetCameraAngle.ModifyValue(caw.CameraAngle);
                 break;

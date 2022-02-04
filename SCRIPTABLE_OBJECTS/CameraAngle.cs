@@ -6,11 +6,11 @@ using System;
 [Serializable]
 public class CameraAngle
 {
-    public CameraAngle(float fieldOfView, Vector3 posOffset, Vector3 rotOffset, float tweenTime)
+    public CameraAngle(float fieldOfView, Vector3 posOffset, Vector3 rot, float tweenTime)
     {
         this.fieldOfView = fieldOfView;
         this.posOffset = posOffset;
-        this.rotOffset = rotOffset;
+        this.rot = rot;
         this.tweenTime = tweenTime;
     }
 
@@ -28,8 +28,8 @@ public class CameraAngle
     public Vector3 PosOffset => basePosOffset == null? posOffset : basePosOffset.Value + posOffset;
 
     [SerializeField]
-    private Vector3 rotOffset = default;
-    public Vector3 RofOffset => rotOffset;
+    private Vector3 rot = default;
+    public Vector3 Rot => rot;
 
     [SerializeField]
     private float tweenTime = 1f;
