@@ -25,6 +25,6 @@ public static class HelperUtil
     {
         float theta = origPerc * Mathf.PI / 2f;
         float result = Mathf.Sin(theta);
-        return result < 0.0001 ? 0 : result;
+        return result < 0.0001 ? 0 : (result > 0.9999? 1 : result);
     }
 }

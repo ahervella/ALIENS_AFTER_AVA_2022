@@ -130,11 +130,13 @@ public class Data2D<T>
             return;
         }
 
-        //since we are wrapping, we need to cache the new data
-        T[,] shiftedData = new T[horzAmnt, rows];
+        //since we are wrapping, we need to cache the wrapped data
+        T[,] shiftedData;
 
         if (horzAmnt > 0)
         {
+            shiftedData = new T[horzAmnt, rows];
+
             //cache wrapped col(s)
             for (int r = 0; r < rows; r++)
             {
@@ -168,6 +170,8 @@ public class Data2D<T>
         //make positive so easier to work with
         horzAmnt = -horzAmnt;
 
+        shiftedData = new T[horzAmnt, rows];
+
         //cache wrapped col(s)
         for (int r = 0; r < rows; r++)
         {
@@ -192,7 +196,7 @@ public class Data2D<T>
         {
             for (int c = 0; c < horzAmnt; c++)
             {
-                data[rows - horzAmnt + c, r] = shiftedData[c, r];
+                data[cols - horzAmnt + c, r] = shiftedData[c, r];
             }
         }
     }
