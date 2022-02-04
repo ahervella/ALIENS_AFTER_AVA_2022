@@ -178,7 +178,7 @@ public class EnvTreadmill : MonoBehaviour
         return meshTriangles;
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
         TickTreadmillVertMove();
         TickTreadmillHorzWrap();
@@ -186,7 +186,7 @@ public class EnvTreadmill : MonoBehaviour
 
     private void TickTreadmillVertMove()
     {
-        float posVert = currSpeed * Time.fixedDeltaTime;
+        float posVert = currSpeed * Time.deltaTime;
 
         if (posVert + transform.position.z <= -newRowThreshold)
         {
@@ -299,7 +299,7 @@ public class EnvTreadmill : MonoBehaviour
     {
         if (targetLaneChange == null) { return; }
 
-        colShiftPerc += Time.fixedDeltaTime / targetLaneChange.Time;
+        colShiftPerc += Time.deltaTime / targetLaneChange.Time;
 
         float easedColShiftPerc = EasedPercent(colShiftPerc);
         float startXPos = targetLaneChange.Dir * settings.TileDims.x;

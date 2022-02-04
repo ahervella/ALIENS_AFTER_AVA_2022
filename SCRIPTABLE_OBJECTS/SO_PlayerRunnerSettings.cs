@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 [CreateAssetMenu(fileName = "SO_PlayerRunnerSettings", menuName = "ScriptableObjects/StaticData/SO_PlayerRunnerSettings")]
 public class SO_PlayerRunnerSettings : ScriptableObject
@@ -25,4 +26,8 @@ public class SO_PlayerRunnerSettings : ScriptableObject
     [SerializeField]
     private float startRowsFromEnd = 1;
     public float StartRowsFromEnd => startRowsFromEnd;
+
+    [SerializeField]
+    private List<SO_CameraAngle> actionCameraAngles = new List<SO_CameraAngle>();
+    public SO_CameraAngle GetActionCameraAngle(PlayerActionEnum action) => actionCameraAngles.First(ca => action == ca.ActionTag);
 }

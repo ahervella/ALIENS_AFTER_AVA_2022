@@ -12,9 +12,9 @@ public class PlayerCamera : MonoBehaviour
 
     [SerializeField]
     private PSO_TargetCameraAngle targetCameraAngle = null;
-    private CameraAngle cachedTargetCamAngle = null;
+    private SO_CameraAngle cachedTargetCamAngle = null;
 
-    private CameraAngle oldCameraAngle = null;
+    private SO_CameraAngle oldCameraAngle = null;
     private float tweenPerc;
     private Camera cam;
 
@@ -25,12 +25,18 @@ public class PlayerCamera : MonoBehaviour
         targetCameraAngle.RegisterForPropertyChanged(OnCameraAngleChange);
     }
 
-    private void OnCameraAngleChange(CameraAngle prevAngle, CameraAngle newAngle)
+    private void Start()
+    {
+        //just go to the current angle on load
+        OnCameraAngleChange(null, targetCameraAngle.Value);
+    }
+
+    private void OnCameraAngleChange(SO_CameraAngle prevAngle, SO_CameraAngle newAngle)
     {
         StartCoroutine(CR_OnCameraAngleChange(prevAngle, newAngle));
     }
 
-    private IEnumerator CR_OnCameraAngleChange(CameraAngle prevAngle, CameraAngle newAngle)
+    private IEnumerator CR_OnCameraAngleChange(SO_CameraAngle prevAngle, SO_CameraAngle newAngle)
     {
         //if was in the middle of a tween
         if (tweenPerc != 1 && tweenPerc > 0)
@@ -60,10 +66,10 @@ public class PlayerCamera : MonoBehaviour
         float currFOV = cam.fieldOfView;
         Vector3 currPosOffset = transform.position - subjectTransform.position;
 
-        oldCameraAngle = new CameraAngle(currFOV, currPosOffset, transform.eulerAngles, 0);
+        oldCameraAngle = new SO_CameraAngle(currFOV, currPosOffset, transform.eulerAngles, 0, PlayerActionEnum.NONE);
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
         TickCameraTween();
     }
@@ -75,7 +81,7 @@ public class PlayerCamera : MonoBehaviour
             return;
         }
 
-        tweenPerc += Time.fixedDeltaTime;
+        tweenPerc += Time.deltaTime;
         float easedTweenPerc = EasedPercent(tweenPerc);
 
         cam.fieldOfView = Mathf.Lerp(oldCameraAngle.FieldOfView, cachedTargetCamAngle.FieldOfView, easedTweenPerc);

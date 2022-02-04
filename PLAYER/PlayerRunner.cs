@@ -6,43 +6,40 @@ using UnityEngine.InputSystem;
 public class PlayerRunner : MonoBehaviour
 {
     [SerializeField]
-    private SO_InputManager inputManager;
+    private SO_InputManager inputManager = null;
 
     [SerializeField]
-    private PSO_TargetCameraAngle targetCameraAngle;
+    private PSO_TargetCameraAngle targetCameraAngle = null;
 
     [SerializeField]
-    private List<SO_CameraAngleWrapper> cameraAnglesMap = new List<SO_CameraAngleWrapper>();
+    private IntPropertySO currLives = null;
 
     [SerializeField]
-    private IntPropertySO currLives;
+    private PSO_LaneChange laneChange = null;
 
     [SerializeField]
-    private PSO_LaneChange laneChange;
+    private SO_PlayerRunnerSettings settings = null;
 
     [SerializeField]
-    private SO_PlayerRunnerSettings settings;
-
-    [SerializeField]
-    private SO_TerrSettings terrSettings;
+    private SO_TerrSettings terrSettings = null;
 
     //[SerializeField]
     //private PlayerSounds sounds;
 
     [SerializeField]
-    private PSO_CurrentGameMode currGameMode;
+    private PSO_CurrentGameMode currGameMode = null;
 
     //[SerializeField]
-    //private PSO_CurrentLoadout currLoadout;
+    //private PSO_CurrentLoadout currLoadout = null;
 
     //[SerializeField]
-    //private PSO_CurrentInventory currentInventory;
+    //private PSO_CurrentInventory currentInventory = null;
 
     [SerializeField]
-    private FloatPropertySO currEnergy;
+    private FloatPropertySO currEnergy = null;
 
     [SerializeField]
-    private IntPropertySO currLurkCode;
+    private IntPropertySO currLurkCode = null;
 
     private PlayerActionEnum currAction = PlayerActionEnum.RUN;
 
@@ -132,13 +129,10 @@ public class PlayerRunner : MonoBehaviour
 
     private void StartAction(PlayerActionEnum action)
     {
-        foreach (SO_CameraAngleWrapper caw in cameraAnglesMap)
+        SO_CameraAngle ca = settings.GetActionCameraAngle(action);
+        if ( ca != null)
         {
-            if (caw.Action == action)
-            {
-                targetCameraAngle.ModifyValue(caw.CameraAngle);
-                break;
-            }
+            targetCameraAngle.ModifyValue(ca);
         }
 
         switch (action)
