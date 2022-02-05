@@ -19,19 +19,19 @@ public abstract class SO_AnimationSettings<T> : ScriptableObject
 public class AninmationWrapper<T>
 {
     [SerializeField]
-    private AnimationClip anim;
+    private AnimationClip anim = null;
     public AnimationClip Anim => anim;
 
     [SerializeField]
-    private SO_CameraAngle initCameraAngle;
+    private SO_CameraAngle initCameraAngle = null;
     public SO_CameraAngle InitCameraAngle => initCameraAngle;
 
     [SerializeField]
-    private T action;
+    private T action = default;
     public T Action => action;
 
     [SerializeField]
-    private T actionOnFinished;
+    private T actionOnFinished = default;
     public T ActionOnFinished => actionOnFinished;
 
     [SerializeField]
