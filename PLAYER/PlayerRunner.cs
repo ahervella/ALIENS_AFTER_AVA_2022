@@ -129,9 +129,9 @@ public class PlayerRunner : MonoBehaviour
         //Pause Game
     }
 
-    public void AE_LaneChange(bool moveRight)
+    public void AE_LaneChange(int dir)
     {
-        laneChange.ModifyValue(new LaneChange(moveRight, settings.LaneChangeTime));
+        laneChange.ModifyValue(new LaneChange(dir > 0, settings.LaneChangeTime));
     }
 }
 
