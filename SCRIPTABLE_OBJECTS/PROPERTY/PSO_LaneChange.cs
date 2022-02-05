@@ -18,24 +18,21 @@ public class LaneChange
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="dir">the direction the player is moving to</param>
+    /// <param name="movingRight">is the lane change going left or right?</param>
     /// <param name="time">time for evnironment to move</param>
-    public LaneChange(int dir, float time)
+    public LaneChange(bool movingRight, float time)
     {
 
-        //Only let lane changes happen one at a time, with a min of 0 time
-        int modDir = Mathf.Clamp(dir, -1, 1);
+        //Only let lane changes with a min of 0 time
         float modTime = Mathf.Max(time, 0f);
 
-        this.dir = modDir;
+        this.dir = movingRight? 1 : -1;
         this.time = modTime;
     }
 
-    [SerializeField]
     private int dir = default;
     public int Dir => dir;
 
-    [SerializeField]
     private float time = default;
     public float Time => time;
 }

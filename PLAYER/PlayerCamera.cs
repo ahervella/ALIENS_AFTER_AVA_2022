@@ -66,7 +66,7 @@ public class PlayerCamera : MonoBehaviour
         float currFOV = cam.fieldOfView;
         Vector3 currPosOffset = transform.position - subjectTransform.position;
 
-        oldCameraAngle = new SO_CameraAngle(currFOV, currPosOffset, transform.eulerAngles, 0, PlayerActionEnum.NONE);
+        oldCameraAngle = new SO_CameraAngle(currFOV, currPosOffset, transform.eulerAngles, 0);
     }
 
     private void Update()

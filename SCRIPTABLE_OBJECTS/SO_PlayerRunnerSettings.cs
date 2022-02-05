@@ -28,6 +28,6 @@ public class SO_PlayerRunnerSettings : ScriptableObject
     public float StartRowsFromEnd => startRowsFromEnd;
 
     [SerializeField]
-    private List<SO_CameraAngle> actionCameraAngles = new List<SO_CameraAngle>();
-    public SO_CameraAngle GetActionCameraAngle(PlayerActionEnum action) => actionCameraAngles.First(ca => action == ca.ActionTag);
+    private Vector3 startPosOffset = default;
+    public Vector3 StartPosOffset => startPosOffset;
 }

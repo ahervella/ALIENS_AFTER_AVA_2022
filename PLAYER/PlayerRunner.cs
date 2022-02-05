@@ -9,6 +9,9 @@ public class PlayerRunner : MonoBehaviour
     private SO_InputManager inputManager = null;
 
     [SerializeField]
+    private PSO_CurrentPlayerAction currAction = null;
+    
+    [SerializeField]
     private PSO_TargetCameraAngle targetCameraAngle = null;
 
     [SerializeField]
@@ -41,24 +44,23 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private IntPropertySO currLurkCode = null;
 
-    private PlayerActionEnum currAction = PlayerActionEnum.RUN;
-
     private void Awake()
     {
+        //currAction.RegisterForPropertyChanged(OnPlayerActionChange);
         RegisterForInputs();
         SetPlayerStartPosition();
     }
 
     private void Start()
     {
-        StartAction(PlayerActionEnum.RUN);
+        currAction.ModifyValue(PlayerActionEnum.RUN);
     }
 
     private void SetPlayerStartPosition()
     {
         float x = terrSettings.LaneCount / 2f * terrSettings.TileDims.x;
         float z = settings.StartRowsFromEnd * terrSettings.TileDims.y;
-        transform.position = new Vector3(x, 0, z);
+        transform.position = new Vector3(x, 0, z) + settings.StartPosOffset;
     }
 
     private void RegisterForInputs()
@@ -74,50 +76,50 @@ public class PlayerRunner : MonoBehaviour
     private void InputManager_DodgeLeft()
     {
         Debug.Log("Input_DodgeLeft");
-        if (currAction == PlayerActionEnum.RUN || currAction == PlayerActionEnum.FALL)
+        if (currAction.Value == PlayerActionEnum.RUN || currAction.Value == PlayerActionEnum.FALL)
         {
-            StartAction(PlayerActionEnum.DODGE_L);
+            currAction.ModifyValue(PlayerActionEnum.DODGE_L);
         }
     }
 
     private void InputManager_DodgeRight()
     {
         Debug.Log("Input_DodgeRight");
-        if (currAction == PlayerActionEnum.RUN || currAction == PlayerActionEnum.FALL)
+        if (currAction.Value == PlayerActionEnum.RUN || currAction.Value == PlayerActionEnum.FALL)
         {
-            StartAction(PlayerActionEnum.DODGE_R);
+            currAction.ModifyValue(PlayerActionEnum.DODGE_R);
         }
     }
 
     private void InputManager_Jump()
     {
         Debug.Log("Input_Jump");
-        if (currAction == PlayerActionEnum.RUN)
+        if (currAction.Value == PlayerActionEnum.RUN)
         {
-            StartAction(PlayerActionEnum.JUMP);
+            currAction.ModifyValue(PlayerActionEnum.JUMP);
         }
 
-        else if (currAction == PlayerActionEnum.SPRINT)
+        else if (currAction.Value == PlayerActionEnum.SPRINT)
         {
-            StartAction(PlayerActionEnum.LONG_JUMP);
+            currAction.ModifyValue(PlayerActionEnum.LONG_JUMP);
         }
     }
 
     private void InputManager_Sprint()
     {
         Debug.Log("Input_Sprint");
-        if (currAction == PlayerActionEnum.RUN)
+        if (currAction.Value == PlayerActionEnum.RUN)
         {
-            StartAction(PlayerActionEnum.SPRINT);
+            currAction.ModifyValue(PlayerActionEnum.SPRINT);
         }
     }
 
     private void InputManager_Roll()
     {
         Debug.Log("Input_Roll");
-        if (currAction == PlayerActionEnum.RUN)
+        if (currAction.Value == PlayerActionEnum.RUN)
         {
-            StartAction(PlayerActionEnum.ROLL);
+            currAction.ModifyValue(PlayerActionEnum.ROLL);
         }
     }
 
@@ -127,61 +129,9 @@ public class PlayerRunner : MonoBehaviour
         //Pause Game
     }
 
-    private void StartAction(PlayerActionEnum action)
+    public void AE_LaneChange(bool moveRight)
     {
-        SO_CameraAngle ca = settings.GetActionCameraAngle(action);
-        if ( ca != null)
-        {
-            targetCameraAngle.ModifyValue(ca);
-        }
-
-        switch (action)
-        {
-            case PlayerActionEnum.RUN:
-                //For each:
-                //StartAnim
-                break;
-            case PlayerActionEnum.DODGE_L:
-                //Also trigger lane change left
-                StartCoroutine(StartLaneChange(-1));
-                break;
-            case PlayerActionEnum.DODGE_R:
-                StartCoroutine(StartLaneChange(1));
-                //Also trigger lane change right
-                break;
-            case PlayerActionEnum.FALL:
-                break;
-            case PlayerActionEnum.JUMP:
-                break;
-            case PlayerActionEnum.LJ_FALL:
-                break;
-            case PlayerActionEnum.LONG_JUMP:
-                break;
-            case PlayerActionEnum.ROLL:
-                break;
-            case PlayerActionEnum.SPRINT:
-                break;
-            case PlayerActionEnum.HURT_CENTER:
-                break;
-            case PlayerActionEnum.HURT_LOWER:
-                break;
-            case PlayerActionEnum.HURT_UPPER:
-                break;
-            case PlayerActionEnum.HURT_AIR:
-                break;
-        }
-
-        currAction = action;
-    }
-
-    private IEnumerator StartLaneChange(int dir)
-    {
-        yield return new WaitForSeconds(settings.LaneChangeDelay);
-        laneChange.ModifyValue(new LaneChange(dir, settings.LaneChangeTime));
-        yield return new WaitForSeconds(settings.LaneChangeTime);
-        StartAction(PlayerActionEnum.RUN);
-        //StartAnim
-        //ChangeCameraAngle
+        laneChange.ModifyValue(new LaneChange(moveRight, settings.LaneChangeTime));
     }
 }
 
