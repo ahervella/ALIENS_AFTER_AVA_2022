@@ -76,51 +76,31 @@ public class PlayerRunner : MonoBehaviour
     private void InputManager_DodgeLeft()
     {
         Debug.Log("Input_DodgeLeft");
-        if (currAction.Value == PlayerActionEnum.RUN || currAction.Value == PlayerActionEnum.FALL)
-        {
-            currAction.ModifyValue(PlayerActionEnum.DODGE_L);
-        }
+        currAction.TryPerform(PlayerActionEnum.DODGE_L);
     }
 
     private void InputManager_DodgeRight()
     {
         Debug.Log("Input_DodgeRight");
-        if (currAction.Value == PlayerActionEnum.RUN || currAction.Value == PlayerActionEnum.FALL)
-        {
-            currAction.ModifyValue(PlayerActionEnum.DODGE_R);
-        }
+        currAction.TryPerform(PlayerActionEnum.DODGE_R);
     }
 
     private void InputManager_Jump()
     {
         Debug.Log("Input_Jump");
-        if (currAction.Value == PlayerActionEnum.RUN)
-        {
-            currAction.ModifyValue(PlayerActionEnum.JUMP);
-        }
-
-        else if (currAction.Value == PlayerActionEnum.SPRINT)
-        {
-            currAction.ModifyValue(PlayerActionEnum.LONG_JUMP);
-        }
+        currAction.TryPerform(PlayerActionEnum.JUMP);
     }
 
     private void InputManager_Sprint()
     {
         Debug.Log("Input_Sprint");
-        if (currAction.Value == PlayerActionEnum.RUN)
-        {
-            currAction.ModifyValue(PlayerActionEnum.SPRINT);
-        }
+        currAction.TryPerform(PlayerActionEnum.SPRINT);
     }
 
     private void InputManager_Roll()
     {
         Debug.Log("Input_Roll");
-        if (currAction.Value == PlayerActionEnum.RUN)
-        {
-            currAction.ModifyValue(PlayerActionEnum.ROLL);
-        }
+        currAction.TryPerform(PlayerActionEnum.ROLL);
     }
 
     private void InputManager_Pause()

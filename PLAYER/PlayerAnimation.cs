@@ -5,19 +5,10 @@ using System;
 using PowerTools;
 using System.Linq;
 
-[RequireComponent(typeof(SpriteAnim))]
 public class PlayerAnimation : BaseAnimation<PlayerActionEnum>
 {
     [SerializeField]
     private PSO_TargetCameraAngle targetCameraAngle = null;
-
-    private void Awake()
-    {
-        currAction.RegisterForPropertyChanged(OnPlayerActionChange);
-        spriteAnimator = GetComponent<SpriteAnim>();
-        //included component if SpriteAnim is also included
-        animator = GetComponent<Animator>();
-    }
 
     protected override void OnPlayerActionChange(PlayerActionEnum prevAction, PlayerActionEnum newAction)
     {

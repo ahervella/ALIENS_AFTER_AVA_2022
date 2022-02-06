@@ -12,9 +12,9 @@ public class PlayerCamera : MonoBehaviour
 
     [SerializeField]
     private PSO_TargetCameraAngle targetCameraAngle = null;
-    private SO_CameraAngle cachedTargetCamAngle = null;
+    private CameraAngle cachedTargetCamAngle = null;
 
-    private SO_CameraAngle oldCameraAngle = null;
+    private CameraAngle oldCameraAngle = null;
     private float tweenPerc;
     private Camera cam;
 
@@ -48,14 +48,14 @@ public class PlayerCamera : MonoBehaviour
         }
 
         //also in case if was negative (should never be)
-        if (targetCameraAngle.Value.TweenDelay > 0)
+        if (targetCameraAngle.Value.CameraAngle.TweenDelay > 0)
         {
-            yield return new WaitForSeconds(targetCameraAngle.Value.TweenDelay);
+            yield return new WaitForSeconds(targetCameraAngle.Value.CameraAngle.TweenDelay);
         }
 
 
         SetCurrentTransformAsOldAngle();
-        cachedTargetCamAngle = newAngle;
+        cachedTargetCamAngle = newAngle.CameraAngle;
         //resume with updated old and new angle
         tweenPerc = 0;
     }
@@ -66,7 +66,7 @@ public class PlayerCamera : MonoBehaviour
         float currFOV = cam.fieldOfView;
         Vector3 currPosOffset = transform.position - subjectTransform.position;
 
-        oldCameraAngle = new SO_CameraAngle(currFOV, currPosOffset, transform.eulerAngles, 0);
+        oldCameraAngle = new CameraAngle(currFOV, currPosOffset, transform.eulerAngles, 0);
     }
 
     private void Update()

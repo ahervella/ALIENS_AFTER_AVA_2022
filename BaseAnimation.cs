@@ -10,6 +10,7 @@ using PowerTools;
 /// </summary>
 /// <typeparam name="T"></typeparam>
 [RequireComponent(typeof(SpriteAnim))]
+[RequireComponent(typeof(Animator))]
 public abstract class BaseAnimation<T> : MonoBehaviour
 {
     [SerializeField]

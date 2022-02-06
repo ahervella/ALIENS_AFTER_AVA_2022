@@ -7,9 +7,9 @@ public class PSO_TargetCameraAngle : PropertySO<SO_CameraAngle>
 {
     public override void ModifyValue(SO_CameraAngle mod)
     {
-        if (Value.FieldOfView == mod.FieldOfView
-            && Value.PosOffset == mod.PosOffset
-            && Value.Rot == mod.Rot)
+        if (Value.CameraAngle.FieldOfView == mod.CameraAngle.FieldOfView
+            && Value.CameraAngle.PosOffset == mod.CameraAngle.PosOffset
+            && Value.CameraAngle.Rot == mod.CameraAngle.Rot)
         {
             return;
         }

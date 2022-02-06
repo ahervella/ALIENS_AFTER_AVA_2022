@@ -1,18 +1,26 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 [CreateAssetMenu(fileName = "SO_CA-", menuName = "ScriptableObjects/StaticData/SO_CameraAngle")]
 public class SO_CameraAngle : ScriptableObject
 {
-    public SO_CameraAngle(float fieldOfView, Vector3 posOffset, Vector3 rot, float tweenTime)
+    [SerializeField]
+    private CameraAngle cameraAngle;
+    public CameraAngle CameraAngle => cameraAngle;
+}
+
+[Serializable]
+public class CameraAngle
+{
+    public CameraAngle(float fieldOfView, Vector3 posOffset, Vector3 rot, float tweenTime)
     {
         this.fieldOfView = fieldOfView;
         this.posOffset = posOffset;
         this.rot = rot;
         this.tweenTime = tweenTime;
     }
-
 
     [SerializeField]
     private FloatPropertySO baseFieldOfView = null;
