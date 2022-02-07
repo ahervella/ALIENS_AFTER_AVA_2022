@@ -83,7 +83,6 @@ public class GameInfo : Singleton<GameInfo>
 
     #region DON'T TOUCH THIS SHIT
 
-    protected override GameInfo GetSelf() => this;
 
     public class GameInfoTypeDetails
     {

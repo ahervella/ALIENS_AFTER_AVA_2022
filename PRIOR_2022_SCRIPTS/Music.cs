@@ -5,8 +5,6 @@ using UnityEngine;
 
 public class Music : Singleton<Music>
 {
-    protected override Music GetSelf() => this;
-
     [Serializable]
     public class MusicLoop
     {
