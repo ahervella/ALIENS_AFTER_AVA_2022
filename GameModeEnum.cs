@@ -5,5 +5,10 @@ using UnityEngine;
 public enum GameModeEnum 
 {
     PLAY,
-    MENU
+    BACKPACK,
+    PAUSE,
+    MAINMENU,
+    EXIT,
+    BOOT,
+    TUTORIAL
 }

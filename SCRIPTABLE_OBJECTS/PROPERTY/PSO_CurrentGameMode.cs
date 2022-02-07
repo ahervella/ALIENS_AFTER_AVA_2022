@@ -8,6 +8,9 @@ public class PSO_CurrentGameMode : PropertySO<GameModeEnum>
 {
     public override void ModifyValue(GameModeEnum mod)
     {
-        SetValue(mod);
+        if (Value != mod)
+        {
+            SetValue(mod);
+        }
     }
 }

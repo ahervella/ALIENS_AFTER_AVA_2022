@@ -5,7 +5,7 @@ using UnityEngine;
 public class GameModeController : MonoBehaviour
 {
     [SerializeField]
-    private GameModeEnum gameMode = GameModeEnum.MENU;
+    private GameModeEnum gameMode = GameModeEnum.BACKPACK;
     [SerializeField]
     private PSO_CurrentGameMode gameModeSO = null;
 
@@ -15,7 +15,7 @@ public class GameModeController : MonoBehaviour
     {
         child = transform.GetChild(0).gameObject;
         gameModeSO.RegisterForPropertyChanged(OnPanelsEnumChanged);
-        OnPanelsEnumChanged(GameModeEnum.MENU, gameModeSO.Value);
+        OnPanelsEnumChanged(GameModeEnum.BACKPACK, gameModeSO.Value);
     }
 
     void OnPanelsEnumChanged(GameModeEnum previous, GameModeEnum current)
