@@ -17,6 +17,7 @@ public class S_AudioManager : Singleton<S_AudioManager>
 
     [SerializeField]
     private PSO_CurrentGameMode currGameMode = null;
+
     private bool cachedPausedToggle = false;
 
     private Dictionary<GameObject, List<Coroutine>> soundCRs = new Dictionary<GameObject, List<Coroutine>>();
