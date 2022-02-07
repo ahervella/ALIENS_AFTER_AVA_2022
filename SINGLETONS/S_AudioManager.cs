@@ -17,6 +17,7 @@ public class S_AudioManager : Singleton<S_AudioManager>
 
     [SerializeField]
     private PSO_CurrentGameMode currGameMode = null;
+    private bool cachedPausedToggle = false;
 
     private Dictionary<GameObject, List<Coroutine>> soundCRs = new Dictionary<GameObject, List<Coroutine>>();
     private Dictionary<GameObject, List<Coroutine>> unstoppableSoundCRs = new Dictionary<GameObject, List<Coroutine>>();
@@ -51,11 +52,44 @@ public class S_AudioManager : Singleton<S_AudioManager>
     {
         switch (newMode)
         {
-            case GameModeEnum.BACKPACK:
-                break;
             case GameModeEnum.PAUSE:
                 PauseToggleAllAudioClipWrapperV2s(true);
-                break;
+                cachedPausedToggle = true;
+                return;
+            case GameModeEnum.PLAY:
+                if (prevMode == GameModeEnum.PAUSE)
+                {
+                    PauseToggleAllAudioClipWrapperV2s(true);
+                    cachedPausedToggle = false;
+                }
+                if (prevMode == GameModeEnum.MAINMENU)
+                {
+                    CleanUpForSceneChange();
+                }
+                return;
+            case GameModeEnum.EXIT:
+            case GameModeEnum.MAINMENU:
+                CleanUpForSceneChange();
+                return;
+        }
+    }
+
+    private void CleanUpForSceneChange()
+    {
+        StopAllDelayedSounds(soundCRs);
+        StopAllDelayedSounds(unstoppableSoundCRs);
+        soundCRs.Clear();
+        unstoppableSoundCRs.Clear();
+    }
+
+    private void StopAllDelayedSounds(Dictionary<GameObject, List<Coroutine>> soundCRDict)
+    {
+        foreach (GameObject key in soundCRDict.Keys)
+        {
+            foreach (Coroutine cr in soundCRDict[key])
+            {
+                StopCoroutine(cr);
+            }
         }
     }
 
@@ -87,7 +121,10 @@ public class S_AudioManager : Singleton<S_AudioManager>
     {
         foreach(SO_LoopAudioSettings ls in loopSettings)
         {
-            ls.PlayAllACWs(gameObject);
+            if (ls.GameMode == currGameMode.Value)
+            {
+                ls.PlayAllACWs(gameObject);
+            }
         }
     }
 
@@ -123,7 +160,11 @@ public class S_AudioManager : Singleton<S_AudioManager>
     /// <returns></returns>
     private IEnumerator PlayDelayedCR(AAudioWrapperV2 aw, float del, GameObject soundObject, AudioMixerGroup mixerGroup, Coroutine selfCR)
     {
-        yield return new WaitForSecondsRealtime(del);
+        while (!cachedPausedToggle)
+        {
+            yield return new WaitForSecondsRealtime(del);
+        }
+
         if (soundObject != null)
         {
             aw.PlayAudioWrapper(soundObject, mixerGroup);

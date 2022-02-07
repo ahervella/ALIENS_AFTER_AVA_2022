@@ -7,6 +7,10 @@ using UnityEngine.Audio;
 public class SO_LoopAudioSettings : ScriptableObject
 {
     [SerializeField]
+    private GameModeEnum gameMode = GameModeEnum.PLAY;
+    public GameModeEnum GameMode => gameMode;
+
+    [SerializeField]
     private List<AudioClipWrapperV2> acws = new List<AudioClipWrapperV2>();
     public List<AudioClipWrapperV2> ACWs => acws;
 
