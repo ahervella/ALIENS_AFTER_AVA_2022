@@ -6,6 +6,14 @@ using UnityEngine.Audio;
 
 public abstract class AAudioWrapperV2 : ScriptableObject
 {
+    [SerializeField]
+    [Range(-60f, 0f)]
+    protected float levelOffsetDb = 0;
+
+    [NonSerialized]
+    protected float currLevelOffsetDb = 0;
+
+    [NonSerialized]
     protected AudioSource cachedSource = null;
 
     /// <summary>
@@ -28,17 +36,18 @@ public abstract class AAudioWrapperV2 : ScriptableObject
     }
 
 
-    abstract protected void PlayAudio(GameObject soundObject, AudioMixerGroup mixerGroup);
+    protected abstract void PlayAudio(GameObject soundObject, AudioMixerGroup mixerGroup);
 
     // Adds an offset to the wrapper's volume level
-    abstract public void AddOffset(float offsetDb);
+    public void AddOffset(float offsetDb)
+    {
+        currLevelOffsetDb += offsetDb;
+    }
 
     // Resets the wrapper's volume level (to be used after playing all included wrappers or clips)
     //This prevents offsets from compounding
-    protected abstract void ResetLevelOffset();
-
-    protected void Initialize()
+    public void ResetLevelOffset()
     {
-        ResetLevelOffset();
+        currLevelOffsetDb = levelOffsetDb;
     }
 }

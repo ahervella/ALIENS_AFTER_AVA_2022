@@ -2,6 +2,8 @@
 using UnityEngine;
 using UnityEngine.Audio;
 using static AudioUtil;
+using System;
+using Random = UnityEngine.Random;
 
 [CreateAssetMenu(fileName = "AudioClipWrapperV2", menuName = "ScriptableObjects/Audio/AudioClipWrapperV2", order = 1)]
 public class AudioClipWrapperV2 : AAudioWrapperV2
@@ -9,12 +11,6 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
     [SerializeField]
     private List<AudioClip> audioClips = new List<AudioClip>();
     public List<AudioClip> AudioClips => audioClips;
-
-    [SerializeField]
-    [Range(-60f, 0f)]
-    private float levelDb = -3;
-
-    private float currLevelDb;
 
     [Range(-1200, 1200)]
     public int pitchCents = 0;
@@ -31,6 +27,7 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
     [SerializeField]
     private bool loop = false;
 
+    [NonSerialized]
     AudioClip cachedAudioClip = null;
 
     override protected void PlayAudio(GameObject soundObject, AudioMixerGroup mixerGroup)
@@ -72,7 +69,7 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
             Debug.Log(name + " IS NOT RANDOM >>:(");
         }
 
-        float volDb = currLevelDb + Random.Range(-volVrtnDb, volVrtnDb);
+        float volDb = currLevelOffsetDb + Random.Range(-volVrtnDb, volVrtnDb);
         float randPitchCents = pitchCents + Random.Range(-pitchVrtnCents, pitchVrtnCents);
 
         AssignSourceProperties(cachedSource, mixerGroup, volDb, randPitchCents, clip);
@@ -117,15 +114,5 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
         {
             cachedSource.UnPause();
         }
-    }
-
-    public override void AddOffset(float offsetDb)
-    {
-        currLevelDb += offsetDb;
-    }
-
-    protected override void ResetLevelOffset()
-    {
-        currLevelDb = levelDb;
     }
 }

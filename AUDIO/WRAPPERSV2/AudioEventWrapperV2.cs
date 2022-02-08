@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Audio;
 
 [CreateAssetMenu(fileName = "audioEventWrapperV2", menuName = "ScriptableObjects/Audio/AudioEventWrapperV2", order = 1)]
-public class AudioEventWrapperV2 : AAudioContainerV2
+public class AudioEventWrapperV2 : AAudioWrapperV2
 {
 
     [SerializeField]
@@ -44,15 +44,10 @@ public class AudioEventWrapperV2 : AAudioContainerV2
     {
         foreach (SeqAudioWrapperV2 saw in seqAudioWrappers)
         {
-            saw.aAudioWrapper.AddOffset(LevelOffsetDb);
+            saw.aAudioWrapper.AddOffset(currLevelOffsetDb);
             saw.aAudioWrapper.AddOffset(saw.secondaryOffset);
             S_AudioManager.Current.PlayDelayed(saw.aAudioWrapper, saw.delSeconds, soundObject, mixerGroup, Unstoppable);
         }
         ResetLevelOffset();
-    }
-
-    public override void AddOffset(float offsetDb)
-    {
-        LevelOffsetDb += offsetDb;
     }
 }

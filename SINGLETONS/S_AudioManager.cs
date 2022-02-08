@@ -17,6 +17,15 @@ public class S_AudioManager : Singleton<S_AudioManager>
 
     [SerializeField]
     private PSO_CurrentGameMode currGameMode = null;
+    public PSO_CurrentGameMode CurrGameMode => currGameMode;
+
+    //getters for the zone PSO and the pause delegate so that audio wrappers can access them
+    //and so we don't have to waste a ton of time setting those if we know
+    //they will all be the same for all of the wrappers. Doing the pause
+    //logic here for also keeps it in one place and saves computation.
+    [SerializeField]
+    private IntPropertySO currZone = null;
+    public IntPropertySO CurrZone => currZone;
 
     private bool cachedPausedToggle = false;
 
@@ -60,10 +69,10 @@ public class S_AudioManager : Singleton<S_AudioManager>
             case GameModeEnum.PLAY:
                 if (prevMode == GameModeEnum.PAUSE)
                 {
-                    PauseToggleAllAudioClipWrapperV2s(true);
+                    PauseToggleAllAudioClipWrapperV2s(false);
                     cachedPausedToggle = false;
                 }
-                if (prevMode == GameModeEnum.MAINMENU)
+                else if (prevMode == GameModeEnum.MAINMENU)
                 {
                     CleanUpForSceneChange();
                 }
