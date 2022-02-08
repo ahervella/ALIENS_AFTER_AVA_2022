@@ -9,8 +9,7 @@ using Random = UnityEngine.Random;
 public class AudioClipWrapperV2 : AAudioWrapperV2
 {
     [SerializeField]
-    private List<AudioClip> audioClips = new List<AudioClip>();
-    public List<AudioClip> AudioClips => audioClips;
+    private List<AudioClip> randomAudioClipPool = new List<AudioClip>();
 
     [Range(-1200, 1200)]
     public int pitchCents = 0;
@@ -21,14 +20,15 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
     [Range(0, 1200)]
     private float pitchVrtnCents = 0;
 
-    [SerializeField]
-    private bool isRandom = true;
-
-    [SerializeField]
     private bool loop = false;
 
     [NonSerialized]
     AudioClip cachedAudioClip = null;
+
+    public void SetToLoop()
+    {
+        loop = true;
+    }
 
     override protected void PlayAudio(GameObject soundObject, AudioMixerGroup mixerGroup)
     {
@@ -55,18 +55,13 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
             Debug.LogError("No SourceProperties Component on the gameobject: " + soundObject.name);
         }
 
-        AudioClip clip = null;
+        AudioClip clip = randomAudioClipPool[0];
 
-        if (isRandom)
+        if (randomAudioClipPool.Capacity > 1)
         {
-            clip = AudioClips[Random.Range(0, AudioClips.Count - 1)];
-            AudioClips.Remove(clip);
-            AudioClips.Add(clip);
-        }
-        else
-        {
-            // :/
-            Debug.Log(name + " IS NOT RANDOM >>:(");
+            clip = randomAudioClipPool[Random.Range(0, randomAudioClipPool.Count - 1)];
+            randomAudioClipPool.Remove(clip);
+            randomAudioClipPool.Add(clip);
         }
 
         float volDb = currLevelOffsetDb + Random.Range(-volVrtnDb, volVrtnDb);
