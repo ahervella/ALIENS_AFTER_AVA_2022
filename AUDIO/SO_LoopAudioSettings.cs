@@ -22,6 +22,7 @@ public class SO_LoopAudioSettings : ScriptableObject
     {
         foreach (AudioClipWrapperV2 acw in acws)
         {
+            acw.SetToLoop();
             acw.PlayAudioWrapper(soundObject, mixerGroup);
         }
     }
