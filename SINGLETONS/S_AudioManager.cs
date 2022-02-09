@@ -45,6 +45,7 @@ public class S_AudioManager : Singleton<S_AudioManager>
     private void Start()
     {
         OnSceneChange(GameModeEnum.PLAY);
+        OnCurrLivesChange(-1, currLives.Value);
     }
 
     private void OnCurrLivesChange(int oldLives, int newLives)
@@ -67,6 +68,7 @@ public class S_AudioManager : Singleton<S_AudioManager>
 
     private void OnGameModeChanged(GameModeEnum prevMode, GameModeEnum newMode)
     {
+        //TODO: test pausing is working correctly
         if (newMode == GameModeEnum.PAUSE)
         {
             PauseToggleAllAudioClipWrapperV2s(true);
@@ -133,10 +135,13 @@ public class S_AudioManager : Singleton<S_AudioManager>
     /// <returns></returns>
     private IEnumerator PlayDelayedCR(AAudioWrapperV2 aw, float delay, AudioWrapperSource soundObject, Coroutine selfCR)
     {
-        while (!cachedPausedToggle)
+        //TODO: test pausing is working correctly
+        while (cachedPausedToggle)
         {
-            yield return new WaitForSecondsRealtime(delay);
+            yield return null;
         }
+
+        yield return new WaitForSecondsRealtime(delay);
 
         if (soundObject != null)
         {
