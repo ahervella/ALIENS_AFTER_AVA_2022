@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
-[CreateAssetMenu(fileName = "audioEventWrapperV2", menuName = "ScriptableObjects/Audio/AudioEventWrapperV2", order = 1)]
+[CreateAssetMenu(fileName = "aew_", menuName = "ScriptableObjects/Audio/AudioEventWrapperV2")]
 public class AudioEventWrapperV2 : AAudioWrapperV2
 {
 
@@ -40,13 +40,13 @@ public class AudioEventWrapperV2 : AAudioWrapperV2
     [SerializeField]
     List<SeqAudioWrapperV2> seqAudioWrappers = new List<SeqAudioWrapperV2>();
 
-    override protected void PlayAudio(GameObject soundObject, AudioMixerGroup mixerGroup)
+    override protected void PlayAudio(AudioWrapperSource soundObject)
     {
         foreach (SeqAudioWrapperV2 saw in seqAudioWrappers)
         {
             saw.aAudioWrapper.AddOffset(currLevelOffsetDb);
             saw.aAudioWrapper.AddOffset(saw.secondaryOffset);
-            S_AudioManager.Current.PlayDelayed(saw.aAudioWrapper, saw.delSeconds, soundObject, mixerGroup, Unstoppable);
+            S_AudioManager.Current.PlayDelayed(saw.aAudioWrapper, saw.delSeconds, soundObject, Unstoppable);
         }
         ResetLevelOffset();
     }

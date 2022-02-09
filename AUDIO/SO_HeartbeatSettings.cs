@@ -5,8 +5,12 @@ using System;
 using UnityEngine.Audio;
 
 [CreateAssetMenu(fileName = "SO_HeartbeatSettings", menuName = "ScriptableObjects/Audio/SO_HeartbeatSettings")]
-public class SO_HeartbeatSettings : SO_LoopAudioSettings
+public class SO_HeartbeatSettings : ScriptableObject
 {
+    [SerializeField]
+    private AAudioWrapperV2 heartbeatAudioWrapper = null;
+    public AAudioWrapperV2 HeartbeatAudioWrapper => heartbeatAudioWrapper;
+
     [SerializeField]
     private List<HeartbeatDelayWrapper> heartbeatDelays = new List<HeartbeatDelayWrapper>();
     public List<HeartbeatDelayWrapper> HeartbeatDelays => heartbeatDelays;

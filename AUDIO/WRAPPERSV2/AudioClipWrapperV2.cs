@@ -5,7 +5,7 @@ using static AudioUtil;
 using System;
 using Random = UnityEngine.Random;
 
-[CreateAssetMenu(fileName = "AudioClipWrapperV2", menuName = "ScriptableObjects/Audio/AudioClipWrapperV2", order = 1)]
+[CreateAssetMenu(fileName = "acw_", menuName = "ScriptableObjects/Audio/AudioClipWrapperV2")]
 public class AudioClipWrapperV2 : AAudioWrapperV2
 {
     [SerializeField]
@@ -20,6 +20,7 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
     [Range(0, 1200)]
     private float pitchVrtnCents = 0;
 
+    [SerializeField]
     private bool loop = false;
 
     [NonSerialized]
@@ -30,9 +31,9 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
         loop = true;
     }
 
-    override protected void PlayAudio(GameObject soundObject, AudioMixerGroup mixerGroup)
+    override protected void PlayAudio(AudioWrapperSource soundObject)
     {
-        PlayAudioClipWrapperV2(soundObject, mixerGroup);
+        PlayAudioClipWrapperV2(soundObject);
     }
 
     /// <summary>
@@ -41,16 +42,16 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
     /// <param name="acw">AudioClipWrapperV2 from which a clip will be chosen and played</param>
     /// <param name="soundObject">GameObject to play from</param>
     /// <returns>Returns the AudioClip which was played</returns>
-    private void PlayAudioClipWrapperV2(GameObject soundObject, AudioMixerGroup mixerGroup)
+    private void PlayAudioClipWrapperV2(AudioWrapperSource soundObject)
     {
         S_AudioManager.Current.PauseToggleAllAudioClipWrapperV2s -= TogglePause;
         S_AudioManager.Current.PauseToggleAllAudioClipWrapperV2s += TogglePause;
 
         cachedSource = GetAudioSource(soundObject);
 
-        SourceProperties sp = soundObject.GetComponent<SourceProperties>();
+        AudioWrapperSource awSource = soundObject.GetComponent<AudioWrapperSource>();
 
-        if (sp == null)
+        if (awSource == null)
         {
             Debug.LogError("No SourceProperties Component on the gameobject: " + soundObject.name);
         }
@@ -67,7 +68,7 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
         float volDb = currLevelOffsetDb + Random.Range(-volVrtnDb, volVrtnDb);
         float randPitchCents = pitchCents + Random.Range(-pitchVrtnCents, pitchVrtnCents);
 
-        AssignSourceProperties(cachedSource, mixerGroup, volDb, randPitchCents, clip);
+        AssignSourceProperties(cachedSource, volDb, randPitchCents, clip);
         cachedSource.loop = loop;
         cachedSource.Play();
     }

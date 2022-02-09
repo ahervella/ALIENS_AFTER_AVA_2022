@@ -21,7 +21,7 @@ public abstract class AAudioWrapperV2 : ScriptableObject
     /// </summary>
     /// <param name="aw">AudioWrapper to be played</param>
     /// <param name="soundObject">GameObject to be played from</param>
-    public void PlayAudioWrapper(GameObject soundObject, AudioMixerGroup mixerGroup = null)
+    public void PlayAudioWrapper(AudioWrapperSource soundObject)
     {
         if (soundObject == null)
         {
@@ -29,14 +29,14 @@ public abstract class AAudioWrapperV2 : ScriptableObject
             return;
         }
         S_AudioManager.Current.StopAllDelayedSounds(soundObject);
-        PlayAudio(soundObject, mixerGroup);
+        PlayAudio(soundObject);
 
         ResetLevelOffset();
         //Debug.Log("AudioWrapper << " + aw + " >> was played");
     }
 
 
-    protected abstract void PlayAudio(GameObject soundObject, AudioMixerGroup mixerGroup);
+    protected abstract void PlayAudio(AudioWrapperSource soundObject);
 
     // Adds an offset to the wrapper's volume level
     public void AddOffset(float offsetDb)

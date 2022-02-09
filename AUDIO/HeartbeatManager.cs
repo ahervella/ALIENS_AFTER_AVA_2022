@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(AudioWrapperSource))]
 public class HeartbeatManager : MonoBehaviour
 {
     [SerializeField]
@@ -13,6 +14,7 @@ public class HeartbeatManager : MonoBehaviour
     [SerializeField]
     private PSO_CurrentGameMode currGameMode = null;
 
+    private AudioWrapperSource awSource;
     private Coroutine heartbeatCR = null;
     private float currDelay;
 
@@ -22,6 +24,7 @@ public class HeartbeatManager : MonoBehaviour
         currLives.RegisterForPropertyChanged(OnLivesChanged);
         currGameMode.RegisterForPropertyChanged(OnGameModeChanged);
         OnLivesChanged(-1, currLives.Value);
+        awSource = GetComponent<AudioWrapperSource>();
         StartHeartbeat();
     }
 
@@ -64,6 +67,6 @@ public class HeartbeatManager : MonoBehaviour
     private IEnumerator HeartbeatLoop()
     {
         yield return new WaitForSeconds(currDelay);
-        settings.PlayAllACWs(gameObject);
+        settings.HeartbeatAudioWrapper.PlayAudioWrapper(awSource);
     }
 }

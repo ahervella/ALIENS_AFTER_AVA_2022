@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
+[CreateAssetMenu(fileName = "azw_", menuName = "ScriptableObjects/Audio/AudioZoneWrapper")]
 public class AudioZoneWrapper : AAudioWrapperV2
 {
     [SerializeField]
@@ -27,10 +28,10 @@ public class AudioZoneWrapper : AAudioWrapperV2
     [NonSerialized]
     private AAudioWrapperV2 cachedCurrAudioWrapper = null;
 
-    protected override void PlayAudio(GameObject soundObject, AudioMixerGroup mixerGroup)
+    protected override void PlayAudio(AudioWrapperSource soundObject)
     {
         GetAudioWrapper().AddOffset(currLevelOffsetDb);
-        GetAudioWrapper().PlayAudioWrapper(soundObject, mixerGroup);
+        GetAudioWrapper().PlayAudioWrapper(soundObject);
     }
 
     private AAudioWrapperV2 GetAudioWrapper()

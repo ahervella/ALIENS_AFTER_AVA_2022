@@ -7,10 +7,10 @@ using static AudioUtil;
 public class S_AudioManager : Singleton<S_AudioManager>
 {
     [SerializeField]
-    private List<SO_LoopAudioSettings> loopSettings = new List<SO_LoopAudioSettings>();
+    private SO_MixerEffectSettings mixerSettings = null;
 
     [SerializeField]
-    private List<SO_MixerEffectWrapper> mixerEffectWrappers = new List<SO_MixerEffectWrapper>();
+    private SO_LoopAudioSettings loopSettings = null;
 
     [SerializeField]
     private IntPropertySO currLives = null;
@@ -29,8 +29,8 @@ public class S_AudioManager : Singleton<S_AudioManager>
 
     private bool cachedPausedToggle = false;
 
-    private Dictionary<GameObject, List<Coroutine>> soundCRs = new Dictionary<GameObject, List<Coroutine>>();
-    private Dictionary<GameObject, List<Coroutine>> unstoppableSoundCRs = new Dictionary<GameObject, List<Coroutine>>();
+    private Dictionary<AudioWrapperSource, List<Coroutine>> soundCRs = new Dictionary<AudioWrapperSource, List<Coroutine>>();
+    private Dictionary<AudioWrapperSource, List<Coroutine>> unstoppableSoundCRs = new Dictionary<AudioWrapperSource, List<Coroutine>>();
 
     public event System.Action<bool> PauseToggleAllAudioClipWrapperV2s = delegate { };
 
@@ -40,100 +40,63 @@ public class S_AudioManager : Singleton<S_AudioManager>
         currGameMode.RegisterForPropertyChanged(OnGameModeChanged);
     }
 
+
+    //TODO: take out once scene switching is in place
+    private void Start()
+    {
+        OnSceneChange(GameModeEnum.PLAY);
+    }
+
     private void OnCurrLivesChange(int oldLives, int newLives)
     {
         switch (newLives)
         {
             case 0:
-                GetMixerEffectSetting(MixerEffectEnum.LAST_LIFE).SetAsCurrentSnapshot();
+                mixerSettings.SetMixerEffectSnapshot(MixerEffectEnum.LAST_LIFE);
                 return;
 
             case -1:
-                GetMixerEffectSetting(MixerEffectEnum.GAME_OVER).SetAsCurrentSnapshot();
+                mixerSettings.SetMixerEffectSnapshot(MixerEffectEnum.GAME_OVER);
                 return;
 
             default:
-                GetMixerEffectSetting(MixerEffectEnum.DEFAULT_LIFE).SetAsCurrentSnapshot();
+                mixerSettings.SetMixerEffectSnapshot(MixerEffectEnum.DEFAULT_LIFE);
                 return;
         }
     }
 
     private void OnGameModeChanged(GameModeEnum prevMode, GameModeEnum newMode)
     {
-        switch (newMode)
+        if (newMode == GameModeEnum.PAUSE)
         {
-            case GameModeEnum.PAUSE:
-                PauseToggleAllAudioClipWrapperV2s(true);
-                cachedPausedToggle = true;
-                return;
-            case GameModeEnum.PLAY:
-                if (prevMode == GameModeEnum.PAUSE)
-                {
-                    PauseToggleAllAudioClipWrapperV2s(false);
-                    cachedPausedToggle = false;
-                }
-                else if (prevMode == GameModeEnum.MAINMENU)
-                {
-                    CleanUpForSceneChange();
-                }
-                return;
-            case GameModeEnum.EXIT:
-            case GameModeEnum.MAINMENU:
-                CleanUpForSceneChange();
-                return;
+            PauseToggleAllAudioClipWrapperV2s(true);
+            cachedPausedToggle = true;
+        }
+        else if (prevMode == GameModeEnum.PAUSE && newMode == GameModeEnum.PLAY)
+        {
+            PauseToggleAllAudioClipWrapperV2s(false);
+            cachedPausedToggle = false;
         }
     }
 
-    private void CleanUpForSceneChange()
+    //TODO: link with scene manager once in place
+    private void OnSceneChange(GameModeEnum newMode)
     {
         StopAllDelayedSounds(soundCRs);
         StopAllDelayedSounds(unstoppableSoundCRs);
         soundCRs.Clear();
         unstoppableSoundCRs.Clear();
+
+        loopSettings.SpawnAndPlayNewLoopObjectSource(newMode);
     }
 
-    private void StopAllDelayedSounds(Dictionary<GameObject, List<Coroutine>> soundCRDict)
+    private void StopAllDelayedSounds(Dictionary<AudioWrapperSource, List<Coroutine>> soundCRDict)
     {
-        foreach (GameObject key in soundCRDict.Keys)
+        foreach (AudioWrapperSource key in soundCRDict.Keys)
         {
             foreach (Coroutine cr in soundCRDict[key])
             {
                 StopCoroutine(cr);
-            }
-        }
-    }
-
-    private void Start()
-    {
-        GetMixerEffectSetting(MixerEffectEnum.DEFAULT_LIFE).SetAsCurrentSnapshot();
-        StartLoopedAudio();
-    }
-
-    /// <summary>
-    /// Gets the MixerEffectsSettings that matches the mixer type
-    /// </summary>
-    /// <param name="mixerType">mixer type to match</param>
-    /// <returns></returns>
-    private SO_MixerEffectWrapper GetMixerEffectSetting(MixerEffectEnum mixerType)
-    {
-        foreach (var mix in mixerEffectWrappers)
-        {
-            if (mix.MixerType == mixerType)
-            {
-                return mix;
-            }
-        }
-        Debug.LogError("You suck there's no mixer for this mixer scenario type: " + mixerType);
-        return null;
-    }
-
-    private void StartLoopedAudio()
-    {
-        foreach(SO_LoopAudioSettings ls in loopSettings)
-        {
-            if (ls.GameMode == currGameMode.Value)
-            {
-                ls.PlayAllACWs(gameObject);
             }
         }
     }
@@ -146,12 +109,12 @@ public class S_AudioManager : Singleton<S_AudioManager>
     /// <param name="del">Time to delay before playing in seconds</param>
     /// <param name="soundObject">GameObject to play the AudioWrapper from</param>
     /// <param name="unstoppable">Prevents this AudioWrapper and its children from being stopped by another AudioWrapper being played</param>
-    public void PlayDelayed(AAudioWrapperV2 aw, float del, GameObject soundObject, AudioMixerGroup mixerGroup, bool unstoppable)
+    public void PlayDelayed(AAudioWrapperV2 aw, float del, AudioWrapperSource soundObject, bool unstoppable)
     {
         Coroutine newCR = null;
-        newCR = StartCoroutine(PlayDelayedCR(aw, del, soundObject, mixerGroup, newCR));
+        newCR = StartCoroutine(PlayDelayedCR(aw, del, soundObject, newCR));
 
-        Dictionary<GameObject, List<Coroutine>> soundCRDict = unstoppable ? unstoppableSoundCRs : soundCRs;
+        Dictionary<AudioWrapperSource, List<Coroutine>> soundCRDict = unstoppable ? unstoppableSoundCRs : soundCRs;
 
         if (!soundCRDict.ContainsKey(soundObject))
         {
@@ -165,25 +128,25 @@ public class S_AudioManager : Singleton<S_AudioManager>
     /// Coroutine used by PlayDelayed to play an AudioWrapper after a delay
     /// </summary>
     /// <param name="aw">AudioWrapper to be played</param>
-    /// <param name="del"Time to delay before playing in seconds></param>
-    /// <param name="soundObject">GameObject to play the AudioWrapper from</param>
+    /// <param name="delay"Time to delay before playing in seconds></param>
+    /// <param name="soundObject">AudioWrapperSource to play the AudioWrapper from</param>
     /// <returns></returns>
-    private IEnumerator PlayDelayedCR(AAudioWrapperV2 aw, float del, GameObject soundObject, AudioMixerGroup mixerGroup, Coroutine selfCR)
+    private IEnumerator PlayDelayedCR(AAudioWrapperV2 aw, float delay, AudioWrapperSource soundObject, Coroutine selfCR)
     {
         while (!cachedPausedToggle)
         {
-            yield return new WaitForSecondsRealtime(del);
+            yield return new WaitForSecondsRealtime(delay);
         }
 
         if (soundObject != null)
         {
-            aw.PlayAudioWrapper(soundObject, mixerGroup);
+            aw.PlayAudioWrapper(soundObject);
             RemoveFromSoundCRDict(soundCRs, soundObject, selfCR);
             RemoveFromSoundCRDict(unstoppableSoundCRs, soundObject, selfCR);
         }
     }
 
-    private void RemoveFromSoundCRDict(Dictionary<GameObject, List<Coroutine>> soundCRDict, GameObject soundObject, Coroutine cr)
+    private void RemoveFromSoundCRDict(Dictionary<AudioWrapperSource, List<Coroutine>> soundCRDict, AudioWrapperSource soundObject, Coroutine cr)
     {
         if (!soundCRDict.ContainsKey(soundObject))
         {
@@ -204,7 +167,7 @@ public class S_AudioManager : Singleton<S_AudioManager>
     /// the given object, if they are stoppable
     /// </summary>
     /// <param name="obj">GameObject to stop the coroutines on</param>
-    public void StopAllDelayedSounds(GameObject obj)
+    public void StopAllDelayedSounds(AudioWrapperSource obj)
     {
         //TODO: is this expensive to add and remove so frequently? Cause
         //we don't want to have deleted object keys chilling in there
