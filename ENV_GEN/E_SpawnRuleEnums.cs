@@ -8,7 +8,7 @@
 
 public enum RuleCondition
 {
-    WITHIN_PERIMETER, ADJACENT, INFRONT_OF, BEHIND
+    WITHIN_PERIMETER, ADJACENT_HORIZ, ADJACENT_VERT
 }
 
 public enum RuleReference

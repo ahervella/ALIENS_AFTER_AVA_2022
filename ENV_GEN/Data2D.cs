@@ -7,10 +7,16 @@ using UnityEngine;
 public class Data2D<T>
 {
     private int cols;
+    public int Cols => cols;
+
     private int rows;
+    public int Rows => rows;
+
     private T[,] data;
     private Func<int, T> defaultNewVal;
     private Action<T> destructionCall;
+    //element, newHorizPosDiff
+    private Action<T, int> onColWrap;
 
     /// <summary>
     /// Creates a new 2D data structure where the top row is row 0,
@@ -18,13 +24,14 @@ public class Data2D<T>
     /// </summary>
     /// <param name="cols"></param>
     /// <param name="rows"></param>
-    public Data2D(int cols, int rows, Func<int, T> defaultNewVal, Action<T> destructionCall)
+    public Data2D(int cols, int rows, Func<int, T> defaultNewVal, Action<T> destructionCall, Action<T, int> onColWrap)
     {
         this.cols = cols;
         this.rows = rows;
         this.data = new T[cols, rows];
         this.defaultNewVal = defaultNewVal;
         this.destructionCall = destructionCall;
+        this.onColWrap = onColWrap;
 
         for (int r = 0; r < rows; r++)
         {
@@ -66,10 +73,7 @@ public class Data2D<T>
             {
                 for (int r = 0; r < vertAmnt; r++)
                 {
-                    if (destructionCall != null)
-                    {
-                        destructionCall(data[c, r]);
-                    }
+                    destructionCall?.Invoke(data[c, r]);
                     data[c, r] = defaultNewVal(c);
                 }
             }
@@ -143,6 +147,7 @@ public class Data2D<T>
                 for (int c = 0; c < horzAmnt; c++)
                 {
                     shiftedData[c, r] = data[cols - horzAmnt + c, r];
+                    onColWrap?.Invoke(shiftedData[c, r], horzAmnt - cols);
                 }
             }
 
@@ -178,6 +183,7 @@ public class Data2D<T>
             for (int c = 0; c < horzAmnt; c++)
             {
                 shiftedData[c, r] = data[c, r];
+                onColWrap?.Invoke(shiftedData[c, r], cols - horzAmnt);
             }
                 
         }

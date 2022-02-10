@@ -31,7 +31,7 @@ public class EnvTreadmill : MonoBehaviour
     //[SerializeField]
     //private PSO_CurrentTerrBossNode currTerrBossNode;
 
-    private Data2D<TerrAddon[]> generatedTerrAddons;
+    private Data2D<TerrAddonFloorWrapper> generatedTerrAddons;
 
     private Data2D<float> renderedGroundPoints;
 
@@ -48,6 +48,9 @@ public class EnvTreadmill : MonoBehaviour
 
     private LaneChange targetLaneChange;
     private float colShiftPerc;
+
+
+    
 
     private void Start()
     {
@@ -81,26 +84,33 @@ public class EnvTreadmill : MonoBehaviour
 
         //since we also pass in the spawn method, this populates the initial grid for us
         //with the node generator!
-        generatedTerrAddons = new Data2D<TerrAddon[]>(settings.TileCols, settings.TileRows, SpawnNewAddonFloorGroup, DestroyTerrAddonFloorGroup);
+        Action<TerrAddonFloorWrapper> destroyWrapper = wrapper => wrapper.DestroyInstance();
+        generatedTerrAddons = new Data2D<TerrAddonFloorWrapper>
+            (settings.TileCols, settings.TileRows, SpawnNewAddonFloorWrapper, destroyWrapper, WrapAddonFloorWrapper);
 
         Func<int, float> newFloat = col => 0f;
-        renderedGroundPoints = new Data2D<float>(settings.PointCols, settings.PointRows, newFloat, null);
-        renderedInterPoints = new Data2D<float>(settings.InterCols, settings.InterRows, newFloat, null);
+        renderedGroundPoints = new Data2D<float>(settings.PointCols, settings.PointRows, newFloat, null, null);
+        renderedInterPoints = new Data2D<float>(settings.InterCols, settings.InterRows, newFloat, null, null);
         UpdateMeshRender();
     }
 
-    
-
-    private void DestroyTerrAddonFloorGroup(TerrAddon[] addons)
+    /// <summary>
+    /// Spawns a new TerrAddonFloorWrapper at the given column
+    /// </summary>
+    private TerrAddonFloorWrapper SpawnNewAddonFloorWrapper(int colIndex)
     {
-        foreach(TerrAddon addon in addons)
-        {
-            if (addon != null)
-            {
-                Destroy(addon);
-            }
-        }
+        //if the generator returned null, means it wasn't able to generate anything
+        //new here due to rules or other restrictions
+        TerrAddonFloorWrapper tafw = generator.GetNewAddonFloorWrapper(colIndex, 0, generatedTerrAddons);
+        tafw.InstantiateFromPrefab(transform);
+        return tafw;
     }
+
+    private void WrapAddonFloorWrapper(TerrAddonFloorWrapper tafw, int newHorizPosDiff)
+    {
+        tafw.AddonInst.transform.position += new Vector3(newHorizPosDiff * settings.TileDims.x, 0, 0);
+    }
+
 
     private void UpdateMeshRender()
     {
@@ -213,50 +223,6 @@ public class EnvTreadmill : MonoBehaviour
     }
 
 
-    /// <summary>
-    /// Spawns a new TerrAddons floor group at the given column
-    /// </summary>
-    private TerrAddon[] SpawnNewAddonFloorGroup(int colIndex)
-    {
-        TerrAddon addonPrefab = generator.GetNewAddon(colIndex, 0, generatedTerrAddons);
-
-        //if the generator returned null, means it wasn't able to generate anything
-        //new here due to rules or other restrictions
-        if (addonPrefab == null)
-        {
-        return InitEmptyAddonFloorGroup(); ;
-        }
-
-        TerrAddon[] addonFloorGroup = generatedTerrAddons.GetElement(colIndex, 0);
-
-        //If the first floor was occupied and the generator still gave us back
-        //a newAddon, then that means its for the first empty floor
-        for (int f = 0; f < settings.FloorCount; f++)
-        {
-            if (addonFloorGroup[f] == null)
-            {
-                TerrAddon instance = Instantiate(addonPrefab, transform);
-                Vector3 spawnLocalPos = GetLocalTileCenter(colIndex, 0, f);
-                instance.transform.localPosition = spawnLocalPos;
-
-                addonFloorGroup[f] = instance;
-
-                break;
-            }
-        }
-
-        return addonFloorGroup;
-    }
-
-    private TerrAddon[] InitEmptyAddonFloorGroup()
-    {
-        TerrAddon[] addons = new TerrAddon[settings.FloorCount];
-        for (int i = 0; i < settings.FloorCount; i++)
-        {
-            addons[i] = null;
-        }
-        return addons;
-    }
 
     private Vector3 GetLocalTileCenter(int colIndex, int rowIndex, int floorIndex)
     {

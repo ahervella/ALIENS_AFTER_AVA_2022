@@ -1,36 +1,29 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Array2DEditor;
+using System;
 
-/*Violation if [alleged]
- * is [condition]
- * with respect to [reference]
- * on [affectedFloors]
- * by a magnitude from [lowerLim] to [upperLim]*/
-
-public class SpawnRule : MonoBehaviour
+[Serializable]
+public class SpawnRule
 {
     [SerializeField]
-    private TerrAddonEnum allegedType = default;
-    public TerrAddonEnum AllegedType() => allegedType;
+    private TerrAddonEnum prohibtedAddon;
+    public TerrAddonEnum ProhibtedAddon => prohibtedAddon;
 
     [SerializeField]
-    private RuleCondition condition = default;
-    public RuleCondition Condition => condition;
+    private int floorAppliedTo;
+    public int FloorAppliedTo => floorAppliedTo;
 
     [SerializeField]
-    private RuleReference reference = default;
-    public RuleReference Reference => reference;
+    private bool applyToAllFloors;
+    public bool ApplyToAllFloors => applyToAllFloors;
 
     [SerializeField]
-    private RuleFloor affectedFloors = default;
-    public RuleFloor AffectedFloors => affectedFloors;
+    private Array2DBool ruleGrid = null;
+    public Array2DBool RuleGrid => ruleGrid;
 
     [SerializeField]
-    private int lowerLim = default;
-    public int LowerLim => lowerLim;
-
-    [SerializeField]
-    private int upperLim = default;
-    public int UpperLim => upperLim;
+    private Vector2Int centerIndexPosInRuleGrid = default;
+    public Vector2Int CenterIndexPosInRuleGrid => centerIndexPosInRuleGrid;
 }

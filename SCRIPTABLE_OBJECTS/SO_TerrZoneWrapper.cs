@@ -1,60 +1,157 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+using Random = UnityEngine.Random;
 
 [CreateAssetMenu(fileName = "SO_TerrZoneWrapper", menuName = "ScriptableObjects/StaticData/SO_TerrZoneWrapper")]
 public class SO_TerrZoneWrapper : ScriptableObject
 {
-    public SO_TerrZoneWrapper(
-        int zone,
-        float startSpeed,
-        float speedIncPerMin,
-        float addonSpawnLikelihood,
-        float addonSpawnIncPerMin,
-        float foleySpawnLikelihood,
-        float tileDistance2Boss
-        //List<TerrAddonWeightWrapper> terrAddons
-        //List<TerrAddonWeightWrapper> terrFoleyAddons
-        )
-    {
-        this.zone = zone;
-        this.startSpeed = startSpeed;
-        this.speedIncPerMin = speedIncPerMin;
-        this.addonSpawnLikelihood = addonSpawnLikelihood;
-        this.addonSpawnIncPerMin = addonSpawnIncPerMin;
-        this.foleySpawnLikelihood = foleySpawnLikelihood;
-        this.tileDistance2Boss = tileDistance2Boss;
-    }
-
     [SerializeField]
     private int zone;
     public int Zone => zone;
 
     [SerializeField]
-    private float startSpeed;
+    private int floorCount;
+
+    [SerializeField]
+    private float startSpeed = default;
     public float StartSpeed => startSpeed;
 
-    [SerializeField]
-    private float speedIncPerMin;
-    public float SpeedIncPerMin => speedIncPerMin;
+    //[SerializeField]
+    //private float speedIncPerMin = default;
 
     [SerializeField]
-    private float addonSpawnLikelihood;
-    public float AddonSpawnLikelihood => addonSpawnLikelihood;
+    private float addonSpawnLikelihood = default;
+
+    //[SerializeField]
+    //private float addonSpawnIncPerMin = default;
 
     [SerializeField]
-    private float addonSpawnIncPerMin;
-    public float AddonSpawnIncPerMin => addonSpawnIncPerMin;
+    private float foleySpawnLikelihood = default;
 
     [SerializeField]
-    private float foleySpawnLikelihood;
-    public float FoleySpawnLikelihood => foleySpawnLikelihood;
+    private float tileDistance2Boss = default;
 
     [SerializeField]
-    private float tileDistance2Boss;
-    public float TileDistance2Boss => tileDistance2Boss;
+    private TerrAddonWeightWrapper[] TerrAddons = null;
 
-    //public List<TerrAddonWeightWrapper> TerrAddons;
+    [SerializeField]
+    private TerrAddonWeightWrapper[] TerrFoleyAddons = null;
 
-    //public List<TerrAddonWeightWrapper> TerrFoleyAddons;
+    [Serializable]
+    private class TerrAddonWeightWrapper
+    {
+        [SerializeField]
+        private TerrAddon addon = null;
+        public TerrAddon Addon => addon;
+
+        [SerializeField]
+        private float weight = 0;
+        public float Weight => weight;
+    }
+
+    [NonSerialized]
+    private float[] TerrAddonCachedPercents;
+
+    [NonSerialized]
+    private float[] TerrFoleyAddonCachedPercents;
+
+    public void CacheWeightPercents()
+    {
+        TerrAddonCachedPercents = GetWeightPercentsArray(TerrAddons);
+        TerrFoleyAddonCachedPercents = GetWeightPercentsArray(TerrFoleyAddons);
+    }
+
+    public void CacheTerrSpawnViolations()
+    {
+        foreach (TerrAddonWeightWrapper taww in TerrAddons)
+        {
+            taww.Addon.CacheSpawnViolations(floorCount);
+        }
+    }
+
+    private float[] GetWeightPercentsArray(TerrAddonWeightWrapper[] source)
+    {
+        float totalWeight = 0;
+        foreach (TerrAddonWeightWrapper taww in source)
+        {
+            totalWeight += taww.Weight;
+        }
+
+        float[] cachedPercents = new float[source.Length];
+        float totalPerc = 0;
+
+        for (int i = 0; i < source.Length; i++)
+        {
+            totalPerc += source[i].Weight / totalWeight;
+            cachedPercents[i] = totalPerc;
+        }
+
+        return cachedPercents;
+    }
+
+    public TerrAddonFloorWrapper GetNewAddonFloorWrapper(int colIndex, int rowIndex, Data2D<TerrAddonFloorWrapper> currAddons, SO_TerrSettings settings)
+    {
+        TerrAddonFloorWrapper newAddonFW = GenerateRandomNewAddonFloorWrapper();
+
+        Vector2Int dist2Center;
+
+        for (int x = 0; x < currAddons.Cols; x++)
+        {
+            for  (int y = 0; y < currAddons.Rows; y++)
+            {
+                dist2Center = new Vector2Int(colIndex - x, rowIndex - y);
+                if (!FreeOfViolations(currAddons.GetElement(x, y), newAddonFW, dist2Center))
+                {
+                    return null;
+                }
+            }
+        }
+
+        return newAddonFW;
+    }
+
+    private TerrAddonFloorWrapper GenerateRandomNewAddonFloorWrapper()
+    {
+        int randFloorIndex = Mathf.FloorToInt(Random.value * floorCount);
+        TerrAddon randAddonPrefab = GenerateRandomNewAddon();
+        return new TerrAddonFloorWrapper(randAddonPrefab, randFloorIndex);
+    }
+
+    private TerrAddon GenerateRandomNewAddon()
+    {
+        //first roll dice for spawning any addon
+        if (Random.value < addonSpawnLikelihood)
+        {
+            return GetRandomTerrFromWeights(TerrAddonCachedPercents, TerrAddons);
+        }
+
+        if (Random.value < foleySpawnLikelihood)
+        {
+            return GetRandomTerrFromWeights(TerrFoleyAddonCachedPercents, TerrFoleyAddons);
+        }
+        return null;
+    }
+
+    private TerrAddon GetRandomTerrFromWeights(float[] cachedPercents, TerrAddonWeightWrapper[] source)
+    {
+        float rand = Random.value;
+        for (int i = 0; i < cachedPercents.Length; i++)
+        {
+            if (rand < cachedPercents[i])
+            {
+                return source[i].Addon;
+            }
+        }
+
+        Debug.LogError("Something went wrong with cached percents :(");
+        return null;
+    }
+
+    private bool FreeOfViolations(TerrAddonFloorWrapper source, TerrAddonFloorWrapper other, Vector2Int relativePos2Source)
+    {
+        return !source.AddonPrefab.IsViolation(other.AddonPrefab, other.FloorIndex, relativePos2Source)
+            && !other.AddonPrefab.IsViolation(source.AddonPrefab, source.FloorIndex, -relativePos2Source);
+    }
 }
