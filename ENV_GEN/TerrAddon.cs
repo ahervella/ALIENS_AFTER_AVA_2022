@@ -16,10 +16,8 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
     private List<SpawnRule> rules = new List<SpawnRule>();
     public List<SpawnRule> Rules => rules;
 
-    private Data2D<List<TerrAddonEnum>> cachedSpawnViolations;
-
     //x, y, floor, list of violations at that cell and floor
-    private Dictionary<int, Dictionary<int, Dictionary<int, List<TerrAddonEnum>>>> cachedSpawnViolationsV2
+    private Dictionary<int, Dictionary<int, Dictionary<int, List<TerrAddonEnum>>>> cachedSpawnViolations
         = new Dictionary<int, Dictionary<int, Dictionary<int, List<TerrAddonEnum>>>>();
 
     [SerializeField]
@@ -28,7 +26,7 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
 
     public void CacheSpawnViolations(int maxFloorCount)
     {
-        cachedSpawnViolations = new Data2D<List<TerrAddonEnum>>(dimensions.x, dimensions.y, ta => new List<TerrAddonEnum>(), null, null);
+        cachedSpawnViolations = new Dictionary<int, Dictionary<int, Dictionary<int, List<TerrAddonEnum>>>>();
         foreach (SpawnRule sr in rules)
         {
             Vector2Int dims = sr.RuleGrid.GridSize;
@@ -39,12 +37,12 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
             {
                 xCoor = x - sr.CenterIndexPosInRuleGrid.x;
 
-                if (!cachedSpawnViolationsV2.ContainsKey(xCoor))
+                if (!cachedSpawnViolations.ContainsKey(xCoor))
                 {
-                    cachedSpawnViolationsV2.Add(xCoor, new Dictionary<int, Dictionary <int, List<TerrAddonEnum>>>());
+                    cachedSpawnViolations.Add(xCoor, new Dictionary<int, Dictionary <int, List<TerrAddonEnum>>>());
                 }
 
-                Dictionary<int, Dictionary<int, List<TerrAddonEnum>>> col = cachedSpawnViolationsV2[xCoor];
+                Dictionary<int, Dictionary<int, List<TerrAddonEnum>>> col = cachedSpawnViolations[xCoor];
 
 
                 for (int y = 0; y < dims.y; y++)
@@ -90,16 +88,16 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
     }
 
 
-    public bool IsViolation(TerrAddon other, int otherFloorIndex, Vector2Int PosFromCenter)
+    public bool IsViolation(TerrAddon other, int otherFloorIndex, Vector2Int posFromCenter)
     {
         for(int x = 0; x < other.dimensions.x; x++)
         {
             for(int y = 0; y < other.dimensions.y; y++)
             {
-                Vector2Int posRelative2Center = new Vector2Int(x, y) + PosFromCenter;
+                Vector2Int posRelative2Center = new Vector2Int(x, y) + posFromCenter;
 
                 Dictionary<int, Dictionary<int, List<TerrAddonEnum>>> col;
-                if (!cachedSpawnViolationsV2.TryGetValue(posRelative2Center.x, out col))
+                if (!cachedSpawnViolations.TryGetValue(posRelative2Center.x, out col))
                 {
                     continue;
                 }
@@ -119,107 +117,4 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
 
         return false;
     }
-    /*
-    public void CacheSpawnViolations()
-    {
-        //max y will always be 0 because rules only apply backwards
-        int finalMinX = 0;
-        int finalMaxX = 0;
-        int finalMinY = 0;
-
-        Vector2Int currMaxRuleGridDims;
-        Dictionary<int, Dictionary<int, Dictionary<RuleFloor, List<TerrAddonEnum>>>> ruleGrid = new Dictionary<int, Dictionary<int, Dictionary<RuleFloor, List<TerrAddonEnum>>>>();
-
-        foreach (SpawnRule rule in rules)
-        {
-            //TODO: change to something more flexi
-            int floorCount = 2;
-
-            int minX = 0;
-            int maxX = 0;
-            int minY = 0;
-            int maxY = 0;
-
-            int minMaskX = 0;
-            int maxMaskX = 0;
-            int minMaskY = 0;
-            int maxMaskY = 0;
-
-            switch (rule.Condition)
-            {
-                case RuleCondition.ADJACENT_HORIZ:
-                    minX = rule.LowerLim;
-                    maxX = rule.UpperLim;
-                    minY = -dimensions.y;
-
-                    for (int x = minX; x < maxX; x++)
-                    {
-                        if (ruleGrid.ContainsKey(x))
-                        {
-                            ruleGrid.Add(x, new Dictionary<int, Dictionary<RuleFloor, List<TerrAddonEnum>>>());
-                        }
-
-                        Dictionary<int, Dictionary<RuleFloor, List<TerrAddonEnum>>> currCol = ruleGrid[x];
-
-                        for (int y = minY; y < maxY; y++)
-                        {
-                            if (currCol.ContainsKey(y))
-                            {
-                                Dictionary<RuleFloor, List<TerrAddonEnum>> coor = new Dictionary<RuleFloor, List<TerrAddonEnum>>
-                                {
-                                    { RuleFloor.FIRST, new List<TerrAddonEnum>() },
-                                    { RuleFloor.SECOND, new List<TerrAddonEnum>() }
-                                };
-
-                                currCol.Add(y, coor);
-                            }
-
-                            Dictionary <RuleFloor, List<TerrAddonEnum>> currCoord = currCol[y];
-
-                            if (rule.AffectedFloors == RuleFloor.ALL)
-                            {
-                                currCoord[RuleFloor.FIRST].Add(rule.AllegedType());
-                            }
-                            else
-                            {
-                                currCoord[rule.AffectedFloors].Add(rule.AllegedType());
-                            }
-                        }
-                    }
-                    break;
-
-                case RuleCondition.ADJACENT_VERT:
-                    minX = centerXIndex;
-                    maxX = dimensions.x - centerXIndex;
-                    minY = rule.LowerLim;
-                    maxY = rule.UpperLim;
-                    break;
-
-                case RuleCondition.WITHIN_PERIMETER:
-                    minX = -rule.UpperLim;
-                    maxX = rule.UpperLim;
-                    minY = -rule.UpperLim;
-                    maxY = rule.UpperLim;
-
-                    minMaskX = -rule.LowerLim;
-                    maxMaskX = rule.LowerLim;
-                    minMaskY = -rule.UpperLim;
-                    maxMaskY = rule.UpperLim;
-                    break;
-            }
-
-            if (rule.Reference == RuleReference.EDGES)
-            {
-                minX -= centerXIndex;
-                maxX += dimensions.x - centerXIndex;
-                minY -= dimensions.y;
-
-                minMaskX -= centerXIndex;
-                maxMaskX += dimensions.x - centerXIndex;
-                minMaskY -= dimensions.y;
-            }
-
-
-        }
-    }*/
 }

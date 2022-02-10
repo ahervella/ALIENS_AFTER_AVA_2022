@@ -95,14 +95,20 @@ public class SO_TerrZoneWrapper : ScriptableObject
     {
         TerrAddonFloorWrapper newAddonFW = GenerateRandomNewAddonFloorWrapper();
 
+        //have to account for wrapping effect, such that there may be violations in wrapped space
+        int wrappedColIndex = colIndex > currAddons.Cols / 2 ? colIndex - currAddons.Cols : colIndex + currAddons.Cols;
+
         Vector2Int dist2Center;
+        Vector2Int wrappedDist2Center;
 
         for (int x = 0; x < currAddons.Cols; x++)
         {
             for  (int y = 0; y < currAddons.Rows; y++)
             {
                 dist2Center = new Vector2Int(colIndex - x, rowIndex - y);
-                if (!FreeOfViolations(currAddons.GetElement(x, y), newAddonFW, dist2Center))
+                wrappedDist2Center = new Vector2Int(wrappedColIndex - x, rowIndex);
+
+                if (!FreeOfViolations(currAddons.GetElement(x, y), newAddonFW, dist2Center, wrappedDist2Center))
                 {
                     return null;
                 }
@@ -149,9 +155,12 @@ public class SO_TerrZoneWrapper : ScriptableObject
         return null;
     }
 
-    private bool FreeOfViolations(TerrAddonFloorWrapper source, TerrAddonFloorWrapper other, Vector2Int relativePos2Source)
+    private bool FreeOfViolations(TerrAddonFloorWrapper source, TerrAddonFloorWrapper other,
+        Vector2Int relativePos2Source, Vector2Int wrappedRelativePos2Source)
     {
         return !source.AddonPrefab.IsViolation(other.AddonPrefab, other.FloorIndex, relativePos2Source)
-            && !other.AddonPrefab.IsViolation(source.AddonPrefab, source.FloorIndex, -relativePos2Source);
+            && !other.AddonPrefab.IsViolation(source.AddonPrefab, source.FloorIndex, -relativePos2Source)
+            && !source.AddonPrefab.IsViolation(other.AddonPrefab, other.FloorIndex, wrappedRelativePos2Source)
+            && !other.AddonPrefab.IsViolation(source.AddonPrefab, source.FloorIndex, -wrappedRelativePos2Source);
     }
 }
