@@ -23,7 +23,7 @@ public class TerrAddonFloorWrapper
 
     public void DestroyInstance()
     {
-        GameObject.Destroy(AddonInst);
+        GameObject.Destroy(AddonInst.gameObject);
         AddonInst = null;
     }
 }

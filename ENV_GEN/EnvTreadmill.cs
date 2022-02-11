@@ -49,7 +49,7 @@ public class EnvTreadmill : MonoBehaviour
     private LaneChange targetLaneChange;
     private float colShiftPerc;
 
-
+    private bool data2DsInitialized = false;
     
 
     private void Start()
@@ -80,37 +80,82 @@ public class EnvTreadmill : MonoBehaviour
 
     private void InitData2D()
     {
+        data2DsInitialized = false;
+
         OnZoneWrapperChange(0, currZone.Value);
 
         //since we also pass in the spawn method, this populates the initial grid for us
         //with the node generator!
-        Action<TerrAddonFloorWrapper> destroyWrapper = wrapper => wrapper.DestroyInstance();
-        generatedTerrAddons = new Data2D<TerrAddonFloorWrapper>
-            (settings.TileCols, settings.TileRows, SpawnNewAddonFloorWrapper, destroyWrapper, WrapAddonFloorWrapper);
+
+        generatedTerrAddons = new Data2D<TerrAddonFloorWrapper>(
+            settings.TileCols, settings.TileRows,
+            SpawnNewAddonFloorWrapper,
+            DestroyAddonFloorWrapper,
+            WrapAddonFloorWrapper,
+            ShiftVertAddonFloorWrapper);
 
         Func<int, float> newFloat = col => 0f;
-        renderedGroundPoints = new Data2D<float>(settings.PointCols, settings.PointRows, newFloat, null, null);
-        renderedInterPoints = new Data2D<float>(settings.InterCols, settings.InterRows, newFloat, null, null);
+        renderedGroundPoints = new Data2D<float>(settings.PointCols, settings.PointRows, newFloat, null, null, null);
+        renderedInterPoints = new Data2D<float>(settings.InterCols, settings.InterRows, newFloat, null, null, null);
         UpdateMeshRender();
+
+        data2DsInitialized = true;
     }
+
+
+
+    //TODO: ALSO ADD A CALL BACK FOR NEW ROWS TO MOVE TRANSFORM
+
 
     /// <summary>
     /// Spawns a new TerrAddonFloorWrapper at the given column
     /// </summary>
     private TerrAddonFloorWrapper SpawnNewAddonFloorWrapper(int colIndex)
     {
+        if (!data2DsInitialized) { return null; }
+
         //if the generator returned null, means it wasn't able to generate anything
         //new here due to rules or other restrictions
         TerrAddonFloorWrapper tafw = generator.GetNewAddonFloorWrapper(colIndex, 0, generatedTerrAddons);
+
+        if (tafw == null)
+        {
+            return null;
+        }
+
         tafw.InstantiateFromPrefab(transform);
+
+        //line up in grid local position
+        tafw.AddonInst.transform.localPosition =
+            new Vector3(colIndex * settings.TileDims.x, settings.FloorHeight * tafw.FloorIndex, settings.TileRows * settings.TileDims.y);
         return tafw;
+    }
+
+    private void DestroyAddonFloorWrapper(TerrAddonFloorWrapper tafw)
+    {
+        if (tafw == null)
+        {
+            return;
+        }
+
+        tafw.DestroyInstance();
     }
 
     private void WrapAddonFloorWrapper(TerrAddonFloorWrapper tafw, int newHorizPosDiff)
     {
+        if (tafw == null) { return; }
         tafw.AddonInst.transform.position += new Vector3(newHorizPosDiff * settings.TileDims.x, 0, 0);
     }
 
+    private void ShiftVertAddonFloorWrapper(TerrAddonFloorWrapper tafw, int newVertPosDiff)
+    {
+        if (tafw == null) { return; }
+        if(tafw.AddonInst == null)
+        {
+            return;
+        }
+        tafw.AddonInst.transform.localPosition += new Vector3(0, 0, -newVertPosDiff * settings.TileDims.y);
+    }
 
     private void UpdateMeshRender()
     {
@@ -211,9 +256,9 @@ public class EnvTreadmill : MonoBehaviour
 
     private void ShiftTerrainRowsDown()
     {
-        generatedTerrAddons.ShiftRows(-1);
-        renderedGroundPoints.ShiftRows(-1);
-        renderedInterPoints.ShiftRows(-(1 + settings.InterCount));
+        generatedTerrAddons.ShiftRows(1);
+        renderedGroundPoints.ShiftRows(1);
+        renderedInterPoints.ShiftRows((1 + settings.InterCount));
         UpdateMeshRender();
 
         //TODO: make sure we some how compensate for objects that are

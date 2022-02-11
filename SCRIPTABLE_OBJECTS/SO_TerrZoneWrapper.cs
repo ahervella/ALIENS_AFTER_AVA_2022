@@ -122,6 +122,12 @@ public class SO_TerrZoneWrapper : ScriptableObject
     {
         int randFloorIndex = Mathf.FloorToInt(Random.value * floorCount);
         TerrAddon randAddonPrefab = GenerateRandomNewAddon();
+
+        if (randAddonPrefab == null)
+        {
+            return null;
+        }
+
         return new TerrAddonFloorWrapper(randAddonPrefab, randFloorIndex);
     }
 
@@ -142,6 +148,11 @@ public class SO_TerrZoneWrapper : ScriptableObject
 
     private TerrAddon GetRandomTerrFromWeights(float[] cachedPercents, TerrAddonWeightWrapper[] source)
     {
+        if (cachedPercents.Length == 0)
+        {
+            return null;
+        }
+
         float rand = Random.value;
         for (int i = 0; i < cachedPercents.Length; i++)
         {
@@ -158,9 +169,12 @@ public class SO_TerrZoneWrapper : ScriptableObject
     private bool FreeOfViolations(TerrAddonFloorWrapper source, TerrAddonFloorWrapper other,
         Vector2Int relativePos2Source, Vector2Int wrappedRelativePos2Source)
     {
-        return !source.AddonPrefab.IsViolation(other.AddonPrefab, other.FloorIndex, relativePos2Source)
-            && !other.AddonPrefab.IsViolation(source.AddonPrefab, source.FloorIndex, -relativePos2Source)
-            && !source.AddonPrefab.IsViolation(other.AddonPrefab, other.FloorIndex, wrappedRelativePos2Source)
-            && !other.AddonPrefab.IsViolation(source.AddonPrefab, source.FloorIndex, -wrappedRelativePos2Source);
+        if (source == null || other == null) { return true; }
+
+        //TODO: just make the cached stuff a getter to bring all the functionality into TerrAddonFloorWrapper
+        return !source.AddonPrefab.IsViolation(source.FloorIndex, other.AddonPrefab, other.FloorIndex, relativePos2Source)
+            && !other.AddonPrefab.IsViolation(other.FloorIndex, source.AddonPrefab, source.FloorIndex, -relativePos2Source)
+            && !source.AddonPrefab.IsViolation(source.FloorIndex, other.AddonPrefab, other.FloorIndex, wrappedRelativePos2Source)
+            && !other.AddonPrefab.IsViolation(other.FloorIndex, source.AddonPrefab, source.FloorIndex, -wrappedRelativePos2Source);
     }
 }

@@ -12,8 +12,8 @@ public class SpawnRule
     public TerrAddonEnum ProhibtedAddon => prohibtedAddon;
 
     [SerializeField]
-    private int floorAppliedTo;
-    public int FloorAppliedTo => floorAppliedTo;
+    private int relativeFloorAppliedTo;
+    public int RelativeFloorAppliedTo => relativeFloorAppliedTo;
 
     [SerializeField]
     private bool applyToAllFloors;

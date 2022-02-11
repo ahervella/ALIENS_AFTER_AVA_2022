@@ -17,6 +17,7 @@ public class Data2D<T>
     private Action<T> destructionCall;
     //element, newHorizPosDiff
     private Action<T, int> onColWrap;
+    private Action<T, int> onRowShift;
 
     /// <summary>
     /// Creates a new 2D data structure where the top row is row 0,
@@ -24,7 +25,12 @@ public class Data2D<T>
     /// </summary>
     /// <param name="cols"></param>
     /// <param name="rows"></param>
-    public Data2D(int cols, int rows, Func<int, T> defaultNewVal, Action<T> destructionCall, Action<T, int> onColWrap)
+    public Data2D(
+        int cols, int rows,
+        Func<int, T> defaultNewVal,
+        Action<T> destructionCall,
+        Action<T, int> onColWrap,
+        Action<T, int> onRowShift)
     {
         this.cols = cols;
         this.rows = rows;
@@ -32,6 +38,7 @@ public class Data2D<T>
         this.defaultNewVal = defaultNewVal;
         this.destructionCall = destructionCall;
         this.onColWrap = onColWrap;
+        this.onRowShift = onRowShift;
 
         for (int r = 0; r < rows; r++)
         {
@@ -59,12 +66,22 @@ public class Data2D<T>
         //move down. Two for loops instead of other operations for efficiency
         if (vertAmnt > 0)
         {
-            //shifted rows
+            //destroy vanishing rows
+            for (int c = 0; c < cols; c++)
+            {
+                for (int r = rows - vertAmnt; r < rows; r++)
+                {
+                    destructionCall?.Invoke(data[c, r]);
+                }
+            }
+
+                    //shifted rows
             for (int c = 0; c < cols; c++)
             {
                 for (int r = rows - 1; r >= vertAmnt; r--)
                 {
                     data[c, r] = data[c, r - vertAmnt];
+                    onRowShift?.Invoke(data[c, r], vertAmnt);
                 }
             }
 
@@ -73,7 +90,6 @@ public class Data2D<T>
             {
                 for (int r = 0; r < vertAmnt; r++)
                 {
-                    destructionCall?.Invoke(data[c, r]);
                     data[c, r] = defaultNewVal(c);
                 }
             }
@@ -83,12 +99,23 @@ public class Data2D<T>
         //make positive so easier to work with
         vertAmnt = -vertAmnt;
 
+        //destroy vanishing rows
+        for (int c = 0; c < cols; c++)
+        {
+            for (int r = 0; r < vertAmnt; r++)
+            {
+                destructionCall?.Invoke(data[c, r]);
+            }
+        }
+
         //shifted rows
         for (int c = 0; c < cols; c++)
         {
             for (int r = 0; r < rows - vertAmnt; r++)
             {
+                //destructionCall?.Invoke(data[c, r]);
                 data[c, r] = data[c, r + vertAmnt];
+                onRowShift?.Invoke(data[c, r], vertAmnt);
             }
         }
 
@@ -97,10 +124,6 @@ public class Data2D<T>
         {
             for (int r = rows - vertAmnt; r < rows; r++)
             {
-                if (destructionCall != null)
-                {
-                    destructionCall(data[c, r]);
-                }
                 data[c, r] = defaultNewVal(c);
             }
         }
@@ -114,10 +137,7 @@ public class Data2D<T>
     /// <param name="rowIndex"></param>
     public void ResetElement(int colIndex, int rowIndex)
     {
-        if (destructionCall != null)
-        {
-            destructionCall(data[colIndex, rowIndex]);
-        }
+        destructionCall?.Invoke(data[colIndex, rowIndex]);
         data[colIndex, rowIndex] = defaultNewVal(colIndex);
     }
 
@@ -154,9 +174,10 @@ public class Data2D<T>
             //rest of cols
             for (int r = 0; r < rows; r++)
             {
-                for (int c = cols - 1; c > horzAmnt; c--)
+                for (int c = cols - 1; c >= horzAmnt; c--)
                 {
                     data[c, r] = data[c - horzAmnt, r];
+                    onColWrap?.Invoke(data[c, r], horzAmnt);
                 }
             }
 
@@ -194,6 +215,7 @@ public class Data2D<T>
             for (int c = 0; c < cols - horzAmnt; c++)
             {
                 data[c, r] = data[c + horzAmnt, r];
+                onColWrap?.Invoke(data[c, r], -horzAmnt);
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public abstract class TerrAddon : MonoBehaviour, ITerrNode
 {
@@ -76,19 +77,53 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
                         continue;
                     }
 
-                    if (!cellFloors.ContainsKey(sr.FloorAppliedTo))
+                    if (!cellFloors.ContainsKey(sr.RelativeFloorAppliedTo))
                     {
-                        cellFloors.Add(sr.FloorAppliedTo, new List<TerrAddonEnum>());
+                        cellFloors.Add(sr.RelativeFloorAppliedTo, new List<TerrAddonEnum>());
                     }
 
-                    cellFloors[sr.FloorAppliedTo].Add(sr.ProhibtedAddon);
+                    AddTerrAddonEnum2List(cellFloors[sr.RelativeFloorAppliedTo], sr.ProhibtedAddon);
                 }
             }
         }
     }
 
 
-    public bool IsViolation(TerrAddon other, int otherFloorIndex, Vector2Int posFromCenter)
+    private void AddTerrAddonEnum2List (List<TerrAddonEnum> list, TerrAddonEnum addon)
+    {
+        string prefix;
+        switch (addon)
+        {
+            case TerrAddonEnum.ALL_ALIENS:
+                prefix = "A_";
+                break;
+
+            case TerrAddonEnum.ALL_OBSTACLES:
+                prefix = "O_";
+                break;
+
+            case TerrAddonEnum.ALL_RAMPS:
+                prefix = "R_";
+                break;
+
+            default:
+                list.Add(addon);
+                return;
+        }
+
+        foreach (TerrAddonEnum tae in Enum.GetValues(typeof(TerrAddonEnum)))
+        {
+            if (tae.ToString().StartsWith(prefix))
+            {
+                list.Add(tae);
+            }
+        }
+    }
+
+
+    //TODO: rearrange cachedSpawnViolations data setup to have floors be the first dimension
+    //knowing that that could end violation checking faster?
+    public bool IsViolation(int currFloorIndex, TerrAddon other, int otherFloorIndex, Vector2Int posFromCenter)
     {
         for(int x = 0; x < other.dimensions.x; x++)
         {
@@ -108,7 +143,7 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
                     continue;
                 }
 
-                if (cell[otherFloorIndex].Contains(other.TerrAddonEnum))
+                if (cell[otherFloorIndex - currFloorIndex].Contains(other.TerrAddonEnum))
                 {
                     return true;
                 }
