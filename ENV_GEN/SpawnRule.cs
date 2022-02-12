@@ -11,13 +11,13 @@ public class SpawnRule
     private TerrAddonEnum prohibtedAddon;
     public TerrAddonEnum ProhibtedAddon => prohibtedAddon;
 
-    [SerializeField]
-    private int relativeFloorAppliedTo;
-    public int RelativeFloorAppliedTo => relativeFloorAppliedTo;
+    //[SerializeField]
+    //private int relativeFloorAppliedTo;
+    //public int RelativeFloorAppliedTo => relativeFloorAppliedTo;
 
-    [SerializeField]
-    private bool applyToAllFloors;
-    public bool ApplyToAllFloors => applyToAllFloors;
+    //[SerializeField]
+    //private bool applyToAllFloors;
+    //public bool ApplyToAllFloors => applyToAllFloors;
 
     [SerializeField]
     private Array2DBool ruleGrid = null;

@@ -13,6 +13,7 @@ public class Data2D<T>
     public int Rows => rows;
 
     private T[,] data;
+    private Func<int, T> defaultResetVal;
     private Func<int, T> defaultNewVal;
     private Action<T> destructionCall;
     //element, newHorizPosDiff
@@ -27,6 +28,7 @@ public class Data2D<T>
     /// <param name="rows"></param>
     public Data2D(
         int cols, int rows,
+        Func<int, T> defaultResetVal,
         Func<int, T> defaultNewVal,
         Action<T> destructionCall,
         Action<T, int> onColWrap,
@@ -35,6 +37,7 @@ public class Data2D<T>
         this.cols = cols;
         this.rows = rows;
         this.data = new T[cols, rows];
+        this.defaultResetVal = defaultResetVal;
         this.defaultNewVal = defaultNewVal;
         this.destructionCall = destructionCall;
         this.onColWrap = onColWrap;
@@ -44,7 +47,7 @@ public class Data2D<T>
         {
             for (int c = 0; c < cols; c++)
             {
-                data[c, r] = defaultNewVal(c);
+                data[c, r] = defaultResetVal(c);
             }
         }
     }
@@ -67,11 +70,14 @@ public class Data2D<T>
         if (vertAmnt > 0)
         {
             //destroy vanishing rows
-            for (int c = 0; c < cols; c++)
+            if (destructionCall != null)
             {
-                for (int r = rows - vertAmnt; r < rows; r++)
+                for (int c = 0; c < cols; c++)
                 {
-                    destructionCall?.Invoke(data[c, r]);
+                    for (int r = rows - vertAmnt; r < rows; r++)
+                    {
+                        destructionCall.Invoke(data[c, r]);
+                    }
                 }
             }
 
@@ -86,13 +92,30 @@ public class Data2D<T>
             }
 
             //reset the new row(s)
-            for (int c = 0; c < cols; c++)
+            if (defaultResetVal != null)
             {
-                for (int r = 0; r < vertAmnt; r++)
+                for (int c = 0; c < cols; c++)
                 {
-                    data[c, r] = defaultNewVal(c);
+                    for (int r = 0; r < vertAmnt; r++)
+                    {
+                        data[c, r] = defaultResetVal(c);
+                    }
                 }
             }
+            
+
+            //initialize the new row(s)
+            if (defaultNewVal != null)
+            {
+                for (int c = 0; c < cols; c++)
+                {
+                    for (int r = 0; r < vertAmnt; r++)
+                    {
+                        data[c, r] = defaultNewVal(c);
+                    }
+                }
+            }
+            
             return;
         }
 
@@ -120,11 +143,27 @@ public class Data2D<T>
         }
 
         //reset the new row(s)
-        for (int c = 0; c < cols; c++)
+        if (defaultResetVal != null)
         {
-            for (int r = rows - vertAmnt; r < rows; r++)
+            for (int c = 0; c < cols; c++)
             {
-                data[c, r] = defaultNewVal(c);
+                for (int r = rows - vertAmnt; r < rows; r++)
+                {
+                    data[c, r] = defaultResetVal(c);
+                }
+            }
+        }
+        
+
+        //initialize the new row(s)
+        if (defaultNewVal != null)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                for (int r = rows - vertAmnt; r < rows; r++)
+                {
+                    data[c, r] = defaultNewVal(c);
+                }
             }
         }
     }

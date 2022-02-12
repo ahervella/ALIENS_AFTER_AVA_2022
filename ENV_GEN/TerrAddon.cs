@@ -18,16 +18,23 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
     public List<SpawnRule> Rules => rules;
 
     //x, y, floor, list of violations at that cell and floor
-    private Dictionary<int, Dictionary<int, Dictionary<int, List<TerrAddonEnum>>>> cachedSpawnViolations
-        = new Dictionary<int, Dictionary<int, Dictionary<int, List<TerrAddonEnum>>>>();
+    private Dictionary<int,Dictionary<int, List<TerrAddonEnum>>> cachedSpawnViolations
+        = new Dictionary<int, Dictionary<int, List<TerrAddonEnum>>>();
 
     [SerializeField]
     private TerrAddonEnum terrAddonType = default;
     public TerrAddonEnum TerrAddonEnum => terrAddonType;
 
-    public void CacheSpawnViolations(int maxFloorCount)
+    public TerrAddon InstantiateAddon(Transform parent)
     {
-        cachedSpawnViolations = new Dictionary<int, Dictionary<int, Dictionary<int, List<TerrAddonEnum>>>>();
+        TerrAddon taInstance = Instantiate(this, parent);
+        taInstance.cachedSpawnViolations = cachedSpawnViolations;
+        return taInstance;
+    }
+
+    public void CacheSpawnViolations()
+    {
+        cachedSpawnViolations = new Dictionary<int, Dictionary<int, List<TerrAddonEnum>>>();
         foreach (SpawnRule sr in rules)
         {
             Vector2Int dims = sr.RuleGrid.GridSize;
@@ -40,10 +47,10 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
 
                 if (!cachedSpawnViolations.ContainsKey(xCoor))
                 {
-                    cachedSpawnViolations.Add(xCoor, new Dictionary<int, Dictionary <int, List<TerrAddonEnum>>>());
+                    cachedSpawnViolations.Add(xCoor, new Dictionary<int, List<TerrAddonEnum>>());
                 }
 
-                Dictionary<int, Dictionary<int, List<TerrAddonEnum>>> col = cachedSpawnViolations[xCoor];
+                Dictionary<int, List<TerrAddonEnum>> col = cachedSpawnViolations[xCoor];
 
 
                 for (int y = 0; y < dims.y; y++)
@@ -57,32 +64,13 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
 
                     if (!col.ContainsKey(yCoor))
                     {
-                        col.Add(yCoor, new Dictionary<int, List<TerrAddonEnum>>());
+                        col.Add(yCoor, new List<TerrAddonEnum>());
                     }
 
-                    Dictionary<int, List<TerrAddonEnum>> cellFloors = col[yCoor];
+                    List<TerrAddonEnum> cellAddons = col[yCoor];
 
 
-                    if (sr.ApplyToAllFloors)
-                    {
-                        for (int i = 0; i < maxFloorCount; i++)
-                        {
-                            if (!cellFloors.ContainsKey(i))
-                            {
-                                cellFloors.Add(i, new List<TerrAddonEnum>());
-                            }
-
-                            cellFloors[i].Add(sr.ProhibtedAddon);
-                        }
-                        continue;
-                    }
-
-                    if (!cellFloors.ContainsKey(sr.RelativeFloorAppliedTo))
-                    {
-                        cellFloors.Add(sr.RelativeFloorAppliedTo, new List<TerrAddonEnum>());
-                    }
-
-                    AddTerrAddonEnum2List(cellFloors[sr.RelativeFloorAppliedTo], sr.ProhibtedAddon);
+                    AddTerrAddonEnum2List(cellAddons, sr.ProhibtedAddon);
                 }
             }
         }
@@ -123,33 +111,30 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
 
     //TODO: rearrange cachedSpawnViolations data setup to have floors be the first dimension
     //knowing that that could end violation checking faster?
-    public bool IsViolation(int currFloorIndex, TerrAddon other, int otherFloorIndex, Vector2Int posFromCenter)
+    public bool IsViolation(TerrAddon other, Vector2Int posFromCenter)
     {
         for(int x = 0; x < other.dimensions.x; x++)
         {
             for(int y = 0; y < other.dimensions.y; y++)
             {
-                Vector2Int posRelative2Center = new Vector2Int(x, y) + posFromCenter;
+                //negative y because we can assume that the y index will always be at the front (0),
+                //and for us, looking down on the grid of objects, with the player at the bottom,
+                //-y is up
+                Vector2Int posRelative2Center = new Vector2Int(x - other.centerXIndex, -y) + posFromCenter;
 
-                Dictionary<int, Dictionary<int, List<TerrAddonEnum>>> col;
+                Dictionary<int, List<TerrAddonEnum>> col;
                 if (!cachedSpawnViolations.TryGetValue(posRelative2Center.x, out col))
                 {
                     continue;
                 }
 
-                Dictionary<int, List<TerrAddonEnum>> cell;
+                List<TerrAddonEnum> cell;
                 if (!col.TryGetValue(posRelative2Center.y, out cell))
                 {
                     continue;
                 }
 
-                List<TerrAddonEnum> floors;
-                if (!cell.TryGetValue(otherFloorIndex - currFloorIndex, out floors))
-                {
-                    continue;
-                }
-
-                if (floors.Contains(other.TerrAddonEnum))
+                if (cell.Contains(other.TerrAddonEnum))
                 {
                     return true;
                 }

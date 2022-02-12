@@ -11,8 +11,8 @@ public class SO_TerrZoneWrapper : ScriptableObject
     private int zone;
     public int Zone => zone;
 
-    [SerializeField]
-    private int floorCount;
+    //[SerializeField]
+    //private int floorCount;
 
     [SerializeField]
     private float startSpeed = default;
@@ -67,7 +67,7 @@ public class SO_TerrZoneWrapper : ScriptableObject
     {
         foreach (TerrAddonWeightWrapper taww in TerrAddons)
         {
-            taww.Addon.CacheSpawnViolations(floorCount);
+            taww.Addon.CacheSpawnViolations();
         }
     }
 
@@ -91,47 +91,9 @@ public class SO_TerrZoneWrapper : ScriptableObject
         return cachedPercents;
     }
 
-    public TerrAddonFloorWrapper GetNewAddonFloorWrapper(int colIndex, int rowIndex, Data2D<TerrAddonFloorWrapper> currAddons, SO_TerrSettings settings)
-    {
-        TerrAddonFloorWrapper newAddonFW = GenerateRandomNewAddonFloorWrapper();
+    
 
-        //have to account for wrapping effect, such that there may be violations in wrapped space
-        int wrappedColIndex = colIndex > currAddons.Cols / 2 ? colIndex - currAddons.Cols : colIndex + currAddons.Cols;
-
-        Vector2Int dist2Center;
-        Vector2Int wrappedDist2Center;
-
-        for (int x = 0; x < currAddons.Cols; x++)
-        {
-            for  (int y = 0; y < currAddons.Rows; y++)
-            {
-                dist2Center = new Vector2Int(colIndex - x, rowIndex - y);
-                wrappedDist2Center = new Vector2Int(wrappedColIndex - x, rowIndex);
-
-                if (!FreeOfViolations(currAddons.GetElement(x, y), newAddonFW, dist2Center, wrappedDist2Center))
-                {
-                    return null;
-                }
-            }
-        }
-
-        return newAddonFW;
-    }
-
-    private TerrAddonFloorWrapper GenerateRandomNewAddonFloorWrapper()
-    {
-        TerrAddon randAddonPrefab = GenerateRandomNewAddon();
-
-        if (randAddonPrefab == null)
-        {
-            return null;
-        }
-
-        int randFloorIndex = Mathf.FloorToInt(Random.value * floorCount);
-        return new TerrAddonFloorWrapper(randAddonPrefab, randFloorIndex);
-    }
-
-    private TerrAddon GenerateRandomNewAddon()
+    public TerrAddon GenerateRandomNewAddon()
     {
         //first roll dice for spawning any addon
         if (Random.value < addonSpawnLikelihood)
@@ -164,17 +126,5 @@ public class SO_TerrZoneWrapper : ScriptableObject
 
         Debug.LogError("Something went wrong with cached percents :(");
         return null;
-    }
-
-    private bool FreeOfViolations(TerrAddonFloorWrapper source, TerrAddonFloorWrapper other,
-        Vector2Int relativePos2Source, Vector2Int wrappedRelativePos2Source)
-    {
-        if (source == null || other == null) { return true; }
-
-        //TODO: just make the cached stuff a getter to bring all the functionality into TerrAddonFloorWrapper
-        return !source.AddonPrefab.IsViolation(source.FloorIndex, other.AddonPrefab, other.FloorIndex, relativePos2Source)
-            && !other.AddonPrefab.IsViolation(other.FloorIndex, source.AddonPrefab, source.FloorIndex, -relativePos2Source)
-            && !source.AddonPrefab.IsViolation(source.FloorIndex, other.AddonPrefab, other.FloorIndex, wrappedRelativePos2Source)
-            && !other.AddonPrefab.IsViolation(other.FloorIndex, source.AddonPrefab, source.FloorIndex, -wrappedRelativePos2Source);
     }
 }

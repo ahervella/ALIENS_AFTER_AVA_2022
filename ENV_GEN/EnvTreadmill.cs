@@ -31,7 +31,7 @@ public class EnvTreadmill : MonoBehaviour
     //[SerializeField]
     //private PSO_CurrentTerrBossNode currTerrBossNode;
 
-    private Data2D<TerrAddonFloorWrapper> generatedTerrAddons;
+    private Data2D<TerrAddon> generatedTerrAddons;
 
     private Data2D<float> renderedGroundPoints;
 
@@ -87,74 +87,81 @@ public class EnvTreadmill : MonoBehaviour
         //since we also pass in the spawn method, this populates the initial grid for us
         //with the node generator!
 
-        generatedTerrAddons = new Data2D<TerrAddonFloorWrapper>(
+        generatedTerrAddons = new Data2D<TerrAddon>(
             settings.TileCols, settings.TileRows,
-            SpawnNewAddonFloorWrapper,
-            DestroyAddonFloorWrapper,
-            WrapAddonFloorWrapper,
-            ShiftVertAddonFloorWrapper);
+            ResetAddonSpace,
+            SpawnNewAddon,
+            DestroyAddon,
+            WrapAddon,
+            ShiftVertAddon);
 
         Func<int, float> newFloat = col => 0f;
-        renderedGroundPoints = new Data2D<float>(settings.PointCols, settings.PointRows, newFloat, null, null, null);
-        renderedInterPoints = new Data2D<float>(settings.InterCols, settings.InterRows, newFloat, null, null, null);
+        renderedGroundPoints = new Data2D<float>(settings.PointCols, settings.PointRows, newFloat, null, null, null, null);
+        renderedInterPoints = new Data2D<float>(settings.InterCols, settings.InterRows, newFloat, null, null, null, null);
         UpdateMeshRender();
 
         data2DsInitialized = true;
     }
 
 
-
-    //TODO: ALSO ADD A CALL BACK FOR NEW ROWS TO MOVE TRANSFORM
-
+    /// <summary>
+    /// Need this to reset the new rows so that when we spawn the new rows
+    /// they do not have any old data (so that the generator works properly
+    /// by not comparing rules to old data locations)
+    /// </summary>
+    /// <param name="colIndex"></param>
+    /// <returns></returns>
+    private TerrAddon ResetAddonSpace(int colIndex)
+    {
+        return null;
+    }
 
     /// <summary>
-    /// Spawns a new TerrAddonFloorWrapper at the given column
+    /// Spawns a new TerrAddon at the given column
     /// </summary>
-    private TerrAddonFloorWrapper SpawnNewAddonFloorWrapper(int colIndex)
+    private TerrAddon SpawnNewAddon(int colIndex)
     {
         if (!data2DsInitialized) { return null; }
 
         //if the generator returned null, means it wasn't able to generate anything
         //new here due to rules or other restrictions
-        TerrAddonFloorWrapper tafw = generator.GetNewAddonFloorWrapper(colIndex, 0, generatedTerrAddons);
+        TerrAddon taPrefab = generator.GetNewAddon(colIndex, 0, generatedTerrAddons);
 
-        if (tafw == null)
+        if (taPrefab == null)
         {
             return null;
         }
 
-        tafw.InstantiateFromPrefab(transform);
+
+        TerrAddon taInstance = taPrefab.InstantiateAddon(transform);
 
         //line up in grid local position
-        tafw.AddonInst.transform.localPosition =
-            new Vector3(colIndex * settings.TileDims.x, settings.FloorHeight * tafw.FloorIndex, settings.TileRows * settings.TileDims.y);
-        return tafw;
+        taInstance.transform.localPosition += new Vector3
+            ((colIndex + 0.5f) * settings.TileDims.x, 0, settings.TileRows * settings.TileDims.y);
+        return taInstance;
     }
 
-    private void DestroyAddonFloorWrapper(TerrAddonFloorWrapper tafw)
+    private void DestroyAddon(TerrAddon ta)
     {
-        if (tafw == null)
+        if (ta == null)
         {
             return;
         }
 
-        tafw.DestroyInstance();
+        Destroy(ta.gameObject);
     }
 
-    private void WrapAddonFloorWrapper(TerrAddonFloorWrapper tafw, int newHorizPosDiff)
+    private void WrapAddon(TerrAddon ta, int newHorizPosDiff)
     {
-        if (tafw == null) { return; }
-        tafw.AddonInst.transform.position += new Vector3(newHorizPosDiff * settings.TileDims.x, 0, 0);
+        if (ta == null) { return; }
+        ta.transform.position += new Vector3(newHorizPosDiff * settings.TileDims.x, 0, 0);
     }
 
-    private void ShiftVertAddonFloorWrapper(TerrAddonFloorWrapper tafw, int newVertPosDiff)
+    private void ShiftVertAddon(TerrAddon ta, int newVertPosDiff)
     {
-        if (tafw == null) { return; }
-        if(tafw.AddonInst == null)
-        {
-            return;
-        }
-        tafw.AddonInst.transform.localPosition += new Vector3(0, 0, -newVertPosDiff * settings.TileDims.y);
+        if (ta == null) { return; }
+
+        ta.transform.localPosition += new Vector3(0, 0, -newVertPosDiff * settings.TileDims.y);
     }
 
     private void UpdateMeshRender()
