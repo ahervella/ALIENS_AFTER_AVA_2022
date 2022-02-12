@@ -143,7 +143,13 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
                     continue;
                 }
 
-                if (cell[otherFloorIndex - currFloorIndex].Contains(other.TerrAddonEnum))
+                List<TerrAddonEnum> floors;
+                if (!cell.TryGetValue(otherFloorIndex - currFloorIndex, out floors))
+                {
+                    continue;
+                }
+
+                if (floors.Contains(other.TerrAddonEnum))
                 {
                     return true;
                 }

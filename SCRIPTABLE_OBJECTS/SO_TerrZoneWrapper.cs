@@ -120,7 +120,6 @@ public class SO_TerrZoneWrapper : ScriptableObject
 
     private TerrAddonFloorWrapper GenerateRandomNewAddonFloorWrapper()
     {
-        int randFloorIndex = Mathf.FloorToInt(Random.value * floorCount);
         TerrAddon randAddonPrefab = GenerateRandomNewAddon();
 
         if (randAddonPrefab == null)
@@ -128,6 +127,7 @@ public class SO_TerrZoneWrapper : ScriptableObject
             return null;
         }
 
+        int randFloorIndex = Mathf.FloorToInt(Random.value * floorCount);
         return new TerrAddonFloorWrapper(randAddonPrefab, randFloorIndex);
     }
 
