@@ -17,7 +17,7 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
     private List<SpawnRule> rules = new List<SpawnRule>();
     public List<SpawnRule> Rules => rules;
 
-    //x, y, floor, list of violations at that cell and floor
+    //x, y, list of prohibited TerrAddons for that cell
     private Dictionary<int,Dictionary<int, List<TerrAddonEnum>>> cachedSpawnViolations
         = new Dictionary<int, Dictionary<int, List<TerrAddonEnum>>>();
 
@@ -70,7 +70,7 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
                     List<TerrAddonEnum> cellAddons = col[yCoor];
 
 
-                    AddTerrAddonEnum2List(cellAddons, sr.ProhibtedAddon);
+                    AddTerrAddonEnum2List(cellAddons, sr.ProhibitedAddon);
                 }
             }
         }
@@ -86,7 +86,7 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
                 prefix = "A_";
                 break;
 
-            case TerrAddonEnum.ALL_OBSTACLES:
+            case TerrAddonEnum.ALL_STATIC_HAZARDS:
                 prefix = "O_";
                 break;
 
@@ -109,8 +109,6 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
     }
 
 
-    //TODO: rearrange cachedSpawnViolations data setup to have floors be the first dimension
-    //knowing that that could end violation checking faster?
     public bool IsViolation(TerrAddon other, Vector2Int posFromCenter)
     {
         for(int x = 0; x < other.dimensions.x; x++)

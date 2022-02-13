@@ -29,15 +29,21 @@ public class Data2D<T>
     public Data2D(
         int cols, int rows,
         Func<int, T> defaultResetVal,
-        Func<int, T> defaultNewVal,
-        Action<T> destructionCall,
-        Action<T, int> onColWrap,
-        Action<T, int> onRowShift)
+        Func<int, T> defaultNewVal = null,
+        Action<T> destructionCall = null,
+        Action<T, int> onColWrap = null,
+        Action<T, int> onRowShift = null)
     {
         this.cols = cols;
         this.rows = rows;
         this.data = new T[cols, rows];
+
+        if (defaultResetVal == null)
+        {
+            Debug.LogError("Data2D needs a reset value!");
+        }
         this.defaultResetVal = defaultResetVal;
+        
         this.defaultNewVal = defaultNewVal;
         this.destructionCall = destructionCall;
         this.onColWrap = onColWrap;
@@ -76,7 +82,7 @@ public class Data2D<T>
                 {
                     for (int r = rows - vertAmnt; r < rows; r++)
                     {
-                        destructionCall.Invoke(data[c, r]);
+                        destructionCall(data[c, r]);
                     }
                 }
             }
@@ -92,24 +98,21 @@ public class Data2D<T>
             }
 
             //reset the new row(s)
-            if (defaultResetVal != null)
+            for (int c = 0; c < cols; c++)
             {
-                for (int c = 0; c < cols; c++)
+                for (int r = 0; r < vertAmnt; r++)
                 {
-                    for (int r = 0; r < vertAmnt; r++)
-                    {
-                        data[c, r] = defaultResetVal(c);
-                    }
+                    data[c, r] = defaultResetVal(c);
                 }
             }
-            
+
 
             //initialize the new row(s)
             if (defaultNewVal != null)
             {
-                for (int c = 0; c < cols; c++)
+                for (int r = vertAmnt - 1; r >= 0; r--)
                 {
-                    for (int r = 0; r < vertAmnt; r++)
+                    for (int c = 0; c < cols; c++)
                     {
                         data[c, r] = defaultNewVal(c);
                     }
@@ -123,13 +126,17 @@ public class Data2D<T>
         vertAmnt = -vertAmnt;
 
         //destroy vanishing rows
-        for (int c = 0; c < cols; c++)
+        if (destructionCall != null)
         {
-            for (int r = 0; r < vertAmnt; r++)
+            for (int c = 0; c < cols; c++)
             {
-                destructionCall?.Invoke(data[c, r]);
+                for (int r = 0; r < vertAmnt; r++)
+                {
+                    destructionCall(data[c, r]);
+                }
             }
         }
+        
 
         //shifted rows
         for (int c = 0; c < cols; c++)
@@ -143,24 +150,21 @@ public class Data2D<T>
         }
 
         //reset the new row(s)
-        if (defaultResetVal != null)
+        for (int c = 0; c < cols; c++)
         {
-            for (int c = 0; c < cols; c++)
+            for (int r = rows - vertAmnt; r < rows; r++)
             {
-                for (int r = rows - vertAmnt; r < rows; r++)
-                {
-                    data[c, r] = defaultResetVal(c);
-                }
+                data[c, r] = defaultResetVal(c);
             }
         }
-        
+
 
         //initialize the new row(s)
         if (defaultNewVal != null)
         {
-            for (int c = 0; c < cols; c++)
+            for (int r = rows - vertAmnt; r < rows; r++)
             {
-                for (int r = rows - vertAmnt; r < rows; r++)
+                for (int c = 0; c < cols; c++)
                 {
                     data[c, r] = defaultNewVal(c);
                 }
