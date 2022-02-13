@@ -34,7 +34,7 @@ public abstract class BaseAnimation<T> : MonoBehaviour
 
     public void AE_OnAnimFinished()
     {
-        AninmationWrapper<T> aw = settings.GetAnimationWrapper(currAction.Value);
+        AnimationWrapper<T> aw = settings.GetAnimationWrapper(currAction.Value);
         if (aw != null)
         {
             currAction.ModifyValue(aw.ActionOnFinished);

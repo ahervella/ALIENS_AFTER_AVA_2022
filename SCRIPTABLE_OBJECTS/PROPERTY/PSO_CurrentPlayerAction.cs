@@ -27,6 +27,7 @@ public class PSO_CurrentPlayerAction : PropertySO<PlayerActionEnum>
                     return true;
                 }
                 break;
+
             case PlayerActionEnum.LONG_JUMP:
                 if (Value == PlayerActionEnum.SPRINT)
                 {
@@ -36,5 +37,28 @@ public class PSO_CurrentPlayerAction : PropertySO<PlayerActionEnum>
                 break;
         }
         return false;
+    }
+
+    public void PerformCorrespondingHurt(PlayerActionEnum actionRequired)
+    {
+        switch (actionRequired)
+        {
+            case PlayerActionEnum.ROLL:
+                ModifyValue(PlayerActionEnum.HURT_UPPER);
+                return;
+
+            case PlayerActionEnum.JUMP:
+                ModifyValue(PlayerActionEnum.HURT_LOWER);
+                return;
+
+            //if was hit mid air
+            case PlayerActionEnum.NONE:
+                ModifyValue(PlayerActionEnum.HURT_AIR);
+                return;
+
+            default:
+                ModifyValue(PlayerActionEnum.HURT_CENTER);
+                return;
+        }
     }
 }

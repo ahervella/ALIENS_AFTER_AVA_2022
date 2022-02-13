@@ -12,7 +12,7 @@ public class PlayerAnimation : BaseAnimation<PlayerActionEnum>
 
     protected override void OnPlayerActionChange(PlayerActionEnum prevAction, PlayerActionEnum newAction)
     {
-        AninmationWrapper<PlayerActionEnum> paw = settings.GetAnimationWrapper(newAction);
+        AnimationWrapper<PlayerActionEnum> paw = settings.GetAnimationWrapper(newAction);
         if (paw != null)
         {
             if (paw.InitCameraAngle != null)

@@ -39,7 +39,7 @@ public class PlayerRunner : MonoBehaviour
     //private PSO_CurrentInventory currentInventory = null;
 
     [SerializeField]
-    private FloatPropertySO currEnergy = null;
+    private PSO_CurrentEnergy currEnergy = null;
 
     [SerializeField]
     private IntPropertySO currLurkCode = null;
@@ -89,6 +89,7 @@ public class PlayerRunner : MonoBehaviour
     {
         Debug.Log("Input_Jump");
         currAction.TryPerform(PlayerActionEnum.JUMP);
+        currEnergy.TryConsumeWeaponEnergy(WeaponEnum.PLASMA_PISTOL);
     }
 
     private void InputManager_Sprint()
@@ -101,6 +102,7 @@ public class PlayerRunner : MonoBehaviour
     {
         Debug.Log("Input_Roll");
         currAction.TryPerform(PlayerActionEnum.ROLL);
+        currEnergy.RewardPlayerEnergy(currAction.Value);
     }
 
     private void InputManager_Pause()
@@ -112,6 +114,28 @@ public class PlayerRunner : MonoBehaviour
     public void AE_LaneChange(int dir)
     {
         laneChange.ModifyValue(new LaneChange(dir > 0, settings.LaneChangeTime));
+    }
+
+    private void OnEnterHazard(PlayerActionEnum avoidAction, PlayerActionEnum takeDownAction, TerrAddon obstacleType)
+    {
+        if (avoidAction == currAction.Value)
+        {
+            currEnergy.RewardPlayerEnergy(currAction.Value);
+        }
+        else if (takeDownAction == currAction.Value)
+        {
+            //PerformTakeDown(takeDownAction, obstacleType);
+        }
+        else
+        {
+            TakeDamage(avoidAction);
+        }
+    }
+
+    private void TakeDamage(PlayerActionEnum requiredAction)
+    {
+        //currAction.PerformCorrespondingHurt(requiredAction);
+        currLives.ModifyValue(-1);
     }
 }
 

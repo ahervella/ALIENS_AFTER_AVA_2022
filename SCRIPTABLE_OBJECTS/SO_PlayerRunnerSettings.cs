@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
 
 [CreateAssetMenu(fileName = "SO_PlayerRunnerSettings", menuName = "ScriptableObjects/StaticData/SO_PlayerRunnerSettings")]
 public class SO_PlayerRunnerSettings : ScriptableObject
@@ -10,10 +11,6 @@ public class SO_PlayerRunnerSettings : ScriptableObject
     [SerializeField]
     private float lifeRecoveryTime;
     public float LifeRecoveryTime => lifeRecoveryTime;
-
-    [SerializeField]
-    private float startingEnergyBlocks;
-    public float StartingEnergyBlocks => startingEnergyBlocks;
 
     [SerializeField]
     private float laneChangeTime;

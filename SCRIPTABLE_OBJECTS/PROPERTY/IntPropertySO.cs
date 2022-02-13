@@ -22,22 +22,6 @@ public class IntPropertySO : PropertySO<int>
         int min = minValueSO == null ? minValue : minValueSO.Value;
         int max = maxValueSO == null ? maxValue : maxValueSO.Value;
 
-        if ( Value < max  && Value > min )
-        {
-            SetValue(Mathf.Clamp(Value + change, min, max));
-            return;
-        }
-
-        if (Value > max && change < 0)
-        {
-            SetValue(Value + change);
-            return;
-        }
-
-        if (Value < min && change > 0)
-        {
-            SetValue(Value + change);
-            return;
-        }
+        SetValue(Mathf.Clamp(Value + change, min, max));
     }
 }

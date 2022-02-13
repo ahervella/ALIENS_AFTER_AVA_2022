@@ -7,16 +7,26 @@ using System.Linq;
 public abstract class SO_AnimationSettings<T> : ScriptableObject
 {
     [SerializeField]
-    private List<AninmationWrapper<T>> animWrappers = new List<AninmationWrapper<T>>();
+    private List<AnimationWrapper<T>> animWrappers = new List<AnimationWrapper<T>>();
 
-    public AninmationWrapper<T> GetAnimationWrapper(T action)
+    public AnimationWrapper<T> GetAnimationWrapper(T action)
     {
-        return animWrappers.FirstOrDefault(wrapper => wrapper.Action.Equals(action));
+        //return animWrappers.FirstOrDefault(wrapper => wrapper.Action.Equals(action));
+        foreach(AnimationWrapper<T> aw in animWrappers)
+        {
+            if (aw.Action.Equals(action))
+            {
+                return aw;
+            }
+        }
+
+        Debug.LogError($"Could not find an animation wrapper for {action} :(");
+        return null;
     }
 }
 
 [Serializable]
-public class AninmationWrapper<T>
+public class AnimationWrapper<T>
 {
     [SerializeField]
     private AnimationClip anim = null;
