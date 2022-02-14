@@ -79,29 +79,17 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
 
     private void AddTerrAddonEnum2List (List<TerrAddonEnum> list, TerrAddonEnum addon)
     {
-        string prefix;
-        switch (addon)
+        if (addon != TerrAddonEnum.ALL_ALIENS
+            && addon != TerrAddonEnum.ALL_STATIC_HAZARDS
+            && addon != TerrAddonEnum.ALL_RAMPS)
         {
-            case TerrAddonEnum.ALL_ALIENS:
-                prefix = "A_";
-                break;
-
-            case TerrAddonEnum.ALL_STATIC_HAZARDS:
-                prefix = "O_";
-                break;
-
-            case TerrAddonEnum.ALL_RAMPS:
-                prefix = "R_";
-                break;
-
-            default:
-                list.Add(addon);
-                return;
+            list.Add(addon);
+            return;
         }
 
         foreach (TerrAddonEnum tae in Enum.GetValues(typeof(TerrAddonEnum)))
         {
-            if (tae.ToString().StartsWith(prefix))
+            if (tae.GetHashCode() > addon.GetHashCode() && tae.GetHashCode() < addon.GetHashCode() + 100)
             {
                 list.Add(tae);
             }
