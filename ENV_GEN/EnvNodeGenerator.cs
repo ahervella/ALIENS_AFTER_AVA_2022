@@ -43,10 +43,10 @@ public class EnvNodeGenerator : MonoBehaviour
             OnZoneChange(-1, currZone.Value);
         }
 
-        return TryGetNewViolationFreeAddon(colIndex, rowIndex, currAddons, settings);
+        return TryGetNewViolationFreeAddon(colIndex, rowIndex, currAddons);
     }
 
-    public TerrAddon TryGetNewViolationFreeAddon(int colIndex, int rowIndex, Data2D<TerrAddon> currAddons, SO_TerrSettings settings)
+    public TerrAddon TryGetNewViolationFreeAddon(int colIndex, int rowIndex, Data2D<TerrAddon> currAddons)
     {
         TerrAddon newAddon = cachedZoneWrapper.GenerateRandomNewAddon();
         if (newAddon == null) { return null; }

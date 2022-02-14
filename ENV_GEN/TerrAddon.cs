@@ -17,7 +17,7 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
     private List<SpawnRule> rules = new List<SpawnRule>();
     public List<SpawnRule> Rules => rules;
 
-    //x, y, floor, list of violations at that cell and floor
+    //x, y, list of prohibited TerrAddons for that cell
     private Dictionary<int,Dictionary<int, List<TerrAddonEnum>>> cachedSpawnViolations
         = new Dictionary<int, Dictionary<int, List<TerrAddonEnum>>>();
 
@@ -70,7 +70,7 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
                     List<TerrAddonEnum> cellAddons = col[yCoor];
 
 
-                    AddTerrAddonEnum2List(cellAddons, sr.ProhibtedAddon);
+                    AddTerrAddonEnum2List(cellAddons, sr.ProhibitedAddon);
                 }
             }
         }
@@ -79,29 +79,17 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
 
     private void AddTerrAddonEnum2List (List<TerrAddonEnum> list, TerrAddonEnum addon)
     {
-        string prefix;
-        switch (addon)
+        if (addon != TerrAddonEnum.ALL_ALIENS
+            && addon != TerrAddonEnum.ALL_STATIC_HAZARDS
+            && addon != TerrAddonEnum.ALL_RAMPS)
         {
-            case TerrAddonEnum.ALL_ALIENS:
-                prefix = "A_";
-                break;
-
-            case TerrAddonEnum.ALL_OBSTACLES:
-                prefix = "O_";
-                break;
-
-            case TerrAddonEnum.ALL_RAMPS:
-                prefix = "R_";
-                break;
-
-            default:
-                list.Add(addon);
-                return;
+            list.Add(addon);
+            return;
         }
 
         foreach (TerrAddonEnum tae in Enum.GetValues(typeof(TerrAddonEnum)))
         {
-            if (tae.ToString().StartsWith(prefix))
+            if (tae.GetHashCode() > addon.GetHashCode() && tae.GetHashCode() < addon.GetHashCode() + 100)
             {
                 list.Add(tae);
             }
@@ -109,8 +97,6 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
     }
 
 
-    //TODO: rearrange cachedSpawnViolations data setup to have floors be the first dimension
-    //knowing that that could end violation checking faster?
     public bool IsViolation(TerrAddon other, Vector2Int posFromCenter)
     {
         for(int x = 0; x < other.dimensions.x; x++)

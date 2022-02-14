@@ -8,8 +8,8 @@ using System;
 public class SpawnRule
 {
     [SerializeField]
-    private TerrAddonEnum prohibtedAddon;
-    public TerrAddonEnum ProhibtedAddon => prohibtedAddon;
+    private TerrAddonEnum prohibitedAddon;
+    public TerrAddonEnum ProhibitedAddon => prohibitedAddon;
 
     //[SerializeField]
     //private int relativeFloorAppliedTo;

@@ -37,7 +37,7 @@ public class EnvTreadmill : MonoBehaviour
 
     private Data2D<float> renderedInterPoints;
 
-    private int tileDistanceTraveled;
+    //private int tileDistanceTraveled;
 
     private Mesh mesh;
     Vector3[] meshVerticies = null;
@@ -48,8 +48,6 @@ public class EnvTreadmill : MonoBehaviour
 
     private LaneChange targetLaneChange;
     private float colShiftPerc;
-
-    private bool data2DsInitialized = false;
     
 
     private void Start()
@@ -80,8 +78,6 @@ public class EnvTreadmill : MonoBehaviour
 
     private void InitData2D()
     {
-        data2DsInitialized = false;
-
         OnZoneWrapperChange(0, currZone.Value);
 
         //since we also pass in the spawn method, this populates the initial grid for us
@@ -95,12 +91,18 @@ public class EnvTreadmill : MonoBehaviour
             WrapAddon,
             ShiftVertAddon);
 
-        Func<int, float> newFloat = col => 0f;
-        renderedGroundPoints = new Data2D<float>(settings.PointCols, settings.PointRows, newFloat, null, null, null, null);
-        renderedInterPoints = new Data2D<float>(settings.InterCols, settings.InterRows, newFloat, null, null, null, null);
+        float newFloat(int col) => 0f;
+        renderedGroundPoints = new Data2D<float>(settings.PointCols, settings.PointRows, newFloat);
+        renderedInterPoints = new Data2D<float>(settings.InterCols, settings.InterRows, newFloat);
         UpdateMeshRender();
 
-        data2DsInitialized = true;
+        for(int i = 0; i < settings.TileRows; i++)
+        {
+            ShiftTerrainRowsDown();
+        }
+
+        //fully populate the grid with terr addons before beginning run
+        //generatedTerrAddons.InitalizeAllValues();
     }
 
 
@@ -121,8 +123,6 @@ public class EnvTreadmill : MonoBehaviour
     /// </summary>
     private TerrAddon SpawnNewAddon(int colIndex)
     {
-        if (!data2DsInitialized) { return null; }
-
         //if the generator returned null, means it wasn't able to generate anything
         //new here due to rules or other restrictions
         TerrAddon taPrefab = generator.GetNewAddon(colIndex, 0, generatedTerrAddons);
@@ -141,13 +141,13 @@ public class EnvTreadmill : MonoBehaviour
         return taInstance;
     }
 
+    //In the following addon call back methods,
+    //we need to check for null because the Data2D element
+    //may be null (empty space), or may be populated
+
     private void DestroyAddon(TerrAddon ta)
     {
-        if (ta == null)
-        {
-            return;
-        }
-
+        if (ta == null) { return; }
         Destroy(ta.gameObject);
     }
 
@@ -160,14 +160,11 @@ public class EnvTreadmill : MonoBehaviour
     private void ShiftVertAddon(TerrAddon ta, int newVertPosDiff)
     {
         if (ta == null) { return; }
-
         ta.transform.localPosition += new Vector3(0, 0, -newVertPosDiff * settings.TileDims.y);
     }
 
     private void UpdateMeshRender()
     {
-        //renderedGroundPoints.PrintData("renderedGroundPoints");
-
         meshVerticies = ConvertToMeshArray(renderedGroundPoints, settings.PointCols, settings.PointRows, settings.TileDims);
         mesh.vertices = meshVerticies;
         mesh.triangles = CreateMeshTriangles();
