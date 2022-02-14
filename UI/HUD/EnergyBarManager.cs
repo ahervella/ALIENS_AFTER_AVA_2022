@@ -22,7 +22,7 @@ public class EnergyBarManager : MonoBehaviour
     /// to give the illusion of a smooth bar filling even though
     /// it only operates in integers
     /// </summary>
-    private float fractionFillPerc;
+    private float blockFractionPerc;
 
     /// <summary>
     /// Target number of blocks in bar percent
@@ -50,7 +50,7 @@ public class EnergyBarManager : MonoBehaviour
         currEnergy.RegisterForPropertyChanged(OnEnergyChanged);
         currAction.RegisterForPropertyChanged(OnActionChanged);
         currEnergy.ModifyValue(settings.StartingEnergy);
-        fractionFillPerc = 0;
+        blockFractionPerc = 0;
     }
 
 
@@ -60,7 +60,7 @@ public class EnergyBarManager : MonoBehaviour
         targetFillAmount = percent;
 
         //minus fractionFillPerc so that it's not part of the interpolated amount
-        prevFillAmount = maskImg.fillAmount - fractionFillPerc;
+        prevFillAmount = maskImg.fillAmount - blockFractionPerc;
         currTweenPerc = 0;
     }
 
@@ -74,6 +74,7 @@ public class EnergyBarManager : MonoBehaviour
         BarTweenTick();
 
         RechargeTick();
+        Debug.Log($"CurrEnergy: {currEnergy.Value}, currFillPerc: {maskImg.fillAmount}");
     }
 
     private void BarTweenTick()
@@ -83,7 +84,7 @@ public class EnergyBarManager : MonoBehaviour
         currTweenPerc += Time.deltaTime;
 
         maskImg.fillAmount =
-            fractionFillPerc
+            blockFractionPerc
             + prevFillAmount
             + (targetFillAmount - prevFillAmount)
             * HelperUtil.EasedPercent(currTweenPerc);
@@ -94,18 +95,19 @@ public class EnergyBarManager : MonoBehaviour
         //If there is no tween, then set it directly here
         if (currTweenPerc >= 1)
         {
-            maskImg.fillAmount = targetFillAmount + fractionFillPerc;
+            maskImg.fillAmount = targetFillAmount + blockFractionPerc;
         }
 
         //only recharge when we are in motion
         if (!shouldRegenEnergy) { return; }
 
-        fractionFillPerc += settings.RunRechargeRatePerSec * Time.deltaTime / settings.MaxEnergy;
+        blockFractionPerc += settings.RunRechargeRatePerSec * Time.deltaTime / settings.MaxEnergy;
+        
 
         //Once we've passed the integer threshold, trigger the currEnergy change
-        if (fractionFillPerc >= 1f)
+        if (blockFractionPerc * settings.MaxEnergy >= 1f)
         {
-            fractionFillPerc = 0;
+            blockFractionPerc = 0;
             currEnergy.ModifyValue(1);
         }
     }

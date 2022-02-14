@@ -1,4 +1,6 @@
 ﻿public enum WeaponEnum
 {
-    PLASMA_PISTOL, STUN_RAY, ATOM_CANON
+    PLASMA_PISTOL = 0,
+    STUN_RAY = 1,
+    ATOM_CANON = 2
 }
