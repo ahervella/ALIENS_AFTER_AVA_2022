@@ -56,6 +56,10 @@ public class PlayerCamera : MonoBehaviour
 
         SetCurrentTransformAsOldAngle();
         cachedTargetCamAngle = newAngle.CameraAngle;
+        if (cachedTargetCamAngle.TweenTime <= 0)
+        {
+            Debug.LogError($"Invalid tween time for camera angle: {cachedTargetCamAngle}");
+        }
         //resume with updated old and new angle
         tweenPerc = 0;
     }
@@ -81,7 +85,7 @@ public class PlayerCamera : MonoBehaviour
             return;
         }
 
-        tweenPerc += Time.deltaTime;
+        tweenPerc += Time.deltaTime / cachedTargetCamAngle.TweenTime;
         float easedTweenPerc = EasedPercent(tweenPerc);
 
         cam.fieldOfView = Mathf.Lerp(oldCameraAngle.FieldOfView, cachedTargetCamAngle.FieldOfView, easedTweenPerc);
