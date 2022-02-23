@@ -45,7 +45,7 @@ public abstract class BaseAnimation<T> : MonoBehaviour
     protected void SetCurrentAnimationFrame(int frame)
     {
         AnimationClip ac = spriteAnimator.GetCurrentAnimation();
-        spriteAnimator.SetTime(frame / (ac.frameRate / ac.length));
+        spriteAnimator.SetTime(frame / (ac.frameRate * ac.length));
 
         //force an animation update so this takes place immediately
         animator.Update(0.0f);
