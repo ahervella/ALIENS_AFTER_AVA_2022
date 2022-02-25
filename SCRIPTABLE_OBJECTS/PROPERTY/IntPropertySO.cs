@@ -19,9 +19,16 @@ public class IntPropertySO : PropertySO<int>
 
     public override void ModifyValue(int change)
     {
-        int min = minValueSO == null ? minValue : minValueSO.Value;
-        int max = maxValueSO == null ? maxValue : maxValueSO.Value;
+        SetValue(Mathf.Clamp(Value + change, MinValue(), MaxValue()));
+    }
 
-        SetValue(Mathf.Clamp(Value + change, min, max));
+    public int MaxValue()
+    {
+        return maxValueSO == null ? maxValue : maxValueSO.Value;
+    }
+
+    public int MinValue()
+    {
+        return minValueSO == null ? minValue : minValueSO.Value;
     }
 }

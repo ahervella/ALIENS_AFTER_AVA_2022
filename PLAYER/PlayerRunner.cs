@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(BoxCollider))]
 public class PlayerRunner : MonoBehaviour
 {
     [SerializeField]
@@ -16,6 +17,8 @@ public class PlayerRunner : MonoBehaviour
 
     [SerializeField]
     private IntPropertySO currLives = null;
+
+    private Coroutine healCR = null;
 
     [SerializeField]
     private PSO_LaneChange laneChange = null;
@@ -49,6 +52,7 @@ public class PlayerRunner : MonoBehaviour
         //currAction.RegisterForPropertyChanged(OnPlayerActionChange);
         RegisterForInputs();
         SetPlayerStartPosition();
+        StartHealCoroutine();
     }
 
     private void Start()
@@ -121,7 +125,7 @@ public class PlayerRunner : MonoBehaviour
         laneChange.ModifyValue(new LaneChange(dir > 0, settings.LaneChangeTime));
     }
 
-    private void OnEnterHazard(PlayerActionEnum avoidAction, PlayerActionEnum takeDownAction, TerrAddon obstacleType)
+    public void OnEnterHazard(PlayerActionEnum avoidAction, PlayerActionEnum takeDownAction, TerrAddonEnum obstacleType)
     {
         if (avoidAction == currAction.Value)
         {
@@ -141,6 +145,27 @@ public class PlayerRunner : MonoBehaviour
     {
         //currAction.PerformCorrespondingHurt(requiredAction);
         currLives.ModifyValue(-1);
+    }
+
+    private void StartHealCoroutine()
+    {
+        if (healCR != null)
+        {
+            StopCoroutine(healCR);
+        }
+
+        healCR = StartCoroutine(HealDamageCoroutine());
+    }
+
+    private IEnumerator HealDamageCoroutine()
+    {
+        while (currLives.Value < currLives.MaxValue())
+        {
+            yield return new WaitForSeconds(settings.LifeRecoveryTime);
+            currLives.ModifyValue(1);
+        }
+
+        healCR = null;
     }
 }
 

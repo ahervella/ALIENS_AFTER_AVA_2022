@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TerrHazard : MonoBehaviour
+[RequireComponent(typeof(BoxCollider))]
+public class TerrHazard : TerrAddon
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [SerializeField]
+    private PlayerActionEnum requiredAvoidAction = PlayerActionEnum.NONE;
 
-    // Update is called once per frame
-    void Update()
+    private void OnTriggerEnter(Collider other)
     {
-        
+        PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
+        if (player == null) { return; }
+
+        player.OnEnterHazard(requiredAvoidAction, PlayerActionEnum.NONE, TerrAddonEnum);
     }
 }
