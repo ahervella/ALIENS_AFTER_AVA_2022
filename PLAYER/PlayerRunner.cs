@@ -73,16 +73,21 @@ public class PlayerRunner : MonoBehaviour
         inputManager.RegisterForInput(InputEnum.GAME_PAUSE, InputManager_Pause);
     }
 
+    //TODO: take out dev testing for health and energy bar from here eventually!
     private void InputManager_DodgeLeft()
     {
         Debug.Log("Input_DodgeLeft");
         currAction.TryPerform(PlayerActionEnum.DODGE_L);
+        TakeDamage(PlayerActionEnum.DODGE_L);
+        Debug.Log($"health: {currLives.Value}");
     }
 
     private void InputManager_DodgeRight()
     {
         Debug.Log("Input_DodgeRight");
         currAction.TryPerform(PlayerActionEnum.DODGE_R);
+        currLives.ModifyValue(1);
+        Debug.Log($"health: {currLives.Value}");
     }
 
     private void InputManager_Jump()

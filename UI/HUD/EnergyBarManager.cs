@@ -56,8 +56,7 @@ public class EnergyBarManager : MonoBehaviour
 
     private void OnEnergyChanged(int oldEnergy, int newEnergy)
     {
-        float percent = currEnergy.Value / (float)settings.MaxEnergy;
-        targetFillAmount = percent;
+        targetFillAmount = currEnergy.Value / (float)settings.MaxEnergy;
 
         //minus fractionFillPerc so that it's not part of the interpolated amount
         prevFillAmount = maskImg.fillAmount - blockFractionPerc;
@@ -74,7 +73,7 @@ public class EnergyBarManager : MonoBehaviour
         BarTweenTick();
 
         RechargeTick();
-        Debug.Log($"CurrEnergy: {currEnergy.Value}, currFillPerc: {maskImg.fillAmount}");
+        //Debug.Log($"CurrEnergy: {currEnergy.Value}, currFillPerc: {maskImg.fillAmount}");
     }
 
     private void BarTweenTick()
