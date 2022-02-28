@@ -24,6 +24,9 @@ public class PlayerRunner : MonoBehaviour
     private PSO_LaneChange laneChange = null;
 
     [SerializeField]
+    private DSO_UseArmament useArmament = null;
+
+    [SerializeField]
     private SO_PlayerRunnerSettings settings = null;
 
     [SerializeField]
@@ -35,8 +38,8 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private PSO_CurrentGameMode currGameMode = null;
 
-    //[SerializeField]
-    //private PSO_CurrentLoadout currLoadout = null;
+    [SerializeField]
+    private PSO_CurrentLoadout currLoadout = null;
 
     //[SerializeField]
     //private PSO_CurrentInventory currentInventory = null;
@@ -75,6 +78,12 @@ public class PlayerRunner : MonoBehaviour
         inputManager.RegisterForInput(InputEnum.GAME_SPRINT, InputManager_Sprint);
         inputManager.RegisterForInput(InputEnum.GAME_ROLL, InputManager_Roll);
         inputManager.RegisterForInput(InputEnum.GAME_PAUSE, InputManager_Pause);
+
+        inputManager.RegisterForInput(InputEnum.DEV_1, InputManager_Dev1);
+        inputManager.RegisterForInput(InputEnum.DEV_2, InputManager_Dev2);
+        inputManager.RegisterForInput(InputEnum.DEV_3, InputManager_Dev3);
+        inputManager.RegisterForInput(InputEnum.DEV_4, InputManager_Dev4);
+        inputManager.RegisterForInput(InputEnum.DEV_5, InputManager_Dev5);
     }
 
     //TODO: take out dev testing for health and energy bar from here eventually!
@@ -82,23 +91,18 @@ public class PlayerRunner : MonoBehaviour
     {
         Debug.Log("Input_DodgeLeft");
         currAction.TryPerform(PlayerActionEnum.DODGE_L);
-        TakeDamage(PlayerActionEnum.DODGE_L);
-        Debug.Log($"health: {currLives.Value}");
     }
 
     private void InputManager_DodgeRight()
     {
         Debug.Log("Input_DodgeRight");
         currAction.TryPerform(PlayerActionEnum.DODGE_R);
-        currLives.ModifyValue(1);
-        Debug.Log($"health: {currLives.Value}");
     }
 
     private void InputManager_Jump()
     {
         Debug.Log("Input_Jump");
         currAction.TryPerform(PlayerActionEnum.JUMP);
-        currEnergy.TryConsumeWeaponEnergy(WeaponEnum.PLASMA_PISTOL);
     }
 
     private void InputManager_Sprint()
@@ -111,13 +115,38 @@ public class PlayerRunner : MonoBehaviour
     {
         Debug.Log("Input_Roll");
         currAction.TryPerform(PlayerActionEnum.ROLL);
-        currEnergy.RewardPlayerEnergy(currAction.Value);
     }
 
     private void InputManager_Pause()
     {
         Debug.Log("Pause");
         //Pause Game
+    }
+
+    private void InputManager_Dev1()
+    {
+        TakeDamage(PlayerActionEnum.DODGE_L);
+        Debug.Log($"health: {currLives.Value}");
+    }
+
+    private void InputManager_Dev2()
+    {
+        currLives.ModifyValue(1);
+        Debug.Log($"health: {currLives.Value}");
+    }
+
+    private void InputManager_Dev3()
+    {
+        useArmament.TryUseArmament(currLoadout.Value.OrderedWeapons[0]);
+    }
+    private void InputManager_Dev4()
+    {
+        currEnergy.RewardPlayerEnergy(currAction.Value);
+    }
+
+    private void InputManager_Dev5()
+    {
+
     }
 
     public void AE_LaneChange(int dir)

@@ -20,16 +20,4 @@ public class PSO_CurrentEnergy : IntPropertySO
     {
         ModifyValue(settings.GetEnergyReward(action));
     }
-
-    public bool TryConsumeWeaponEnergy(WeaponEnum weapon)
-    {
-        int energyReq = settings.GetWeaponEnergyReq(weapon);
-        if (Value < energyReq)
-        {
-            return false;
-        }
-
-        ModifyValue(-energyReq);
-        return true;
-    }
 }

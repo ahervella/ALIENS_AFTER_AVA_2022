@@ -16,5 +16,10 @@
     GAME_NEXT_WEAPON = 13,
     GAME_EQUIPMENT_1 = 14,
     GAME_EQUIPMENT_2 = 15,
-    GAME_PAUSE = 16
+    GAME_PAUSE = 16,
+    DEV_1 = 100,
+    DEV_2 = 101,
+    DEV_3 = 102,
+    DEV_4 = 103,
+    DEV_5 = 104
 }

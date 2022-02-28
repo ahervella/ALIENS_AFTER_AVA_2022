@@ -33,21 +33,6 @@ public class SO_EnergySettings : ScriptableObject
         public int Energy => energy;
     }
 
-    [SerializeField]
-    private List<WeaponEnergyWrapper> weaponEnergyReqs = new List<WeaponEnergyWrapper>();
-
-    [Serializable]
-    private class WeaponEnergyWrapper
-    {
-        [SerializeField]
-        private WeaponEnum weapon;
-        public WeaponEnum Weapon => weapon;
-
-        [SerializeField]
-        private int energy;
-        public int Energy => energy;
-    }
-
     public int GetEnergyReward(PlayerActionEnum action)
     {
         foreach (PlayerEnergyWrapper pew in playerEnergyRewards)
@@ -59,20 +44,6 @@ public class SO_EnergySettings : ScriptableObject
         }
 
         Debug.LogError($"No energy quantitfy found for action {action}");
-        return -1;
-    }
-
-    public int GetWeaponEnergyReq(WeaponEnum weapon)
-    {
-        foreach (WeaponEnergyWrapper wew in weaponEnergyReqs)
-        {
-            if (wew.Weapon == weapon)
-            {
-                return wew.Energy;
-            }
-        }
-
-        Debug.LogError($"No energy quantitfy found for weapon {weapon}");
         return -1;
     }
 }
