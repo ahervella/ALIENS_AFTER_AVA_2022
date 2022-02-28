@@ -21,7 +21,7 @@ public class PlayerRunner : MonoBehaviour
     private Coroutine healCR = null;
 
     [SerializeField]
-    private PSO_LaneChange laneChange = null;
+    private DSO_LaneChange laneChangeDelegate = null;
 
     [SerializeField]
     private DSO_UseArmament useArmament = null;
@@ -137,8 +137,9 @@ public class PlayerRunner : MonoBehaviour
 
     private void InputManager_Dev3()
     {
-        useArmament.TryUseArmament(currLoadout.Value.OrderedWeapons[0]);
+        useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedWeapons[0]);
     }
+
     private void InputManager_Dev4()
     {
         currEnergy.RewardPlayerEnergy(currAction.Value);
@@ -151,7 +152,7 @@ public class PlayerRunner : MonoBehaviour
 
     public void AE_LaneChange(int dir)
     {
-        laneChange.ModifyValue(new LaneChange(dir > 0, settings.LaneChangeTime));
+        laneChangeDelegate.InvokeDelegateMethod(new LaneChange(dir > 0, settings.LaneChangeTime));
     }
 
     public void OnEnterHazard(PlayerActionEnum avoidAction, PlayerActionEnum takeDownAction, TerrAddonEnum obstacleType)

@@ -22,7 +22,7 @@ public class ArmamentManager : MonoBehaviour
     private void Awake()
     {
         InitCoolDownDict();
-        useArmamentDelegate.RegisterResultMethod(TryUseArmament);
+        useArmamentDelegate.SetInvokeMethod(TryUseArmament);
     }
 
     private void InitCoolDownDict()

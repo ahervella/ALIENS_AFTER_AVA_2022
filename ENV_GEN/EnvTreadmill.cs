@@ -24,9 +24,8 @@ public class EnvTreadmill : MonoBehaviour
     [SerializeField]
     private IntPropertySO currZone = null;
 
-
     [SerializeField]
-    private PSO_LaneChange laneChange = null;
+    private DSO_LaneChange laneChangeDelegate = null;
 
     //[SerializeField]
     //private PSO_CurrentTerrBossNode currTerrBossNode;
@@ -56,7 +55,7 @@ public class EnvTreadmill : MonoBehaviour
         GetComponent<MeshFilter>().mesh = mesh;
 
         currZone.RegisterForPropertyChanged(OnZoneWrapperChange);
-        laneChange.RegisterForPropertyChanged(OnLaneChange);
+        laneChangeDelegate.SetInvokeMethod(OnLaneChange);
 
         InitData2D();
 
@@ -282,19 +281,21 @@ public class EnvTreadmill : MonoBehaviour
     }
 
 
-    private void OnLaneChange(LaneChange prevLC, LaneChange newLC)
+    private int OnLaneChange(LaneChange lc)
     {
         //-1 because direction is the player movement direction,
         //environment shifts in opposite direction
-        ShiftTerrainColumns(-1 * newLC.Dir);
+        ShiftTerrainColumns(-1 * lc.Dir);
 
         //immediately offset the x delta of the grid
-        float deltaX = newLC.Dir * settings.TileDims.x;
+        float deltaX = lc.Dir * settings.TileDims.x;
         PositionChange(transform, deltaX, 0, 0);
 
         //Start the treadmill horizontal tween to default x position
         colShiftPerc = 0;
-        targetLaneChange = newLC;
+        targetLaneChange = lc;
+
+        return 0;
     }
 
     private void ShiftTerrainColumns(int dir)

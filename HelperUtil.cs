@@ -23,8 +23,10 @@ public static class HelperUtil
     /// <returns></returns>
     public static float EasedPercent(float origPerc)
     {
+        //TODO: seems to solve bug, but is this safe to do and can we always expect to get
+        //a perfect 0 or 1 float value from the math here?
+        origPerc = Mathf.Clamp(origPerc, 0, 1);
         float theta = origPerc * Mathf.PI / 2f;
-        float result = Mathf.Sin(theta);
-        return result < 0.0001 ? 0 : (result > 0.9999? 1 : result);
+        return Mathf.Sin(theta);
     }
 }
