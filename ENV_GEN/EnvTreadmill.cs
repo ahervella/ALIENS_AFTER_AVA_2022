@@ -16,7 +16,9 @@ public class EnvTreadmill : MonoBehaviour
 
     [SerializeField]
     private List<SO_TerrZoneWrapper> zoneWrappers;
+
     private SO_TerrZoneWrapper currZoneWrapper;
+    private float cachedDefaultZoneSpeed;
 
     [SerializeField]
     private PSO_CurrentGameMode currGameMode = null;
@@ -26,6 +28,12 @@ public class EnvTreadmill : MonoBehaviour
 
     [SerializeField]
     private DSO_LaneChange laneChangeDelegate = null;
+
+    [SerializeField]
+    private DSO_TreadmillToggle treadmillToggleDelegate = null;
+
+    private Coroutine treadmillToggleCR = null;
+    private bool treadmillStopping = false;
 
     //[SerializeField]
     //private PSO_CurrentTerrBossNode currTerrBossNode;
@@ -56,12 +64,13 @@ public class EnvTreadmill : MonoBehaviour
 
         currZone.RegisterForPropertyChanged(OnZoneWrapperChange);
         laneChangeDelegate.SetInvokeMethod(OnLaneChange);
+        treadmillToggleDelegate.SetInvokeMethod(OnTreadmillToggle);
+
+        OnZoneWrapperChange(currZone.Value, currZone.Value);
 
         InitData2D();
 
         transform.position = Vector3.zero;
-
-        currSpeed = -1 * currZoneWrapper.StartSpeed * settings.TileDims.y;
 
         newRowThreshold = settings.TileDims.y;
 
@@ -72,8 +81,70 @@ public class EnvTreadmill : MonoBehaviour
     private void OnZoneWrapperChange(int oldValue, int newValue)
     {
         currZoneWrapper = zoneWrappers.Find(x => x.Zone == newValue);
+        cachedDefaultZoneSpeed = GetDefaultZoneSpeed();
+        currSpeed = cachedDefaultZoneSpeed;
     }
 
+
+    private float GetDefaultZoneSpeed()
+    {
+        return -1 * currZoneWrapper.StartSpeed * settings.TileDims.y;
+    }
+
+    private int OnLaneChange(LaneChange lc)
+    {
+        //-1 because direction is the player movement direction,
+        //environment shifts in opposite direction
+        ShiftTerrainColumns(-1 * lc.Dir);
+
+        //immediately offset the x delta of the grid
+        float deltaX = lc.Dir * settings.TileDims.x;
+        PositionChange(transform, deltaX, 0, 0);
+
+        //Start the treadmill horizontal tween to default x position
+        colShiftPerc = 0;
+        targetLaneChange = lc;
+
+        return 0;
+    }
+
+    //TODO: decide if we should change this to have the delegate include
+    //the speed percentage from the animation call backs
+    //in case we notice animation events skipping (which would be a HUGE
+    //consequence here if we're just toggling)
+    //OR, just seperate the methods on the animations into a stop and resume
+    //as an easier way to avoid this possible issue
+    private int OnTreadmillToggle(float transitionTime)
+    {
+        if (treadmillToggleCR != null)
+        {
+            StopCoroutine(treadmillToggleCR);
+        }
+
+        treadmillStopping = !treadmillStopping;
+
+        float deltaSpeed = treadmillStopping ? -currSpeed : cachedDefaultZoneSpeed - currSpeed;
+        float acceleration = deltaSpeed / transitionTime;
+
+        StartCoroutine(TreadmillToggleCoroutine(acceleration));
+        return 0;
+    }
+
+    private IEnumerator TreadmillToggleCoroutine(float acceleration)
+    {
+        //< and > respectively here because treadmill
+        //normal speed is negative (negative z axis)
+        bool tweening = true;
+        while (tweening)//true if 
+        {
+            yield return null;
+            currSpeed += acceleration * Time.deltaTime;
+            tweening = treadmillStopping ? currSpeed < 0 : currSpeed > cachedDefaultZoneSpeed;
+        }
+
+        currSpeed = treadmillStopping ? 0 : cachedDefaultZoneSpeed;
+        treadmillToggleCR = null;
+    }
 
     private void InitData2D()
     {
@@ -280,23 +351,6 @@ public class EnvTreadmill : MonoBehaviour
         return new Vector3(x, elevation, y);
     }
 
-
-    private int OnLaneChange(LaneChange lc)
-    {
-        //-1 because direction is the player movement direction,
-        //environment shifts in opposite direction
-        ShiftTerrainColumns(-1 * lc.Dir);
-
-        //immediately offset the x delta of the grid
-        float deltaX = lc.Dir * settings.TileDims.x;
-        PositionChange(transform, deltaX, 0, 0);
-
-        //Start the treadmill horizontal tween to default x position
-        colShiftPerc = 0;
-        targetLaneChange = lc;
-
-        return 0;
-    }
 
     private void ShiftTerrainColumns(int dir)
     {

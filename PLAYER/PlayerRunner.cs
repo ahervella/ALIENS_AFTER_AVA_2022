@@ -27,6 +27,9 @@ public class PlayerRunner : MonoBehaviour
     private DSO_UseArmament useArmament = null;
 
     [SerializeField]
+    private DSO_TreadmillToggle treadmillToggleDelegate = null;
+
+    [SerializeField]
     private SO_PlayerRunnerSettings settings = null;
 
     [SerializeField]
@@ -147,12 +150,17 @@ public class PlayerRunner : MonoBehaviour
 
     private void InputManager_Dev5()
     {
-
+        AE_TreadmillToggle(1f);
     }
 
     public void AE_LaneChange(int dir)
     {
         laneChangeDelegate.InvokeDelegateMethod(new LaneChange(dir > 0, settings.LaneChangeTime));
+    }
+
+    public void AE_TreadmillToggle(float transitionTime)
+    {
+        treadmillToggleDelegate.InvokeDelegateMethod(transitionTime);
     }
 
     public void OnEnterHazard(PlayerActionEnum avoidAction, PlayerActionEnum takeDownAction, TerrAddonEnum obstacleType)
@@ -173,7 +181,7 @@ public class PlayerRunner : MonoBehaviour
 
     private void TakeDamage(PlayerActionEnum requiredAction)
     {
-        //currAction.PerformCorrespondingHurt(requiredAction);
+        currAction.PerformCorrespondingHurt(requiredAction);
         currLives.ModifyValue(-1);
     }
 
