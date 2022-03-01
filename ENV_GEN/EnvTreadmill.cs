@@ -30,10 +30,10 @@ public class EnvTreadmill : MonoBehaviour
     private DSO_LaneChange laneChangeDelegate = null;
 
     [SerializeField]
-    private DSO_TreadmillToggle treadmillToggleDelegate = null;
+    private DSO_TreadmillSpeedChange treadmillToggleDelegate = null;
 
     private Coroutine treadmillToggleCR = null;
-    private bool treadmillStopping = false;
+    //private bool treadmillStopping = false;
 
     //[SerializeField]
     //private PSO_CurrentTerrBossNode currTerrBossNode;
@@ -64,7 +64,7 @@ public class EnvTreadmill : MonoBehaviour
 
         currZone.RegisterForPropertyChanged(OnZoneWrapperChange);
         laneChangeDelegate.SetInvokeMethod(OnLaneChange);
-        treadmillToggleDelegate.SetInvokeMethod(OnTreadmillToggle);
+        treadmillToggleDelegate.SetInvokeMethod(OnTreadmillSpeedChange);
 
         OnZoneWrapperChange(currZone.Value, currZone.Value);
 
@@ -108,30 +108,26 @@ public class EnvTreadmill : MonoBehaviour
         return 0;
     }
 
-    //TODO: decide if we should change this to have the delegate include
-    //the speed percentage from the animation call backs
-    //in case we notice animation events skipping (which would be a HUGE
-    //consequence here if we're just toggling)
-    //OR, just seperate the methods on the animations into a stop and resume
-    //as an easier way to avoid this possible issue
-    private int OnTreadmillToggle(float transitionTime)
+    private int OnTreadmillSpeedChange(TreadmillSpeedChange tsc)
     {
         if (treadmillToggleCR != null)
         {
             StopCoroutine(treadmillToggleCR);
         }
 
-        treadmillStopping = !treadmillStopping;
+        float targetSpeed = cachedDefaultZoneSpeed * tsc.SpeedPerc;
+        float deltaSpeed = targetSpeed - currSpeed;
+        float acceleration = deltaSpeed / tsc.TransitionTime;
 
-        float deltaSpeed = treadmillStopping ? -currSpeed : cachedDefaultZoneSpeed - currSpeed;
-        float acceleration = deltaSpeed / transitionTime;
-
-        StartCoroutine(TreadmillToggleCoroutine(acceleration));
+        StartCoroutine(TreadmillToggleCoroutine(acceleration, targetSpeed));
         return 0;
     }
 
-    private IEnumerator TreadmillToggleCoroutine(float acceleration)
+    private IEnumerator TreadmillToggleCoroutine(float acceleration, float targetSpeed)
     {
+        //< b/c normal speed is negative (negative z direction)
+        bool speedingUp = targetSpeed < currSpeed;
+
         //< and > respectively here because treadmill
         //normal speed is negative (negative z axis)
         bool tweening = true;
@@ -139,10 +135,10 @@ public class EnvTreadmill : MonoBehaviour
         {
             yield return null;
             currSpeed += acceleration * Time.deltaTime;
-            tweening = treadmillStopping ? currSpeed < 0 : currSpeed > cachedDefaultZoneSpeed;
+            tweening = speedingUp ? targetSpeed < currSpeed : targetSpeed > currSpeed;
         }
 
-        currSpeed = treadmillStopping ? 0 : cachedDefaultZoneSpeed;
+        currSpeed = targetSpeed;
         treadmillToggleCR = null;
     }
 

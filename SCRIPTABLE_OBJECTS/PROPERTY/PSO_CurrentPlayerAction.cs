@@ -44,16 +44,13 @@ public class PSO_CurrentPlayerAction : PropertySO<PlayerActionEnum>
         switch (actionRequired)
         {
             case PlayerActionEnum.ROLL:
+            //if was hit mid air
+            //case PlayerActionEnum.TAKE_DAMAGE_AIR:
                 ModifyValue(PlayerActionEnum.HURT_UPPER);
                 return;
 
             case PlayerActionEnum.JUMP:
                 ModifyValue(PlayerActionEnum.HURT_LOWER);
-                return;
-
-            //if was hit mid air
-            case PlayerActionEnum.NONE:
-                ModifyValue(PlayerActionEnum.HURT_AIR);
                 return;
 
             default:

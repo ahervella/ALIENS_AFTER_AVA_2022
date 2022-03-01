@@ -27,7 +27,7 @@ public class PlayerRunner : MonoBehaviour
     private DSO_UseArmament useArmament = null;
 
     [SerializeField]
-    private DSO_TreadmillToggle treadmillToggleDelegate = null;
+    private DSO_TreadmillSpeedChange treadmillToggleDelegate = null;
 
     [SerializeField]
     private SO_PlayerRunnerSettings settings = null;
@@ -148,9 +148,19 @@ public class PlayerRunner : MonoBehaviour
         currEnergy.RewardPlayerEnergy(currAction.Value);
     }
 
+    private bool dev_toggleTreadmill = true;
+
     private void InputManager_Dev5()
     {
-        AE_TreadmillToggle(1f);
+        if (dev_toggleTreadmill)
+        {
+            AE_PauseTreadmill(1f);
+            return;
+        }
+
+        AE_ResumeTreadmill(1f);
+
+        dev_toggleTreadmill = !dev_toggleTreadmill;
     }
 
     public void AE_LaneChange(int dir)
@@ -158,9 +168,14 @@ public class PlayerRunner : MonoBehaviour
         laneChangeDelegate.InvokeDelegateMethod(new LaneChange(dir > 0, settings.LaneChangeTime));
     }
 
-    public void AE_TreadmillToggle(float transitionTime)
+    public void AE_ResumeTreadmill(float transitionTime)
     {
-        treadmillToggleDelegate.InvokeDelegateMethod(transitionTime);
+        treadmillToggleDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(1, transitionTime));
+    }
+
+    public void AE_PauseTreadmill(float transitionTime)
+    {
+        treadmillToggleDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(0, transitionTime));
     }
 
     public void OnEnterHazard(PlayerActionEnum avoidAction, PlayerActionEnum takeDownAction, TerrAddonEnum obstacleType)
@@ -181,6 +196,17 @@ public class PlayerRunner : MonoBehaviour
 
     private void TakeDamage(PlayerActionEnum requiredAction)
     {
+        /*
+        //TODO: only necessary if we ever do a mid air hurt with a falling animation
+        if (requiredAction == PlayerActionEnum.TAKE_DAMAGE)
+        {
+            //TODO: make a hurt in mid air?
+            //In case we are jumping and run into a tree
+            requiredAction = currAction.Value == PlayerActionEnum.JUMP || currAction.Value == PlayerActionEnum.FALLING ?
+                PlayerActionEnum.TAKE_DAMAGE_AIR : PlayerActionEnum.TAKE_DAMAGE_GROUND;
+        }
+        */
+
         currAction.PerformCorrespondingHurt(requiredAction);
         currLives.ModifyValue(-1);
     }

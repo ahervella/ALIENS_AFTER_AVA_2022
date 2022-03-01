@@ -1,14 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
 
 [CreateAssetMenu(fileName = "DSO_LaneChange", menuName = "ScriptableObjects/Delegates/DSO_LaneChange")]
 public class DSO_LaneChange : DelegateSO<LaneChange, int> //int is dumby type
 {
 }
 
-[Serializable]
 public class LaneChange
 {
     /// <summary>
