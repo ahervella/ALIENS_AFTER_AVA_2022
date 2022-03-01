@@ -33,7 +33,6 @@ public class EnvTreadmill : MonoBehaviour
     private DSO_TreadmillSpeedChange treadmillToggleDelegate = null;
 
     private Coroutine treadmillToggleCR = null;
-    //private bool treadmillStopping = false;
 
     //[SerializeField]
     //private PSO_CurrentTerrBossNode currTerrBossNode;
