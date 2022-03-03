@@ -11,8 +11,16 @@ public class TerrHazard : TerrAddon
     private void OnTriggerEnter(Collider other)
     {
         PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
-        if (player == null) { return; }
+        if (player != null)
+        {
+            player.OnEnterHazard(requiredAvoidAction, PlayerActionEnum.NONE, TerrAddonEnum);
+            return;
+        }
 
-        player.OnEnterHazard(requiredAvoidAction, PlayerActionEnum.NONE, TerrAddonEnum);
+        Projectile projectile = other.gameObject.GetComponent<Projectile>();
+        if (projectile != null)
+        {
+            projectile.OnEnteredHazard(this);
+        }
     }
 }
