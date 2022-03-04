@@ -22,4 +22,9 @@ public class FloatPropertySO : PropertySO<float>
 
         SetValue(Mathf.Clamp(Value + change, min, max));
     }
+
+    public void DirectlySetValue(float newValue)
+    {
+        ModifyValue(newValue - Value);
+    }
 }

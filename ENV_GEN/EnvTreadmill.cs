@@ -48,7 +48,9 @@ public class EnvTreadmill : MonoBehaviour
     private Mesh mesh;
     Vector3[] meshVerticies = null;
 
-    private float currSpeed;
+    [SerializeField]
+    private FloatPropertySO currTargetSpeed = null;
+    private float currSpeed = 0;
 
     private float newRowThreshold;
 
@@ -65,8 +67,6 @@ public class EnvTreadmill : MonoBehaviour
         laneChangeDelegate.SetInvokeMethod(OnLaneChange);
         treadmillToggleDelegate.SetInvokeMethod(OnTreadmillSpeedChange);
 
-        OnZoneWrapperChange(currZone.Value, currZone.Value);
-
         InitData2D();
 
         transform.position = Vector3.zero;
@@ -81,7 +81,7 @@ public class EnvTreadmill : MonoBehaviour
     {
         currZoneWrapper = zoneWrappers.Find(x => x.Zone == newValue);
         cachedDefaultZoneSpeed = GetDefaultZoneSpeed();
-        currSpeed = cachedDefaultZoneSpeed;
+        OnTreadmillSpeedChange(new TreadmillSpeedChange(1, 0));
     }
 
 
@@ -114,18 +114,25 @@ public class EnvTreadmill : MonoBehaviour
             StopCoroutine(treadmillToggleCR);
         }
 
-        float targetSpeed = cachedDefaultZoneSpeed * tsc.SpeedPerc;
-        float deltaSpeed = targetSpeed - currSpeed;
+        currTargetSpeed.DirectlySetValue(cachedDefaultZoneSpeed * tsc.SpeedPerc);
+
+        if (tsc.TransitionTime == 0)
+        {
+            currSpeed = currTargetSpeed.Value;
+            return 0;
+        }
+
+        float deltaSpeed = currTargetSpeed.Value - currSpeed;
         float acceleration = deltaSpeed / tsc.TransitionTime;
 
-        StartCoroutine(TreadmillToggleCoroutine(acceleration, targetSpeed));
+        StartCoroutine(TreadmillSpeedChangeCoroutine(acceleration));
         return 0;
     }
 
-    private IEnumerator TreadmillToggleCoroutine(float acceleration, float targetSpeed)
+    private IEnumerator TreadmillSpeedChangeCoroutine(float acceleration)
     {
         //< b/c normal speed is negative (negative z direction)
-        bool speedingUp = targetSpeed < currSpeed;
+        bool speedingUp = currTargetSpeed.Value < currSpeed;
 
         //< and > respectively here because treadmill
         //normal speed is negative (negative z axis)
@@ -134,10 +141,12 @@ public class EnvTreadmill : MonoBehaviour
         {
             yield return null;
             currSpeed += acceleration * Time.deltaTime;
-            tweening = speedingUp ? targetSpeed < currSpeed : targetSpeed > currSpeed;
+            tweening = speedingUp ?
+                currTargetSpeed.Value < currSpeed :
+                currTargetSpeed.Value > currSpeed;
         }
 
-        currSpeed = targetSpeed;
+        currSpeed = currTargetSpeed.Value;
         treadmillToggleCR = null;
     }
 
