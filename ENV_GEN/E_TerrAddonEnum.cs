@@ -9,5 +9,7 @@
     Z1_BUSH = 102,
     Z1_LOG = 103,
     
-    ALL_RAMPS = 200
+    ALL_RAMPS = 200,
+
+    PROJECTILE = 666
 }

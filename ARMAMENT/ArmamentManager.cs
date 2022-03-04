@@ -17,6 +17,12 @@ public class ArmamentManager : MonoBehaviour
     [SerializeField]
     private DSO_UseArmament useArmamentDelegate = null;
 
+    [SerializeField]
+    private Transform projectileSpawnPoint = null;
+
+    [SerializeField]
+    private Transform playerCenterSpawnPoint = null;
+
     private Dictionary<AArmament, Coroutine> coolDownDict = new Dictionary<AArmament, Coroutine>();
 
     private void Awake()
@@ -51,7 +57,8 @@ public class ArmamentManager : MonoBehaviour
         }
 
         coolDownDict[armament] = StartCoroutine(CoolDownCoroutine(armament));
-        armament.UseArmament(transform);
+        Transform spawnPoint = armament is Weapon ? projectileSpawnPoint : playerCenterSpawnPoint;
+        armament.UseArmament(spawnPoint);
         return true;
     }
 

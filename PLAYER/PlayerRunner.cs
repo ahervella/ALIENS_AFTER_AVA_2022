@@ -56,15 +56,18 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private IntPropertySO currLurkCode = null;
 
+    [SerializeField]
+    private BoolPropertySO shieldOnFlag = null;
+
     private Coroutine sprintCR = null;
 
     private void Awake()
     {
-        //currAction.RegisterForPropertyChanged(OnPlayerActionChange);
         RegisterForInputs();
         SetPlayerStartPosition();
         StartHealCoroutine();
         currAction.RegisterForPropertyChanged(OnActionChange);
+        shieldOnFlag.RegisterForPropertyChanged(OnShieldChange);
     }
 
     private void Start()
@@ -93,6 +96,10 @@ public class PlayerRunner : MonoBehaviour
         inputManager.RegisterForInput(InputEnum.DEV_3, InputManager_Dev3);
         inputManager.RegisterForInput(InputEnum.DEV_4, InputManager_Dev4);
         inputManager.RegisterForInput(InputEnum.DEV_5, InputManager_Dev5);
+        inputManager.RegisterForInput(InputEnum.DEV_6, InputManager_Dev6);
+        inputManager.RegisterForInput(InputEnum.DEV_7, InputManager_Dev7);
+        inputManager.RegisterForInput(InputEnum.DEV_8, InputManager_Dev8);
+        inputManager.RegisterForInput(InputEnum.DEV_9, InputManager_Dev9);
     }
 
     //TODO: take out dev testing for health and energy bar from here eventually!
@@ -155,6 +162,45 @@ public class PlayerRunner : MonoBehaviour
         TryStartSprint();
     }
 
+    private bool dev_toggleTreadmill = true;
+
+    private void InputManager_Dev5()
+    {
+        if (dev_toggleTreadmill)
+        {
+            AE_PauseTreadmill(1f);
+            return;
+        }
+
+        AE_ResumeTreadmill(1f);
+
+        dev_toggleTreadmill = !dev_toggleTreadmill;
+    }
+
+
+    private void InputManager_Dev6()
+    {
+        useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedEquipments[0]);
+    }
+
+    private void InputManager_Dev7()
+    {
+    }
+
+    private void InputManager_Dev8()
+    {
+    }
+
+    private void InputManager_Dev9()
+    {
+    }
+
+
+    private void OnShieldChange(bool oldVal, bool newVal)
+    {
+
+    }
+
     private void OnActionChange(PlayerActionEnum oldAction, PlayerActionEnum newAction)
     {
         StopSprintCR();
@@ -181,21 +227,6 @@ public class PlayerRunner : MonoBehaviour
         yield return new WaitForSeconds(settings.SprintTime);
         playerAnimmator.AE_OnAnimFinished();
         sprintCR = null;
-    }
-
-    private bool dev_toggleTreadmill = true;
-
-    private void InputManager_Dev5()
-    {
-        if (dev_toggleTreadmill)
-        {
-            AE_PauseTreadmill(1f);
-            return;
-        }
-
-        AE_ResumeTreadmill(1f);
-
-        dev_toggleTreadmill = !dev_toggleTreadmill;
     }
 
     public void AE_LaneChange(int dir)
@@ -225,6 +256,16 @@ public class PlayerRunner : MonoBehaviour
         }
         else
         {
+            if (shieldOnFlag.Value)
+            {
+                //Only break the shield if it wasn't a projectile
+                if (obstacleType != TerrAddonEnum.PROJECTILE)
+                {
+                    shieldOnFlag.ModifyValue(false);
+                }
+                return;
+            }
+
             TakeDamage(avoidAction);
         }
     }

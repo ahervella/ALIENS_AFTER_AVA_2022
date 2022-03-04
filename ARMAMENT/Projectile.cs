@@ -20,6 +20,9 @@ public class Projectile : MonoBehaviour
     [SerializeField]
     private bool destroyOnImpact = true;
 
+    [SerializeField]
+    private DestructionSprite destructionSpritePrefab = null;
+
     private void Awake()
     {
         slope = new Vector3(Mathf.Sin(Mathf.Deg2Rad * angleOffset), 0, Mathf.Cos(Mathf.Deg2Rad * angleOffset)) * speedPerSec;
@@ -43,6 +46,7 @@ public class Projectile : MonoBehaviour
 
         if (destroyOnImpact)
         {
+            destructionSpritePrefab?.InstantiateDestruction(transform.parent);
             Destroy(gameObject);
         }
     }
