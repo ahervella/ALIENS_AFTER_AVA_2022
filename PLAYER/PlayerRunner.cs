@@ -30,6 +30,9 @@ public class PlayerRunner : MonoBehaviour
     private DSO_TreadmillSpeedChange treadmillToggleDelegate = null;
 
     [SerializeField]
+    private PlayerAnimation playerAnimmator = null;
+
+    [SerializeField]
     private SO_PlayerRunnerSettings settings = null;
 
     [SerializeField]
@@ -53,12 +56,15 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private IntPropertySO currLurkCode = null;
 
+    private Coroutine sprintCR = null;
+
     private void Awake()
     {
         //currAction.RegisterForPropertyChanged(OnPlayerActionChange);
         RegisterForInputs();
         SetPlayerStartPosition();
         StartHealCoroutine();
+        currAction.RegisterForPropertyChanged(OnActionChange);
     }
 
     private void Start()
@@ -145,7 +151,36 @@ public class PlayerRunner : MonoBehaviour
 
     private void InputManager_Dev4()
     {
-        currEnergy.RewardPlayerEnergy(currAction.Value);
+        //currEnergy.RewardPlayerEnergy(currAction.Value);
+        TryStartSprint();
+    }
+
+    private void OnActionChange(PlayerActionEnum oldAction, PlayerActionEnum newAction)
+    {
+        StopSprintCR();
+    }
+
+    private void StopSprintCR()
+    {
+        if (sprintCR != null)
+        {
+            StopCoroutine(sprintCR);
+        }
+    }
+
+    private bool TryStartSprint()
+    {
+        //Will stop any current sprint cr cause of OnActionChange
+        if (!currAction.TryPerform(PlayerActionEnum.SPRINT)) { return false; }
+        sprintCR = StartCoroutine(SprintCoroutine());
+        return true;
+    }
+
+    private IEnumerator SprintCoroutine()
+    {
+        yield return new WaitForSeconds(settings.SprintTime);
+        playerAnimmator.AE_OnAnimFinished();
+        sprintCR = null;
     }
 
     private bool dev_toggleTreadmill = true;

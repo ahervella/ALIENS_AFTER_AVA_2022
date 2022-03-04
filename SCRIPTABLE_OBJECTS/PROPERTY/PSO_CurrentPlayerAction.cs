@@ -21,6 +21,7 @@ public class PSO_CurrentPlayerAction : PropertySO<PlayerActionEnum>
             case PlayerActionEnum.DODGE_R:
             case PlayerActionEnum.ROLL:
             case PlayerActionEnum.JUMP:
+            case PlayerActionEnum.SPRINT:
                 if (Value == PlayerActionEnum.RUN || Value == PlayerActionEnum.LAND)
                 {
                     ModifyValue(action);

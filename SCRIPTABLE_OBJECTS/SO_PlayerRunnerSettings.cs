@@ -13,6 +13,10 @@ public class SO_PlayerRunnerSettings : ScriptableObject
     public float LifeRecoveryTime => lifeRecoveryTime;
 
     [SerializeField]
+    private float sprintTime = 1;
+    public float SprintTime => sprintTime;
+
+    [SerializeField]
     private float laneChangeTime;
     public float LaneChangeTime => laneChangeTime;
 
