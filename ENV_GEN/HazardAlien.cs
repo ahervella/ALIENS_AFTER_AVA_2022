@@ -1,13 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using PowerTools;
 
 public class HazardAlien : TerrHazard
 {
-    [SerializeField]
-    private SpriteAnim alienSprite = null;
-
     [SerializeField]
     private AnimationClip attackAnimation = null;
 
@@ -45,7 +41,7 @@ public class HazardAlien : TerrHazard
     {
         if (other.gameObject.GetComponent<PlayerRunner>() != null)
         {
-            alienSprite.Play(attackAnimation);
+            sprite.Play(attackAnimation);
             attackTrigger.SetOnTriggerMethod(null);
         }
     }

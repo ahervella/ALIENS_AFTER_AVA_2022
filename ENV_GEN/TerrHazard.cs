@@ -19,8 +19,9 @@ public class TerrHazard : TerrAddon
     [SerializeField]
     private BoxColliderSP hitBox = null;
 
-    protected virtual void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         SetHitBoxDimensions();
         hitBox.SetOnTriggerMethod(OnTriggerEnterDamageHitBox);
     }

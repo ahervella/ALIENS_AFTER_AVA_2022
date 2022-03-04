@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using PowerTools;
+using Random = UnityEngine.Random;
 
 public abstract class TerrAddon : MonoBehaviour, ITerrNode
 {
@@ -24,6 +26,20 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
     [SerializeField]
     private TerrAddonEnum terrAddonType = default;
     public TerrAddonEnum TerrAddonEnum => terrAddonType;
+
+    [SerializeField]
+    protected SpriteAnim sprite = null;
+
+    [SerializeField]
+    private bool isFlippable = true;
+
+    protected virtual void Awake()
+    {
+        if (isFlippable && Random.value > 0.5f)
+        {
+            transform.localScale -= new Vector3(transform.localScale.x * 2, 0, 0);
+        }
+    }
 
     public TerrAddon InstantiateAddon(Transform parent)
     {
