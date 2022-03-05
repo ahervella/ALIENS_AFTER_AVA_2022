@@ -46,7 +46,7 @@ public class Projectile : MonoBehaviour
 
         if (destroyOnImpact)
         {
-            destructionSpritePrefab?.InstantiateDestruction(transform.parent);
+            destructionSpritePrefab?.InstantiateDestruction(transform.parent, transform);
             Destroy(gameObject);
         }
     }

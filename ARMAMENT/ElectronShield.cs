@@ -44,6 +44,6 @@ public class ElectronShield : MonoBehaviour
         {
             StopCoroutine(timerCR);
         }
-        destructionSpritePrefab?.InstantiateDestruction(transform.parent);
+        destructionSpritePrefab?.InstantiateDestruction(transform.parent, transform);
     }
 }
