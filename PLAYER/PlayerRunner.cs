@@ -249,25 +249,26 @@ public class PlayerRunner : MonoBehaviour
         if (avoidAction == currAction.Value)
         {
             currEnergy.RewardPlayerEnergy(currAction.Value);
+            return;
         }
-        else if (takeDownAction == currAction.Value)
+
+        if (takeDownAction == currAction.Value)
         {
             //PerformTakeDown(takeDownAction, obstacleType);
+            return;
         }
-        else
-        {
-            if (shieldOnFlag.Value)
-            {
-                //Only break the shield if it wasn't a projectile
-                if (obstacleType != TerrAddonEnum.PROJECTILE)
-                {
-                    shieldOnFlag.ModifyValue(false);
-                }
-                return;
-            }
 
-            TakeDamage(avoidAction);
+        if (shieldOnFlag.Value)
+        {
+            //Only break the shield if it wasn't a projectile
+            if (obstacleType != TerrAddonEnum.PROJECTILE)
+            {
+                shieldOnFlag.ModifyValue(false);
+            }
+            return;
         }
+
+        TakeDamage(avoidAction);
     }
 
     private void TakeDamage(PlayerActionEnum requiredAction)
