@@ -14,7 +14,7 @@ public class GrappleHook : MonoBehaviour
     private float grappleRetractTime;
 
     [SerializeField]
-    private TreadmillSpeedChange grappleSpeedChange = null;
+    private TreadmillSpeedChange treadmillSpeedChange = null;
 
     [SerializeField]
     private DSO_TreadmillSpeedChange speedChangeDelegate = null;
@@ -101,17 +101,20 @@ public class GrappleHook : MonoBehaviour
     private IEnumerator GrappleWindowCoroutine()
     {
         Debug.Log("started grapple");
-        float dist = tileDistanceReach * terrSettings.TileDims.y;
+        float maxDist = tileDistanceReach * terrSettings.TileDims.y;
+        float currDist = 0;
+        float grappleSpeed = maxDist / grappleTimeWindow;
+
         bool raycastHit = false;
-        float passedTime = 0;
         RaycastHit raycastInfo = new RaycastHit();
 
-        while (!raycastHit && passedTime < grappleTimeWindow)
+        while (!raycastHit && currDist < maxDist)
         {
-            Debug.DrawRay(transform.position, Vector3.forward * dist);
-            raycastHit = Physics.Raycast(transform.position, Vector3.forward, out raycastInfo, dist, cachedMaskLayer);
             yield return null;
-            passedTime += Time.deltaTime;
+            currDist += grappleSpeed * Time.deltaTime;
+
+            Debug.DrawRay(transform.position, Vector3.forward * currDist);
+            raycastHit = Physics.Raycast(transform.position, Vector3.forward, out raycastInfo, currDist, cachedMaskLayer);
         }
 
         if (raycastHit)
@@ -131,7 +134,7 @@ public class GrappleHook : MonoBehaviour
         Debug.Log("reeling in towards alien");
         //TODO: change animation? Or would player anim take care of that. Or at least
         //change grapple anim part
-        speedChangeDelegate.InvokeDelegateMethod(grappleSpeedChange);
+        speedChangeDelegate.InvokeDelegateMethod(treadmillSpeedChange);
         currAction.ModifyValue(PlayerActionEnum.GRAPPLE_REEL);
     }
 

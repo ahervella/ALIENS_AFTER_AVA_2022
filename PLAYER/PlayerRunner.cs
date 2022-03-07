@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(BoxCollider))]
 public class PlayerRunner : MonoBehaviour
@@ -58,6 +59,9 @@ public class PlayerRunner : MonoBehaviour
 
     [SerializeField]
     private BoolPropertySO shieldOnFlag = null;
+
+    [SerializeField]
+    private TussleManager tussleManagerPrefab = null;
 
     private Coroutine sprintCR = null;
 
@@ -249,8 +253,7 @@ public class PlayerRunner : MonoBehaviour
     {
         if (currAction.Value == PlayerActionEnum.GRAPPLE_REEL)
         {
-            //Start tussle
-            currAction.ModifyValue(PlayerActionEnum.RUN);
+            StartTussle();
             return;
         }
 
@@ -277,6 +280,13 @@ public class PlayerRunner : MonoBehaviour
         }
 
         TakeDamage(avoidAction);
+    }
+
+    private void StartTussle()
+    {
+        Debug.Log("Loading tussle scene...");
+        Instantiate(tussleManagerPrefab).InitiateTussle(true);
+        //SceneManager.LoadScene(tussleSceneName, LoadSceneMode.Additive);
     }
 
     private void TakeDamage(PlayerActionEnum requiredAction)
