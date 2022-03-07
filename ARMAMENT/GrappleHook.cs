@@ -7,6 +7,10 @@ public class GrappleHook : MonoBehaviour
     [SerializeField]
     private int tileDistanceReach;
 
+    //the visual grapple rope offset relative to its spawn location
+    [SerializeField]
+    private Vector2 visualOffset = default;
+
     [SerializeField]
     private float grappleTimeWindow;
 
@@ -34,24 +38,21 @@ public class GrappleHook : MonoBehaviour
     private int grappleLayer = 8;
     private int cachedMaskLayer;
 
+    [SerializeField]
+    private SpriteRenderer grappleRope = null;
+
+    [SerializeField]
+    private SpriteRenderer grappleHook = null;
+
+    [SerializeField]
+    private GameObject grappleRopeContainer = null;
+
     private Coroutine grappleWindowCR = null;
     private Coroutine grappleRetractCR = null;
+    private Coroutine grappleReelInCR = null;
 
     private void Awake()
     {
-        //if state change into anything (say got hit)
-        //cancel coroutines and the whole thing
-
-        //cast a ray
-        //time to hit something, else bail
-        //if touches something other than alien, bail
-        //if hit, change anim or player, change speed, change camera angle
-
-
-        //aim for center of floor height
-        float y = terrSettings.FloorHeight / 2;
-        transform.position = new Vector3(transform.position.x, y, transform.position.z);
-
         cachedMaskLayer = 1 << grappleLayer;
 
         grappleOnFlag.ModifyValue(true);
@@ -93,6 +94,12 @@ public class GrappleHook : MonoBehaviour
             grappleRetractCR = null;
         }
 
+        if (grappleReelInCR != null)
+        {
+            StopCoroutine(grappleReelInCR);
+            grappleReelInCR = null;
+        }
+
         grappleOnFlag.ModifyValue(false);
         grappleOnFlag.DeRegisterForPropertyChanged(OnGrappleFlagChange);
         currAction.DeRegisterForPropertyChanged(OnActionChange);
@@ -105,6 +112,9 @@ public class GrappleHook : MonoBehaviour
         float currDist = 0;
         float grappleSpeed = maxDist / grappleTimeWindow;
 
+        //aim for center of floor height
+        Vector3 raycastPos = new Vector3(transform.position.x, terrSettings.FloorHeight / 2, transform.position.z);
+
         bool raycastHit = false;
         RaycastHit raycastInfo = new RaycastHit();
 
@@ -113,8 +123,9 @@ public class GrappleHook : MonoBehaviour
             yield return null;
             currDist += grappleSpeed * Time.deltaTime;
 
-            Debug.DrawRay(transform.position, Vector3.forward * currDist);
-            raycastHit = Physics.Raycast(transform.position, Vector3.forward, out raycastInfo, currDist, cachedMaskLayer);
+            Debug.DrawRay(raycastPos, Vector3.forward * currDist);
+            raycastHit = Physics.Raycast(raycastPos, Vector3.forward, out raycastInfo, currDist, cachedMaskLayer);
+            SetSpritePositions(currDist);
         }
 
         if (raycastHit)
@@ -125,8 +136,34 @@ public class GrappleHook : MonoBehaviour
             yield break;
         }
 
-        RetractGrapple();
+        RetractGrapple(currDist);
         grappleWindowCR = null;
+    }
+
+    private void SetSpritePositions(float currDist)
+    {
+        if (currDist < 0) { return; }
+        Vector3 targetPos = transform.position + Vector3.forward * currDist;
+        Vector3 originPos = transform.position + new Vector3(visualOffset.x, visualOffset.y, 0);
+
+        Vector3 normVect = targetPos - originPos;
+        Vector3 normVectY = normVect + new Vector3(visualOffset.x, 0, 0);
+        Vector3 normVectX = normVect + new Vector3(0, visualOffset.y, 0);
+
+        grappleHook.transform.position = targetPos;
+
+        grappleRope.size = new Vector2(normVect.magnitude, grappleRope.size.y);
+        grappleRope.transform.localPosition = new Vector3(0, 0, normVect.magnitude / 2);
+
+        grappleRopeContainer.transform.position = originPos;
+
+        float xRot = Mathf.Rad2Deg * Mathf.Asin(visualOffset.y / normVectY.magnitude);
+        float yRot = Mathf.Rad2Deg * Mathf.Asin(visualOffset.x / normVectX.magnitude);
+
+        Debug.DrawRay(originPos - new Vector3(visualOffset.x, 0, 0), normVectY);
+        Debug.DrawRay(originPos - new Vector3(0, visualOffset.y, 0), normVectX);
+
+        grappleRopeContainer.transform.rotation = Quaternion.Euler(new Vector3(xRot, -yRot, 0));
     }
 
     private void ReelInTowardsAlien(GameObject target)
@@ -136,22 +173,39 @@ public class GrappleHook : MonoBehaviour
         //change grapple anim part
         speedChangeDelegate.InvokeDelegateMethod(treadmillSpeedChange);
         currAction.ModifyValue(PlayerActionEnum.GRAPPLE_REEL);
+
+        grappleReelInCR = StartCoroutine(ReelInCoroutine(target));
+    }
+
+    private IEnumerator ReelInCoroutine(GameObject target)
+    {
+        float currDist;
+        while (target.transform.position.z > transform.position.z)
+        {
+            yield return null;
+            currDist = Vector3.Distance(target.transform.position, transform.position);
+            SetSpritePositions(currDist);
+        }
     }
 
     //TODO: do we want this or just a seperate prefab to play this out? (probably that...)
-    private void RetractGrapple()
+    private void RetractGrapple(float currDist)
     {
         Debug.Log("retracting grapple");
         //TODO: change grapple animation to retract
-        grappleRetractCR = StartCoroutine(GrappleRetractCoroutine());
+        grappleRetractCR = StartCoroutine(GrappleRetractCoroutine(currDist));
     }
 
-    private IEnumerator GrappleRetractCoroutine()
+    private IEnumerator GrappleRetractCoroutine(float currDist)
     {
-        yield return new WaitForSeconds(grappleRetractTime);
+        float retractSpeed = currDist / grappleRetractTime;
+        while (currDist > 0)
+        {
+            yield return null;
+            currDist -= retractSpeed * Time.deltaTime;
+            SetSpritePositions(currDist);
+        }
+
         Destroy(gameObject);
     }
-
-
-
 }
