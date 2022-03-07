@@ -30,6 +30,10 @@ public class GrappleHook : MonoBehaviour
     [SerializeField]
     private SO_TerrSettings terrSettings = null;
 
+    [SerializeField]
+    private int grappleLayer = 8;
+    private int cachedMaskLayer;
+
     private Coroutine grappleWindowCR = null;
     private Coroutine grappleRetractCR = null;
 
@@ -42,6 +46,13 @@ public class GrappleHook : MonoBehaviour
         //time to hit something, else bail
         //if touches something other than alien, bail
         //if hit, change anim or player, change speed, change camera angle
+
+
+        //aim for center of floor height
+        float y = terrSettings.FloorHeight / 2;
+        transform.position = new Vector3(transform.position.x, y, transform.position.z);
+
+        cachedMaskLayer = 1 << grappleLayer;
 
         grappleOnFlag.ModifyValue(true);
         grappleOnFlag.RegisterForPropertyChanged(OnGrappleFlagChange);
@@ -69,6 +80,7 @@ public class GrappleHook : MonoBehaviour
 
     private void OnDestroy()
     {
+        Debug.Log("destroying grapple");
         if (grappleWindowCR != null)
         {
             StopCoroutine(grappleWindowCR);
@@ -88,6 +100,7 @@ public class GrappleHook : MonoBehaviour
 
     private IEnumerator GrappleWindowCoroutine()
     {
+        Debug.Log("started grapple");
         float dist = tileDistanceReach * terrSettings.TileDims.y;
         bool raycastHit = false;
         float passedTime = 0;
@@ -95,37 +108,38 @@ public class GrappleHook : MonoBehaviour
 
         while (!raycastHit && passedTime < grappleTimeWindow)
         {
+            Debug.DrawRay(transform.position, Vector3.forward * dist);
+            raycastHit = Physics.Raycast(transform.position, Vector3.forward, out raycastInfo, dist, cachedMaskLayer);
+            yield return null;
             passedTime += Time.deltaTime;
-            raycastHit = Physics.Raycast(transform.position, Vector3.forward, out raycastInfo, dist);
         }
 
         if (raycastHit)
         {
-            HazardAlien alien = raycastInfo.collider.gameObject.GetComponent<HazardAlien>();
-            if (alien != null)
-            {
-                ReelInTowardsAlien(alien);
-                grappleWindowCR = null;
-                return null;
-            }
+            //if layers set correctly, then we know this was an alien hit box
+            ReelInTowardsAlien(raycastInfo.collider.gameObject);
+            grappleWindowCR = null;
+            yield break;
         }
 
         RetractGrapple();
         grappleWindowCR = null;
-        return null;
     }
 
-    private void ReelInTowardsAlien(HazardAlien alien)
+    private void ReelInTowardsAlien(GameObject target)
     {
-        //change animation? Or would player anim take care of that. Or at least
+        Debug.Log("reeling in towards alien");
+        //TODO: change animation? Or would player anim take care of that. Or at least
         //change grapple anim part
         speedChangeDelegate.InvokeDelegateMethod(grappleSpeedChange);
         currAction.ModifyValue(PlayerActionEnum.GRAPPLE_REEL);
     }
 
+    //TODO: do we want this or just a seperate prefab to play this out? (probably that...)
     private void RetractGrapple()
     {
-        //change grapple animation to retract
+        Debug.Log("retracting grapple");
+        //TODO: change grapple animation to retract
         grappleRetractCR = StartCoroutine(GrappleRetractCoroutine());
     }
 

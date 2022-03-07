@@ -15,6 +15,9 @@ public class ArmamentManager : MonoBehaviour
     private PSO_CurrentLoadout currLoadout = null;
 
     [SerializeField]
+    private BoolPropertySO grappleOnFlag = null;
+
+    [SerializeField]
     private DSO_UseArmament useArmamentDelegate = null;
 
     [SerializeField]
@@ -46,6 +49,11 @@ public class ArmamentManager : MonoBehaviour
 
     private bool TryUseArmament(AArmament armament)
     {
+        if (grappleOnFlag.Value)
+        {
+            return false;
+        }
+
         if (coolDownDict[armament] != null)
         {
             return false;

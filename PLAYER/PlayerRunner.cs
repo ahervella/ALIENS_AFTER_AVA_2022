@@ -185,6 +185,7 @@ public class PlayerRunner : MonoBehaviour
 
     private void InputManager_Dev7()
     {
+        useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedEquipments[1]);
     }
 
     private void InputManager_Dev8()
@@ -246,6 +247,13 @@ public class PlayerRunner : MonoBehaviour
 
     public void OnEnterHazard(PlayerActionEnum avoidAction, PlayerActionEnum takeDownAction, TerrAddonEnum obstacleType)
     {
+        if (currAction.Value == PlayerActionEnum.GRAPPLE_REEL)
+        {
+            //Start tussle
+            currAction.ModifyValue(PlayerActionEnum.RUN);
+            return;
+        }
+
         if (avoidAction == currAction.Value)
         {
             currEnergy.RewardPlayerEnergy(currAction.Value);
