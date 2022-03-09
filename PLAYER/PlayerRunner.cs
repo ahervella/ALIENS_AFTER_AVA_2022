@@ -61,7 +61,7 @@ public class PlayerRunner : MonoBehaviour
     private BoolPropertySO shieldOnFlag = null;
 
     [SerializeField]
-    private TussleManager tussleManagerPrefab = null;
+    private BoolDelegateSO tussleInitDelegate = null;
 
     private Coroutine sprintCR = null;
 
@@ -285,8 +285,7 @@ public class PlayerRunner : MonoBehaviour
     private void StartTussle()
     {
         Debug.Log("Loading tussle scene...");
-        Instantiate(tussleManagerPrefab).InitiateTussle(true);
-        //SceneManager.LoadScene(tussleSceneName, LoadSceneMode.Additive);
+        tussleInitDelegate.InvokeDelegateMethod(true);
     }
 
     private void TakeDamage(PlayerActionEnum requiredAction)
