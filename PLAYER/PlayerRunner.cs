@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using static UnityEngine.InputSystem.InputAction;
 
 [RequireComponent(typeof(BoxCollider))]
 public class PlayerRunner : MonoBehaviour
@@ -107,60 +108,60 @@ public class PlayerRunner : MonoBehaviour
     }
 
     //TODO: take out dev testing for health and energy bar from here eventually!
-    private void InputManager_DodgeLeft()
+    private void InputManager_DodgeLeft(CallbackContext ctx)
     {
         Debug.Log("Input_DodgeLeft");
         currAction.TryPerform(PlayerActionEnum.DODGE_L);
     }
 
-    private void InputManager_DodgeRight()
+    private void InputManager_DodgeRight(CallbackContext ctx)
     {
         Debug.Log("Input_DodgeRight");
         currAction.TryPerform(PlayerActionEnum.DODGE_R);
     }
 
-    private void InputManager_Jump()
+    private void InputManager_Jump(CallbackContext ctx)
     {
         Debug.Log("Input_Jump");
         currAction.TryPerform(PlayerActionEnum.JUMP);
     }
 
-    private void InputManager_Sprint()
+    private void InputManager_Sprint(CallbackContext ctx)
     {
         Debug.Log("Input_Sprint");
         currAction.TryPerform(PlayerActionEnum.SPRINT);
     }
 
-    private void InputManager_Roll()
+    private void InputManager_Roll(CallbackContext ctx)
     {
         Debug.Log("Input_Roll");
         currAction.TryPerform(PlayerActionEnum.ROLL);
     }
 
-    private void InputManager_Pause()
+    private void InputManager_Pause(CallbackContext ctx)
     {
         Debug.Log("Pause");
         //Pause Game
     }
 
-    private void InputManager_Dev1()
+    private void InputManager_Dev1(CallbackContext ctx)
     {
         TakeDamage(PlayerActionEnum.DODGE_L);
         Debug.Log($"health: {currLives.Value}");
     }
 
-    private void InputManager_Dev2()
+    private void InputManager_Dev2(CallbackContext ctx)
     {
         currLives.ModifyValue(1);
         Debug.Log($"health: {currLives.Value}");
     }
 
-    private void InputManager_Dev3()
+    private void InputManager_Dev3(CallbackContext ctx)
     {
         useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedWeapons[0]);
     }
 
-    private void InputManager_Dev4()
+    private void InputManager_Dev4(CallbackContext ctx)
     {
         //currEnergy.RewardPlayerEnergy(currAction.Value);
         TryStartSprint();
@@ -168,7 +169,7 @@ public class PlayerRunner : MonoBehaviour
 
     private bool dev_toggleTreadmill = true;
 
-    private void InputManager_Dev5()
+    private void InputManager_Dev5(CallbackContext ctx)
     {
         if (dev_toggleTreadmill)
         {
@@ -182,21 +183,21 @@ public class PlayerRunner : MonoBehaviour
     }
 
 
-    private void InputManager_Dev6()
+    private void InputManager_Dev6(CallbackContext ctx)
     {
         useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedEquipments[0]);
     }
 
-    private void InputManager_Dev7()
+    private void InputManager_Dev7(CallbackContext ctx)
     {
         useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedEquipments[1]);
     }
 
-    private void InputManager_Dev8()
+    private void InputManager_Dev8(CallbackContext ctx)
     {
     }
 
-    private void InputManager_Dev9()
+    private void InputManager_Dev9(CallbackContext ctx)
     {
     }
 

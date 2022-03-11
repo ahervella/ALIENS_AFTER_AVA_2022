@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static UnityEngine.InputSystem.InputAction;
 
 [CreateAssetMenu(fileName = "SO_InputManager", menuName = "ScriptableObjects/StaticData/SO_InputManager")]
 public class SO_InputManager : ScriptableObject
@@ -25,21 +26,18 @@ public class SO_InputManager : ScriptableObject
         public InputEnum InputType => inputType;
     }
 
-    public delegate void OnInput();
 
-    public delegate void OnAnyInput(InputEnum input);
-
-    public void RegisterForAnyInput(OnAnyInput method)
+    public void RegisterForAnyInput(Action<CallbackContext> method)
     {
         AnyInputRegistrationChanged(method, true);
     }
 
-    public void UnregisterFromAnyInput(OnAnyInput method)
+    public void UnregisterFromAnyInput(Action<CallbackContext> method)
     {
         AnyInputRegistrationChanged(method, false);
     }
 
-    private void AnyInputRegistrationChanged(OnAnyInput method, bool registering)
+    private void AnyInputRegistrationChanged(Action<CallbackContext> method, bool registering)
     {
         if (registering)
         {
@@ -48,10 +46,10 @@ public class SO_InputManager : ScriptableObject
 
         foreach (InputWrapper iw in inputWrappers)
         {
-            iw.InputAction.action.performed -= ctx => method(iw.InputType);
+            iw.InputAction.action.performed -= method;
             if (registering)
             {
-                iw.InputAction.action.performed += ctx => method(iw.InputType);
+                iw.InputAction.action.performed += method;
             }
         }
     }
@@ -68,18 +66,17 @@ public class SO_InputManager : ScriptableObject
     }
 
 
-
-    public void RegisterForInput(InputEnum input, OnInput method)
+    public void RegisterForInput(InputEnum input, Action<CallbackContext> method)
     {
         InputRegistrationChanged(input, method, true);
     }
 
-    public void UnregisterFromInput(InputEnum input, OnInput method)
+    public void UnregisterFromInput(InputEnum input, Action<CallbackContext> method)
     {
         InputRegistrationChanged(input, method, false);
     }
 
-    private void InputRegistrationChanged(InputEnum input, OnInput method, bool registering)
+    private void InputRegistrationChanged(InputEnum input, Action<CallbackContext> method, bool registering)
     {
         if (registering)
         {
@@ -90,11 +87,11 @@ public class SO_InputManager : ScriptableObject
         {
             if (iw.InputType == input)
             {
-                iw.InputAction.action.performed -= ctx => method();
+                iw.InputAction.action.performed -= method;
                 if (registering)
                 {
-                    iw.InputAction.action.performed += ctx => method();
-                }
+                    iw.InputAction.action.performed += method;
+                } 
                 return;
             }
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using static SO_InputManager;
+using static UnityEngine.InputSystem.InputAction;
 
 public class TussleInputSequence : MonoBehaviour
 {
@@ -26,7 +27,7 @@ public class TussleInputSequence : MonoBehaviour
     private Action<bool> finishCallback;
 
     //Used to store method reference for unregistering from inputs
-    private Dictionary<InputEnum, OnInput> inputCallbackDict = new Dictionary<InputEnum, OnInput>();
+    private Dictionary<InputEnum, Action<CallbackContext>> inputCallbackDict = new Dictionary<InputEnum, Action<CallbackContext>>();
 
     public void StartSequence(Action<bool> finishCallback)
     {
@@ -56,6 +57,12 @@ public class TussleInputSequence : MonoBehaviour
         }
 
         StopCoroutine(failTimerCR);
+        ResolveSequence(true);
+    }
+
+    private void ResolveSequence(bool won)
+    {
+        RegisterInputChange(false);
         finishCallback(true);
     }
 
@@ -65,7 +72,7 @@ public class TussleInputSequence : MonoBehaviour
         {
             if (register)
             {
-                inputCallbackDict.Add(i, () => OnInput(i));
+                inputCallbackDict.Add(i, ctx => OnInput(i));
                 inputManager.RegisterForInput(i, inputCallbackDict[i]);
             }
             else
@@ -100,8 +107,6 @@ public class TussleInputSequence : MonoBehaviour
             button.SetToFailed();
         }
 
-        RegisterInputChange(false);
-
-        finishCallback(false);
+        ResolveSequence(false);
     }
 }
