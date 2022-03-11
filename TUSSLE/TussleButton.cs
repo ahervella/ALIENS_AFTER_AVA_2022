@@ -29,8 +29,8 @@ public class TussleButton : MonoBehaviour
     private class ButtonSpriteWrapper
     {
         [SerializeField]
-        private TussleButtonState buttonState;
-        public TussleButtonState ButtonState => buttonState;
+        private TussleButtonStateEnum buttonState;
+        public TussleButtonStateEnum ButtonState => buttonState;
 
         [SerializeField]
         private Sprite buttonSprite = null;
@@ -56,7 +56,7 @@ public class TussleButton : MonoBehaviour
     private InputEnum assignedInput;
     public InputEnum AssignedInput => assignedInput;
 
-    private TussleButtonState currState;
+    private TussleButtonStateEnum currState;
 
     private void Awake()
     {
@@ -66,7 +66,7 @@ public class TussleButton : MonoBehaviour
 
         textOriginalPos = textMesh.rectTransform.anchoredPosition3D;
         ExtendedAE_ButtonUp();
-        SetButtonState(TussleButtonState.IDLE);
+        SetButtonState(TussleButtonStateEnum.IDLE);
 
     }
 
@@ -77,9 +77,9 @@ public class TussleButton : MonoBehaviour
         assignedInput = bcw.Input;
     }
 
-    public void SetButtonState(TussleButtonState state)
+    public void SetButtonState(TussleButtonStateEnum state)
     {
-        if (state == TussleButtonState.PRESS_NOW)
+        if (state == TussleButtonStateEnum.PRESS_NOW)
         {
             animRenderer.color = Color.white;
             textMesh.color = Color.white;
@@ -116,22 +116,13 @@ public class TussleButton : MonoBehaviour
 
     public void SetToFailed()
     {
-        if (currState == TussleButtonState.PRESS_NOW)
+        if (currState == TussleButtonStateEnum.PRESS_NOW)
         {
-            SetButtonState(TussleButtonState.FAILED_UNPRESSED);
+            SetButtonState(TussleButtonStateEnum.FAILED_UNPRESSED);
         }
 
-        SetButtonState(TussleButtonState.FAILED_PRESSED);
+        SetButtonState(TussleButtonStateEnum.FAILED_PRESSED);
     }
-}
-
-public enum TussleButtonState
-{
-    PRESS_NOW = 1,
-    FAILED_PRESSED = 2,
-    SUCCESS = 3,
-    IDLE = 4,
-    FAILED_UNPRESSED = 5
 }
 
 

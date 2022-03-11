@@ -10,6 +10,9 @@ public class TussleManager : MonoBehaviour
     private DSO_TreadmillSpeedChange treadmillSpeedDelegate = null;
 
     [SerializeField]
+    private BoolDelegateSO energyBarDisplayDelegate = null;
+
+    [SerializeField]
     private PSO_CurrentPlayerAction currAction = null;
 
     [SerializeField]
@@ -44,7 +47,9 @@ public class TussleManager : MonoBehaviour
         videoPlayer2.enabled = true;
 
         this.playerAdvantage = playerAdvantage;
+
         treadmillSpeedDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(0, 0));
+        energyBarDisplayDelegate.InvokeDelegateMethod(false);
 
         TussleVideoWrapper startVidWrapper = settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_START : TussleVideoType.DIS_START);
         TussleVideoWrapper loopVidWrapper = settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_LOOP : TussleVideoType.DIS_LOOP);
@@ -54,6 +59,8 @@ public class TussleManager : MonoBehaviour
         InitiateButtonSequence();
         return 0;
     }
+
+    //TODO: base class these video methods to use with the main menu later
 
     private IEnumerator PlayVideo(TussleVideoWrapper vidWrapper, Action callbackOnFinish = null)
     {
@@ -133,6 +140,8 @@ public class TussleManager : MonoBehaviour
     public void EndTussle()
     {
         treadmillSpeedDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(1, 0));
+        energyBarDisplayDelegate.InvokeDelegateMethod(true);
+
         currAction.ModifyValue(PlayerActionEnum.RUN);
 
         Destroy(currSequence.gameObject);

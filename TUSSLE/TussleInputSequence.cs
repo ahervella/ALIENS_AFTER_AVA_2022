@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using Random = UnityEngine.Random;
+using static SO_InputManager;
 
 public class TussleInputSequence : MonoBehaviour
 {
@@ -16,10 +16,18 @@ public class TussleInputSequence : MonoBehaviour
     private List<TussleButton> orderedButtons = new List<TussleButton>();
 
     private Coroutine sequenceCR = null;
+
     private Coroutine failTimerCR = null;
+
     private InputEnum currInputRequirement;
+
     private bool waitingForCorrectInput = true;
-    Action<bool> finishCallback;
+
+    private Action<bool> finishCallback;
+
+    //Used to store method reference for unregistering from inputs
+    private Dictionary<InputEnum, OnInput> inputCallbackDict = new Dictionary<InputEnum, OnInput>();
+
     public void StartSequence(Action<bool> finishCallback)
     {
         //callback to trigger whether sequence was a success or failure
@@ -29,7 +37,7 @@ public class TussleInputSequence : MonoBehaviour
 
     private IEnumerator SequenceCoroutine()
     {
-        RegisterForPossibleInputs();
+        RegisterInputChange(true);
 
         failTimerCR = StartCoroutine(FailTimer(settings.GetCurrZoneTussleTime()));
 
@@ -37,25 +45,33 @@ public class TussleInputSequence : MonoBehaviour
         {
             waitingForCorrectInput = true;
             currInputRequirement = button.AssignedInput;
-            button.SetButtonState(TussleButtonState.PRESS_NOW);
+            button.SetButtonState(TussleButtonStateEnum.PRESS_NOW);
 
             while (waitingForCorrectInput)
             {
                 yield return null;
             }
 
-            button.SetButtonState(TussleButtonState.SUCCESS);
+            button.SetButtonState(TussleButtonStateEnum.SUCCESS);
         }
 
         StopCoroutine(failTimerCR);
         finishCallback(true);
     }
 
-    private void RegisterForPossibleInputs()
+    private void RegisterInputChange(bool register)
     {
         foreach(InputEnum i in settings.GetListOfAvailableInputs())
         {
-            inputManager.RegisterForInput(i, () => OnInput(i));
+            if (register)
+            {
+                inputCallbackDict.Add(i, () => OnInput(i));
+                inputManager.RegisterForInput(i, inputCallbackDict[i]);
+            }
+            else
+            {
+                inputManager.UnregisterFromInput(i, inputCallbackDict[i]);
+            }
         }
     }
 
@@ -83,6 +99,9 @@ public class TussleInputSequence : MonoBehaviour
         {
             button.SetToFailed();
         }
+
+        RegisterInputChange(false);
+
         finishCallback(false);
     }
 }

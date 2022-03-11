@@ -3,9 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(Image))]
 public class EnergyBarManager : MonoBehaviour
 {
+    [SerializeField]
+    private BoolDelegateSO energyBarDisplayDelegate = null;
+
+    [SerializeField]
+    private GameObject barDisplayContainer = null;
+
     [SerializeField]
     private PSO_CurrentEnergy currEnergy = null;
 
@@ -15,6 +20,7 @@ public class EnergyBarManager : MonoBehaviour
     [SerializeField]
     private SO_EnergySettings settings = null;
 
+    [SerializeField]
     private Image maskImg;
 
     /// <summary>
@@ -46,13 +52,19 @@ public class EnergyBarManager : MonoBehaviour
 
     private void Awake()
     {
-        maskImg = GetComponent<Image>();
+
+        energyBarDisplayDelegate.SetInvokeMethod(SetVisibility);
         currEnergy.RegisterForPropertyChanged(OnEnergyChanged);
         currAction.RegisterForPropertyChanged(OnActionChanged);
         currEnergy.ModifyValue(settings.StartingEnergy);
         blockFractionPerc = 0;
     }
 
+    private int SetVisibility(bool visibility)
+    {
+        barDisplayContainer.SetActive(visibility);
+        return 0;
+    }
 
     private void OnEnergyChanged(int oldEnergy, int newEnergy)
     {
