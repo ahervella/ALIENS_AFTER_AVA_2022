@@ -1,16 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using PowerTools;
-using UnityEngine.SceneManagement;
 using UnityEngine.Video;
 using System;
 
 public class TussleManager : MonoBehaviour
 {
-    [SerializeField]
-    private SpriteAnim tussleAnim = null;
-
     [SerializeField]
     private DSO_TreadmillSpeedChange treadmillSpeedDelegate = null;
 
@@ -21,94 +16,128 @@ public class TussleManager : MonoBehaviour
     private VideoPlayer videoPlayer = null;
     private VideoPlayer videoPlayer2;
 
+    private VideoPlayer currVideoPlayer;
+
     [SerializeField]
     private SO_TussleSettings settings = null;
 
     [SerializeField]
     private BoolDelegateSO tussleStartDelegate = null;
 
+    private bool playerAdvantage;
+
+    private TussleInputSequence currSequence;
+
     private void Awake()
     {
         tussleStartDelegate.SetInvokeMethod(InitiateTussle);
         videoPlayer.targetCamera = Camera.main;
+        videoPlayer.clip = null;
 
-        //to have the same settings
+        //make the duplicate que videoplayer one at runtime to have the same settings
         videoPlayer2 = Instantiate(videoPlayer, transform);
     }
 
     private int InitiateTussle(bool playerAdvantage)
     {
+        videoPlayer.enabled = true;
+        videoPlayer2.enabled = true;
+
+        this.playerAdvantage = playerAdvantage;
         treadmillSpeedDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(0, 0));
 
         TussleVideoWrapper startVidWrapper = settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_START : TussleVideoType.DIS_START);
         TussleVideoWrapper loopVidWrapper = settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_LOOP : TussleVideoType.DIS_LOOP);
-        VideoPlayer startVideoPlayer = PlayTussleVideo(startVidWrapper);
-        VideoPlayer loopVideoPlayer = QueueTussleVideo(loopVidWrapper);
-
-        StartCoroutine(TussleVideoTransitionCoroutine(startVideoPlayer, loopVideoPlayer));// () => PlayTussleVideo(loopVidWrapper)));
+        StartCoroutine(PlayVideo(startVidWrapper));
+        StartCoroutine(WaitForCurrVideoAndPlay(loopVidWrapper));
 
         InitiateButtonSequence();
         return 0;
     }
 
-    private VideoPlayer PlayTussleVideo(TussleVideoWrapper wrapper)
+    private IEnumerator PlayVideo(TussleVideoWrapper vidWrapper, Action callbackOnFinish = null)
     {
-        if (videoPlayer.isPlaying)
-        {
-            SwapVideoPlayers();
-        }
+        VideoPlayer player = QueueTussleVideo(vidWrapper);
+        currVideoPlayer = player;
+        player.Play();
 
-        videoPlayer.clip = wrapper.Video;
-        videoPlayer.isLooping = wrapper.Loop;
-        videoPlayer.Play();
-        return videoPlayer;
+        yield return WaitForVideoToLoad(player);
+
+        if (callbackOnFinish != null)
+        {
+            yield return WaitForCurrVideoToFinish();
+            callbackOnFinish();
+        }
     }
 
-    private void SwapVideoPlayers()
+    private IEnumerator WaitForCurrVideoToFinish()
     {
-        VideoPlayer temp = videoPlayer2;
-        videoPlayer2 = videoPlayer;
-        videoPlayer = temp;
+        while (currVideoPlayer.isPlaying)
+        {
+            yield return null;
+        }
     }
 
     private VideoPlayer QueueTussleVideo(TussleVideoWrapper wrapper)
     {
-        if (videoPlayer2.isPlaying)
+        if (!videoPlayer.isPrepared || videoPlayer.isPlaying)
         {
-            SwapVideoPlayers();
+            //Swap video players
+            VideoPlayer temp = videoPlayer2;
+            videoPlayer2 = videoPlayer;
+            videoPlayer = temp;
         }
 
-        videoPlayer2.clip = wrapper.Video;
-        videoPlayer2.isLooping = wrapper.Loop;
-        return videoPlayer2;
+        videoPlayer.clip = wrapper.Video;
+        videoPlayer.isLooping = wrapper.Loop;
+        return videoPlayer;
     }
 
-    private IEnumerator TussleVideoTransitionCoroutine(VideoPlayer currVideo, VideoPlayer queuedVideo)
+    private IEnumerator WaitForVideoToLoad(VideoPlayer player)
     {
-        yield return null;
-        while (!currVideo.isPrepared || currVideo.isPlaying)
+        player.Prepare();
+        while (!player.isPrepared)
         {
             yield return null;
         }
-
-        queuedVideo.Play();
     }
 
-    private IEnumerator InitiateButtonSequence()
+    private IEnumerator WaitForCurrVideoAndPlay(TussleVideoWrapper queuedWrapper)
     {
-        yield break;
+        VideoPlayer queuedPlayer = QueueTussleVideo(queuedWrapper);
+
+        yield return WaitForVideoToLoad(queuedPlayer);
+        yield return WaitForVideoToLoad(currVideoPlayer);
+        yield return WaitForCurrVideoToFinish();
+
+        queuedPlayer.Play();
+        currVideoPlayer.clip = null;
+        currVideoPlayer = queuedPlayer;
     }
 
-    private IEnumerator tempTussleCoroutine()
+    private void InitiateButtonSequence()
     {
-        yield return new WaitForSeconds(2);
-        EndTussle();
+        currSequence = Instantiate(settings.GetInputSequencePrefab(playerAdvantage), transform);
+        currSequence.StartSequence(SequenceResolved);
     }
 
-    private void EndTussle()
+    private void SequenceResolved(bool successful)
+    {
+        TussleVideoWrapper wrapper = successful ?
+            settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_WIN : TussleVideoType.DIS_WIN)
+            : settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_LOOSE : TussleVideoType.DIS_LOOSE);
+
+        StartCoroutine(PlayVideo(wrapper, EndTussle));
+    }
+
+    public void EndTussle()
     {
         treadmillSpeedDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(1, 0));
         currAction.ModifyValue(PlayerActionEnum.RUN);
-        Destroy(gameObject);
+
+        Destroy(currSequence.gameObject);
+
+        videoPlayer.clip = null;
+        videoPlayer2.clip = null;
     }
 }

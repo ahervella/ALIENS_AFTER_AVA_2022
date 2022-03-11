@@ -27,7 +27,36 @@ public class SO_InputManager : ScriptableObject
 
     public delegate void OnInput();
 
-    public void RegisterForInput(InputEnum input, OnInput method)
+    public delegate void OnAnyInput(InputEnum input);
+
+    public void RegisterForAnyInput(OnAnyInput method)
+    {
+        AnyInputRegistrationChanged(method, true);
+    }
+
+    public void UnregisterFromAnyInput(OnAnyInput method)
+    {
+        AnyInputRegistrationChanged(method, false);
+    }
+
+    private void AnyInputRegistrationChanged(OnAnyInput method, bool registering)
+    {
+        if (registering)
+        {
+            EnsureIsEnabled();
+        }
+
+        foreach (InputWrapper iw in inputWrappers)
+        {
+            iw.InputAction.action.performed -= ctx => method(iw.InputType);
+            if (registering)
+            {
+                iw.InputAction.action.performed += ctx => method(iw.InputType);
+            }
+        }
+    }
+
+    private void EnsureIsEnabled()
     {
         //idealy we find somewhere to do this on awake but
         //this is the only way to make sure that anything that
@@ -36,21 +65,42 @@ public class SO_InputManager : ScriptableObject
         {
             inputMapper.Enable();
         }
+    }
+
+
+
+    public void RegisterForInput(InputEnum input, OnInput method)
+    {
+        InputRegistrationChanged(input, method, true);
+    }
+
+    public void UnregisterFromInput(InputEnum input, OnInput method)
+    {
+        InputRegistrationChanged(input, method, false);
+    }
+
+    private void InputRegistrationChanged(InputEnum input, OnInput method, bool registering)
+    {
+        if (registering)
+        {
+            EnsureIsEnabled();
+        }
 
         foreach (InputWrapper iw in inputWrappers)
         {
             if (iw.InputType == input)
             {
                 iw.InputAction.action.performed -= ctx => method();
-                iw.InputAction.action.performed += ctx => method();
+                if (registering)
+                {
+                    iw.InputAction.action.performed += ctx => method();
+                }
                 return;
             }
         }
 
         Debug.LogErrorFormat("Couldn't find InputWrapper for inputEnum {0}", input.ToString());
     }
-
-
 }
 
 

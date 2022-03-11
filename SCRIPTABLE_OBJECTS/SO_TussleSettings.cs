@@ -3,15 +3,58 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using UnityEngine.Video;
+using Random = UnityEngine.Random;
 
 [CreateAssetMenu(fileName = "SO_TussleSettings", menuName = "ScriptableObjects/StaticData/SO_TussleSettings")]
 public class SO_TussleSettings : ScriptableObject
 {
     [SerializeField]
-    private List<TussleVideoWrapper> wrappers = new List<TussleVideoWrapper>();
+    private List<TussleVideoWrapper> videoWrappers = new List<TussleVideoWrapper>();
+
+
+    [Serializable]
+    private class TussleTimerZoneWrapper
+    {
+        [SerializeField]
+        private int zone;
+        public int Zone => zone;
+
+        [SerializeField]
+        private float timeForTussle;
+        public float TimeForTussle => timeForTussle;
+    }
+
+    [SerializeField]
+    private List<ButtonCharacterWrapper> buttonCharWrappers = new List<ButtonCharacterWrapper>();
+
+    public List<InputEnum> GetListOfAvailableInputs() => buttonCharWrappers.ConvertAll(bcw => bcw.Input);
+
+    public ButtonCharacterWrapper GetRandomCharacterWrapper()
+    {
+        return buttonCharWrappers[Random.Range(0, buttonCharWrappers.Count)];
+    }
+
+    [SerializeField]
+    private TussleInputSequence advantageSequencePrefab = null;
+
+    [SerializeField]
+    private TussleInputSequence disadvantageSequencePrefab = null;
+
+    public TussleInputSequence GetInputSequencePrefab(bool advantage)
+    {
+        return advantage ? advantageSequencePrefab : disadvantageSequencePrefab;
+    }
+
+    [SerializeField]
+    private IntPropertySO currZone = null;
+
+    [SerializeField]
+    private List<TussleTimerZoneWrapper> zoneWrappers = new List<TussleTimerZoneWrapper>();
+
+
     public TussleVideoWrapper GetTussleVideoWrapper(TussleVideoType videoType)
     {
-        foreach(TussleVideoWrapper tvw in wrappers)
+        foreach (TussleVideoWrapper tvw in videoWrappers)
         {
             if (tvw.VideoType == videoType)
             {
@@ -20,6 +63,19 @@ public class SO_TussleSettings : ScriptableObject
         }
         Debug.LogError($"No video found for tussle type {videoType}");
         return null;
+    }
+
+    public float GetCurrZoneTussleTime()
+    {
+        foreach (TussleTimerZoneWrapper ttzw in zoneWrappers)
+        {
+            if (ttzw.Zone == currZone.Value)
+            {
+                return ttzw.TimeForTussle;
+            }
+        }
+        Debug.LogError($"No tussle time found for zone {currZone.Value}");
+        return -1;
     }
 }
 
@@ -37,6 +93,19 @@ public class TussleVideoWrapper
     [SerializeField]
     private bool loop;
     public bool Loop => loop;
+}
+
+
+[Serializable]
+public class ButtonCharacterWrapper
+{
+    [SerializeField]
+    private InputEnum input;
+    public InputEnum Input => input;
+
+    [SerializeField]
+    private string characters = string.Empty;
+    public string Characters => characters;
 }
 
 public enum TussleVideoType
