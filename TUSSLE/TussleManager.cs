@@ -87,7 +87,7 @@ public class TussleManager : MonoBehaviour
 
     private VideoPlayer QueueTussleVideo(TussleVideoWrapper wrapper)
     {
-        if (!videoPlayer.isPrepared || videoPlayer.isPlaying)
+        if (currVideoPlayer == videoPlayer)
         {
             //Swap video players
             VideoPlayer temp = videoPlayer2;
@@ -118,6 +118,9 @@ public class TussleManager : MonoBehaviour
         yield return WaitForCurrVideoToFinish();
 
         queuedPlayer.Play();
+
+        yield return WaitForVideoToLoad(queuedPlayer);
+
         currVideoPlayer.clip = null;
         currVideoPlayer = queuedPlayer;
     }
@@ -132,7 +135,7 @@ public class TussleManager : MonoBehaviour
     {
         TussleVideoWrapper wrapper = successful ?
             settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_WIN : TussleVideoType.DIS_WIN)
-            : settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_LOOSE : TussleVideoType.DIS_LOOSE);
+            : settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_LOSE : TussleVideoType.DIS_LOSE);
 
         StartCoroutine(PlayVideo(wrapper, EndTussle));
     }
@@ -145,7 +148,7 @@ public class TussleManager : MonoBehaviour
         currAction.ModifyValue(PlayerActionEnum.RUN);
 
         Destroy(currSequence.gameObject);
-
+        currVideoPlayer = null;
         videoPlayer.clip = null;
         videoPlayer2.clip = null;
     }

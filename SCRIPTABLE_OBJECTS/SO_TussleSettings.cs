@@ -113,9 +113,9 @@ public enum TussleVideoType
     ADV_START = 1,
     ADV_LOOP = 2,
     ADV_WIN = 3,
-    ADV_LOOSE = 4,
+    ADV_LOSE = 4,
     DIS_START = 5,
     DIS_LOOP = 6,
     DIS_WIN = 7,
-    DIS_LOOSE = 8
+    DIS_LOSE = 8
 }

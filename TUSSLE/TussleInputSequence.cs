@@ -40,7 +40,7 @@ public class TussleInputSequence : MonoBehaviour
     {
         RegisterInputChange(true);
 
-        failTimerCR = StartCoroutine(FailTimer(settings.GetCurrZoneTussleTime()));
+        //failTimerCR = StartCoroutine(FailTimer(settings.GetCurrZoneTussleTime()));
 
         foreach (TussleButton button in orderedButtons)
         {
@@ -56,14 +56,14 @@ public class TussleInputSequence : MonoBehaviour
             button.SetButtonState(TussleButtonStateEnum.SUCCESS);
         }
 
-        StopCoroutine(failTimerCR);
+        //StopCoroutine(failTimerCR);
         ResolveSequence(true);
     }
 
     private void ResolveSequence(bool won)
     {
         RegisterInputChange(false);
-        finishCallback(true);
+        finishCallback(won);
     }
 
     private void RegisterInputChange(bool register)

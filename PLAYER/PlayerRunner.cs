@@ -286,7 +286,7 @@ public class PlayerRunner : MonoBehaviour
     private void StartTussle()
     {
         Debug.Log("Loading tussle scene...");
-        tussleInitDelegate.InvokeDelegateMethod(true);
+        tussleInitDelegate.InvokeDelegateMethod(false);// true);
     }
 
     private void TakeDamage(PlayerActionEnum requiredAction)

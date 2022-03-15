@@ -65,9 +65,8 @@ public class TussleButton : MonoBehaviour
         animEventExtender.AssignAnimationEvent(ExtendedAE_ButtonDown, 1);
 
         textOriginalPos = textMesh.rectTransform.anchoredPosition3D;
-        ExtendedAE_ButtonUp();
-        SetButtonState(TussleButtonStateEnum.IDLE);
 
+        SetButtonState(TussleButtonStateEnum.IDLE);
     }
 
     private void SetRandomRequiredInput()
