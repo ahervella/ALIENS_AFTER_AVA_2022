@@ -254,7 +254,7 @@ public class PlayerRunner : MonoBehaviour
     {
         if (currAction.Value == PlayerActionEnum.GRAPPLE_REEL)
         {
-            StartTussle();
+            StartTussle(true);
             return;
         }
 
@@ -283,10 +283,10 @@ public class PlayerRunner : MonoBehaviour
         TakeDamage(avoidAction);
     }
 
-    private void StartTussle()
+    private void StartTussle(bool advantage)
     {
         Debug.Log("Loading tussle scene...");
-        tussleInitDelegate.InvokeDelegateMethod(false);// true);
+        tussleInitDelegate.InvokeDelegateMethod(advantage);
     }
 
     private void TakeDamage(PlayerActionEnum requiredAction)
