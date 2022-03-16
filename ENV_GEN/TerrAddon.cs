@@ -33,6 +33,10 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
     [SerializeField]
     private bool isFlippable = true;
 
+    [SerializeField]
+    private bool randomYTileOffset = false;
+    public bool RandomYTileOffset => randomYTileOffset;
+
     protected virtual void Awake()
     {
         if (isFlippable && Random.value > 0.5f)

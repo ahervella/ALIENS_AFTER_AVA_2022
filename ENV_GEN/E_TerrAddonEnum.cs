@@ -10,6 +10,6 @@
     Z1_LOG = 103,
     
     ALL_RAMPS = 200,
-
+    FOLEY = 300,
     PROJECTILE = 666
 }

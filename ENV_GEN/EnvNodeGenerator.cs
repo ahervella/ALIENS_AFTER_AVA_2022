@@ -46,7 +46,7 @@ public class EnvNodeGenerator : MonoBehaviour
         return TryGetNewViolationFreeAddon(colIndex, rowIndex, currAddons);
     }
 
-    public TerrAddon TryGetNewViolationFreeAddon(int colIndex, int rowIndex, Data2D<TerrAddon> currAddons)
+    private TerrAddon TryGetNewViolationFreeAddon(int colIndex, int rowIndex, Data2D<TerrAddon> currAddons)
     {
         TerrAddon newAddon = cachedZoneWrapper.GenerateRandomNewAddon();
         if (newAddon == null) { return null; }

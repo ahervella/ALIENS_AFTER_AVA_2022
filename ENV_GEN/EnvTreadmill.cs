@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 
 using static HelperUtil;
+using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(MeshRenderer))]
 public class EnvTreadmill : MonoBehaviour
@@ -208,6 +209,10 @@ public class EnvTreadmill : MonoBehaviour
 
 
         TerrAddon taInstance = taPrefab.InstantiateAddon(transform);
+        if (taInstance.RandomYTileOffset)
+        {
+            taInstance.transform.localPosition += new Vector3(0, 0, settings.TileDims.y * Random.Range(-0.5f, 0.5f));
+        }
 
         //line up in grid local position
         taInstance.transform.localPosition += new Vector3
