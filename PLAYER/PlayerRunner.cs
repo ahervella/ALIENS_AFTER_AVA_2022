@@ -283,6 +283,12 @@ public class PlayerRunner : MonoBehaviour
         TakeDamage(avoidAction);
     }
 
+    public void OnEnterProjectile(WeaponEnum weaponType)
+    {
+        //TODO: do we need tyhe projectile (weapon) type in the end?
+        OnEnterHazard(PlayerActionEnum.ROLL, PlayerActionEnum.NONE, TerrAddonEnum.PROJECTILE);
+    }
+
     private void StartTussle(bool advantage)
     {
         Debug.Log("Loading tussle scene...");
