@@ -19,6 +19,9 @@ public class TerrHazard : TerrAddon
     [SerializeField]
     private BoxColliderSP hitBox = null;
 
+    //for aliens that inherit have their own serialized field
+    protected PlayerActionEnum hazardTakeDownReqAction = PlayerActionEnum.NONE;
+
     protected override void Awake()
     {
         base.Awake();
@@ -47,7 +50,7 @@ public class TerrHazard : TerrAddon
         PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
         if (player != null)
         {
-            player.OnEnterHazard(requiredAvoidAction, PlayerActionEnum.NONE, TerrAddonEnum);
+            player.OnEnterHazard(requiredAvoidAction, hazardTakeDownReqAction, TerrAddonEnum, out bool dumbyDodge);
             return;
         }
 

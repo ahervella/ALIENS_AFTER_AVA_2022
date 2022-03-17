@@ -169,6 +169,16 @@ public class GrappleHook : MonoBehaviour
     private void ReelInTowardsAlien(GameObject target)
     {
         Debug.Log("reeling in towards alien");
+
+        HazardAlien alienObj = null;
+        while (alienObj == null)
+        {
+            alienObj = target.GetComponent<HazardAlien>();
+            target = target.transform.parent.gameObject;
+        }
+
+        alienObj.Stun();
+
         //TODO: change animation? Or would player anim take care of that. Or at least
         //change grapple anim part
         speedChangeDelegate.InvokeDelegateMethod(treadmillSpeedChange);

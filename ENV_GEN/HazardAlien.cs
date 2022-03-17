@@ -5,7 +5,13 @@ using UnityEngine;
 public class HazardAlien : TerrHazard
 {
     [SerializeField]
+    private AnimationClip stunAnimation = null;
+
+    [SerializeField]
     private AnimationClip attackAnimation = null;
+
+    [SerializeField]
+    private PlayerActionEnum takeDownReqAction = PlayerActionEnum.NONE;
 
     [SerializeField]
     private float timeBeforeTriggerAttack = 1f;
@@ -16,9 +22,13 @@ public class HazardAlien : TerrHazard
     [SerializeField]
     public BoxColliderSP attackTrigger = null;
 
+    protected bool stunnedFlag = false;
+
     protected override void Awake()
     {
         base.Awake();
+        hazardTakeDownReqAction = takeDownReqAction;
+
         currTreadmillSpeed.RegisterForPropertyChanged(OnTreadmillSpeedChange);
         OnTreadmillSpeedChange(currTreadmillSpeed.Value, currTreadmillSpeed.Value);
         attackTrigger.SetOnTriggerMethod(OnTriggerEnterAttackBox);
@@ -41,9 +51,16 @@ public class HazardAlien : TerrHazard
     {
         if (other.gameObject.GetComponent<PlayerRunner>() != null)
         {
-            sprite.Play(attackAnimation);
+            if (!stunnedFlag) { sprite.Play(attackAnimation); }
             attackTrigger.SetOnTriggerMethod(null);
         }
+    }
+
+    public virtual void Stun()
+    {
+        stunnedFlag = true;
+        hazardTakeDownReqAction = PlayerActionEnum.ANY_ACTION;
+        sprite.Play(stunAnimation);
     }
 
     private void OnDestroy()

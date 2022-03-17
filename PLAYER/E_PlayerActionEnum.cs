@@ -17,5 +17,7 @@
     //hack: these are specifically for the requirements of things that should
     //hurt the player if they just touch them
     TAKE_DAMAGE_GROUND = 14,
-    GRAPPLE_REEL = 15
+
+    GRAPPLE_REEL = 15,
+    ANY_ACTION = 16
 }

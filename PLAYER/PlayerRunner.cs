@@ -158,7 +158,7 @@ public class PlayerRunner : MonoBehaviour
 
     private void InputManager_Dev3(CallbackContext ctx)
     {
-        useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedWeapons[0]);
+        TryUseArmament(true, 0);
     }
 
     private void InputManager_Dev4(CallbackContext ctx)
@@ -185,12 +185,12 @@ public class PlayerRunner : MonoBehaviour
 
     private void InputManager_Dev6(CallbackContext ctx)
     {
-        useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedEquipments[0]);
+        TryUseArmament(false, 0);
     }
 
     private void InputManager_Dev7(CallbackContext ctx)
     {
-        useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedEquipments[1]);
+        TryUseArmament(false, 1);
     }
 
     private void InputManager_Dev8(CallbackContext ctx)
@@ -250,9 +250,16 @@ public class PlayerRunner : MonoBehaviour
         treadmillToggleDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(0, transitionTime));
     }
 
-    public void OnEnterHazard(PlayerActionEnum avoidAction, PlayerActionEnum takeDownAction, TerrAddonEnum obstacleType)
+    public void OnEnterHazard(PlayerActionEnum avoidAction, PlayerActionEnum takeDownAction, TerrAddonEnum obstacleType, out bool dodged)
     {
-        if (currAction.Value == PlayerActionEnum.GRAPPLE_REEL)
+        dodged = false;
+
+        //TODO: since grappling puts alien in stun, do we need the first check?
+        //Is it safe to leave it in case there is an alien infront of the one we grappled??
+        //Even though that shouldn't ever be possible (unless an alien pops out in front?)
+        if (currAction.Value == PlayerActionEnum.GRAPPLE_REEL
+            || takeDownAction == currAction.Value
+            || takeDownAction == PlayerActionEnum.ANY_ACTION)
         {
             StartTussle(true);
             return;
@@ -261,12 +268,7 @@ public class PlayerRunner : MonoBehaviour
         if (avoidAction == currAction.Value)
         {
             currEnergy.RewardPlayerEnergy(currAction.Value);
-            return;
-        }
-
-        if (takeDownAction == currAction.Value)
-        {
-            //PerformTakeDown(takeDownAction, obstacleType);
+            dodged = true;
             return;
         }
 
@@ -283,10 +285,10 @@ public class PlayerRunner : MonoBehaviour
         TakeDamage(avoidAction);
     }
 
-    public void OnEnterProjectile(WeaponEnum weaponType)
+    public void OnEnterProjectile(WeaponEnum weaponType, out bool dodged)
     {
         //TODO: do we need tyhe projectile (weapon) type in the end?
-        OnEnterHazard(PlayerActionEnum.ROLL, PlayerActionEnum.NONE, TerrAddonEnum.PROJECTILE);
+        OnEnterHazard(PlayerActionEnum.ROLL, PlayerActionEnum.NONE, TerrAddonEnum.PROJECTILE, out dodged);
     }
 
     private void StartTussle(bool advantage)
@@ -331,6 +333,22 @@ public class PlayerRunner : MonoBehaviour
         }
 
         healCR = null;
+    }
+
+    private bool TryUseArmament(bool isWeapon, int loadoutIndex)
+    {
+        if (currAction.IsPlayingHurtAnim()) { return false; }
+
+        if (isWeapon)
+        {
+            useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedWeapons[loadoutIndex]);
+        }
+        else
+        {
+            useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedEquipments[loadoutIndex]);
+        }
+
+        return true;
     }
 }
 

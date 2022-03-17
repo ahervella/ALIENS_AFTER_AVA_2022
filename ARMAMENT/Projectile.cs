@@ -31,7 +31,11 @@ public class Projectile : MonoBehaviour
 
     private void Awake()
     {
-        slope = new Vector3(Mathf.Sin(Mathf.Deg2Rad * angleOffset), 0, Mathf.Cos(Mathf.Deg2Rad * angleOffset)) * speedPerSec;
+        slope = (isAlienProjectile ? -1 : 1) * speedPerSec * new Vector3(
+            Mathf.Sin(Mathf.Deg2Rad * angleOffset),
+            0,
+            Mathf.Cos(Mathf.Deg2Rad * angleOffset));
+
         transform.position += posOffset;
 
         //TODO: is this too jank or can I just resort to using on collision or on trigger and return
@@ -60,8 +64,9 @@ public class Projectile : MonoBehaviour
         PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
         if (player != null)
         {
-            player.OnEnterProjectile(weaponType);
-            MadeImpact();
+            player.OnEnterProjectile(weaponType, out bool dodged);
+
+            if (dodged) { MadeImpact(); }
             return;
         }
     }

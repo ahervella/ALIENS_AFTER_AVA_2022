@@ -59,4 +59,12 @@ public class PSO_CurrentPlayerAction : PropertySO<PlayerActionEnum>
                 return;
         }
     }
+
+    public bool IsPlayingHurtAnim()
+    {
+        return Value == PlayerActionEnum.HURT_AIR
+            || Value == PlayerActionEnum.HURT_CENTER
+            || Value == PlayerActionEnum.HURT_LOWER
+            || Value == PlayerActionEnum.HURT_UPPER;
+    }
 }
