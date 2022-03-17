@@ -40,6 +40,9 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private SO_TerrSettings terrSettings = null;
 
+    [SerializeField]
+    private SO_TerrNodeFadeSettings fadeSettings = null;
+
     //[SerializeField]
     //private PlayerSounds sounds;
 
@@ -85,6 +88,7 @@ public class PlayerRunner : MonoBehaviour
         float x = terrSettings.LaneCount / 2f * terrSettings.TileDims.x;
         float z = settings.StartRowsFromEnd * terrSettings.TileDims.y;
         transform.position = new Vector3(x, 0, z) + settings.StartPosOffset;
+        fadeSettings.InitFadeSettings(transform.position);
     }
 
     private void RegisterForInputs()

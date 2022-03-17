@@ -5,6 +5,7 @@ using System;
 using PowerTools;
 using Random = UnityEngine.Random;
 
+[RequireComponent(typeof(TerrNodeFadeEffect))]
 public abstract class TerrAddon : MonoBehaviour, ITerrNode
 {
     [SerializeField]
@@ -45,6 +46,7 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
         }
     }
 
+    //TODO test to make sure we can just move this to on awake
     public TerrAddon InstantiateAddon(Transform parent)
     {
         TerrAddon taInstance = Instantiate(this, parent);
