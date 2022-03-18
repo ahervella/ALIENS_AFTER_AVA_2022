@@ -11,12 +11,13 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
     [SerializeField]
     private List<AudioClip> randomAudioClipPool = new List<AudioClip>();
 
-    [Range(-1200, 1200)]
-    public int pitchCents = 0;
+    [SerializeField, Range(-1200, 1200)]
+    private int pitchCents = 0;
 
-    [Range(0f, 6f)]
+    [SerializeField, Range(0f, 6f)]
     private float volVrtnDb = 0;
 
+    [SerializeField]
     [Range(0, 1200)]
     private float pitchVrtnCents = 0;
 

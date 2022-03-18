@@ -5,19 +5,25 @@ using System;
 using PowerTools;
 
 [RequireComponent(typeof(SpriteAnim))]
-public class AnimationEventExtender : MonoBehaviour
+public class AnimationEventExtender : AAnimationEventExtender
 {
-    private Action[] methods = new Action[4];
+    private readonly Action[] methods = new Action[4];
 
     public void AssignAnimationEvent(Action method, int methodIndex)
     {
-        if (methodIndex >= methods.Length)
-        {
-            Debug.LogError($"Not enough methods exist in AnimationEventExtender for index {methodIndex}");
-            return;
-        }
+            if (methodIndex >= methods.Length)
+            {
+                IndexTooLargeDebugMessage(methodIndex);
+                return;
+            }
 
-        methods[methodIndex] = method;
+            if (methods[methodIndex] != null)
+            {
+                IndexIsTakeDebugMessage(methodIndex);
+                return;
+            }
+
+            methods[methodIndex] = method;
     }
 
     public void AE_Extender00()
