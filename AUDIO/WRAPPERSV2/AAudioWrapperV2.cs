@@ -21,14 +21,19 @@ public abstract class AAudioWrapperV2 : ScriptableObject
     /// </summary>
     /// <param name="aw">AudioWrapper to be played</param>
     /// <param name="soundObject">GameObject to be played from</param>
-    public void PlayAudioWrapper(AudioWrapperSource soundObject)
+    public void PlayAudioWrapper(AudioWrapperSource soundObject, bool stopObjectSounds = false)
     {
         if (soundObject == null)
         {
             Debug.LogError("Target sound Object does not exist");
             return;
         }
-        S_AudioManager.Current.StopAllDelayedSounds(soundObject);
+
+        if (stopObjectSounds)
+        {
+            S_AudioManager.Current.StopAllDelayedSounds(soundObject);
+        }
+
         PlayAudio(soundObject);
 
         ResetLevelOffset();

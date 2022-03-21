@@ -59,6 +59,7 @@ public static class AudioUtil
 
                 if (!thisSource.isPlaying)//If it isn't playing
                 {
+                    Debug.Log($"BALH:   {thisSource.clip.name} -> {thisSource.isPlaying}");
                     return thisSource; //Use this source
                 }
             }

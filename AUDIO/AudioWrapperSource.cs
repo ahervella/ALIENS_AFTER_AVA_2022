@@ -46,11 +46,11 @@ public class AudioWrapperSource : MonoBehaviour
             }*/
     }
 
-        /// <summary>
-        /// Public method to be called by this object's animation events
-        /// </summary>
-        /// <param name="wrapper"></param>
-        public void AE_PlayAudioWrapper(AAudioWrapperV2 wrapper)
+    /// <summary>
+    /// Public method to be called by this object's animation events
+    /// </summary>
+    /// <param name="wrapper"></param>
+    public void AE_PlayAudioWrapper(AAudioWrapperV2 wrapper)
     {
         wrapper.PlayAudioWrapper(this);
     }

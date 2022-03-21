@@ -67,6 +67,9 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private BoolDelegateSO tussleInitDelegate = null;
 
+    [SerializeField]
+    private SO_DeveloperToolsSettings developerSettings = null;
+
     private Coroutine sprintCR = null;
 
     private void Awake()
@@ -265,7 +268,7 @@ public class PlayerRunner : MonoBehaviour
             || takeDownAction == currAction.Value
             || takeDownAction == PlayerActionEnum.ANY_ACTION)
         {
-            StartTussle(true);
+            StartTussle(false);
             return;
         }
 
@@ -313,7 +316,7 @@ public class PlayerRunner : MonoBehaviour
                 PlayerActionEnum.TAKE_DAMAGE_AIR : PlayerActionEnum.TAKE_DAMAGE_GROUND;
         }
         */
-
+        if (developerSettings.Invincibility) { return; }
         currAction.PerformCorrespondingHurt(requiredAction);
         currLives.ModifyValue(-1);
     }
