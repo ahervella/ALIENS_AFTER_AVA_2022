@@ -19,7 +19,7 @@ public class AudioEventWrapperV2 : AAudioWrapperV2
         [SerializeField, Range(0f, 2f)]
         public float delSeconds = 0;
 
-        [SerializeField, Range(-60f, 0f)]
+        [SerializeField, Range(-60f, 20f)]
         public float secondaryOffset = 0;
     }
 
