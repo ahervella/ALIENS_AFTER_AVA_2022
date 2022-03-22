@@ -12,18 +12,6 @@ public class SO_TussleSettings : ScriptableObject
     private List<TussleVideoWrapper> videoWrappers = new List<TussleVideoWrapper>();
 
 
-    [Serializable]
-    private class TussleTimerZoneWrapper
-    {
-        [SerializeField]
-        private int zone;
-        public int Zone => zone;
-
-        [SerializeField]
-        private float timeForTussle;
-        public float TimeForTussle => timeForTussle;
-    }
-
     [SerializeField]
     private List<ButtonCharacterWrapper> buttonCharWrappers = new List<ButtonCharacterWrapper>();
 
@@ -51,6 +39,17 @@ public class SO_TussleSettings : ScriptableObject
     [SerializeField]
     private List<TussleTimerZoneWrapper> zoneWrappers = new List<TussleTimerZoneWrapper>();
 
+    [Serializable]
+    private class TussleTimerZoneWrapper
+    {
+        [SerializeField]
+        private int zone;
+        public int Zone => zone;
+
+        [SerializeField]
+        private float timeForTussle;
+        public float TimeForTussle => timeForTussle;
+    }
 
     public TussleVideoWrapper GetTussleVideoWrapper(TussleVideoType videoType)
     {
@@ -93,6 +92,10 @@ public class TussleVideoWrapper
     [SerializeField]
     private bool loop;
     public bool Loop => loop;
+
+    [SerializeField]
+    private AAudioWrapperV2 audioWrapper = null;
+    public AAudioWrapperV2 AudioWrapper => audioWrapper;
 }
 
 

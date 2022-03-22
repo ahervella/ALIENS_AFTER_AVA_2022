@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Video;
 using System;
 
+[RequireComponent(typeof(AudioWrapperSource))]
 public class TussleManager : MonoBehaviour
 {
     [SerializeField]
@@ -27,13 +28,23 @@ public class TussleManager : MonoBehaviour
     [SerializeField]
     private BoolDelegateSO tussleStartDelegate = null;
 
+    [SerializeField]
+    private BoolDelegateSO tussleResolveDebugDelegate = null;
+
+    private AudioWrapperSource audioSource;
+
     private bool playerAdvantage;
 
     private TussleInputSequence currSequence;
 
+    private Coroutine startCR = null;
+    private Coroutine loopCR = null;
+
     private void Awake()
     {
+        audioSource = GetComponent<AudioWrapperSource>();
         tussleStartDelegate.SetInvokeMethod(InitiateTussle);
+        tussleResolveDebugDelegate.SetInvokeMethod(ResolveDebug);
         videoPlayer.targetCamera = Camera.main;
         videoPlayer.clip = null;
 
@@ -53,8 +64,8 @@ public class TussleManager : MonoBehaviour
 
         TussleVideoWrapper startVidWrapper = settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_START : TussleVideoType.DIS_START);
         TussleVideoWrapper loopVidWrapper = settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_LOOP : TussleVideoType.DIS_LOOP);
-        StartCoroutine(PlayVideo(startVidWrapper));
-        StartCoroutine(WaitForCurrVideoAndPlay(loopVidWrapper));
+        startCR = StartCoroutine(PlayVideo(startVidWrapper));
+        loopCR = StartCoroutine(WaitForCurrVideoAndPlay(loopVidWrapper));
 
         InitiateButtonSequence();
         return 0;
@@ -69,6 +80,8 @@ public class TussleManager : MonoBehaviour
         player.Play();
 
         yield return WaitForVideoToLoad(player);
+
+        vidWrapper.AudioWrapper?.PlayAudioWrapper(audioSource);
 
         if (callbackOnFinish != null)
         {
@@ -138,6 +151,14 @@ public class TussleManager : MonoBehaviour
             : settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_LOSE : TussleVideoType.DIS_LOSE);
 
         StartCoroutine(PlayVideo(wrapper, EndTussle));
+    }
+
+    private int ResolveDebug(bool successful)
+    {
+        StopCoroutine(startCR);
+        StopCoroutine(loopCR);
+        currSequence?.ResolveSequence(successful);
+        return 0;
     }
 
     public void EndTussle()

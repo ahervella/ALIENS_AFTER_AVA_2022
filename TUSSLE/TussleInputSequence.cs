@@ -56,12 +56,13 @@ public class TussleInputSequence : MonoBehaviour
             button.SetButtonState(TussleButtonStateEnum.SUCCESS);
         }
 
-        //StopCoroutine(failTimerCR);
         ResolveSequence(true);
     }
 
-    private void ResolveSequence(bool won)
+    //public so we can use it with the tussle tester
+    public void ResolveSequence(bool won)
     {
+        if (failTimerCR != null) { StopCoroutine(failTimerCR); }
         RegisterInputChange(false);
         finishCallback(won);
     }
