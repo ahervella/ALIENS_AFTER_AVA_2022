@@ -2,8 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(AudioWrapperSource))]
 public class HazardAlien : TerrHazard
 {
+    [SerializeField]
+    private AAudioWrapperV2 attackAudio = null;
+
     [SerializeField]
     private AnimationClip stunAnimation = null;
 
@@ -24,9 +28,14 @@ public class HazardAlien : TerrHazard
 
     protected bool stunnedFlag = false;
 
+    private AudioWrapperSource audioSource;
+
     protected override void Awake()
     {
         base.Awake();
+
+        audioSource = GetComponent<AudioWrapperSource>();
+
         hazardTakeDownReqAction = takeDownReqAction;
 
         currTreadmillSpeed.RegisterForPropertyChanged(OnTreadmillSpeedChange);
@@ -51,7 +60,11 @@ public class HazardAlien : TerrHazard
     {
         if (other.gameObject.GetComponent<PlayerRunner>() != null)
         {
-            if (!stunnedFlag) { sprite.Play(attackAnimation); }
+            if (!stunnedFlag)
+            {
+                sprite.Play(attackAnimation);
+                attackAudio.PlayAudioWrapper(audioSource);
+            }
             attackTrigger.SetOnTriggerMethod(null);
         }
     }

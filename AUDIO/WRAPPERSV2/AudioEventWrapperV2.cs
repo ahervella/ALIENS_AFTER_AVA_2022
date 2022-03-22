@@ -10,20 +10,6 @@ public class AudioEventWrapperV2 : AAudioWrapperV2
     [SerializeField]
     private bool unstoppable = false;
 
-    // using this getter and setter, this allows the unstoppable value given above to be overwritten by a parent wrapper
-    public bool Unstoppable
-    {
-        get
-        {
-            return unstoppable;
-        }
-
-        private set
-        {
-            unstoppable = value;
-        }
-    }
-
     [Serializable]
     public class SeqAudioWrapperV2
     {
@@ -44,9 +30,14 @@ public class AudioEventWrapperV2 : AAudioWrapperV2
     {
         foreach (SeqAudioWrapperV2 saw in seqAudioWrappers)
         {
+            if (saw == null)
+            {
+                Debug.Log($"SeqAudioWrapperV2 is null in AudioEventWrapperV2 {name}");
+                continue;
+            }
             saw.aAudioWrapper.AddOffset(currLevelOffsetDb);
             saw.aAudioWrapper.AddOffset(saw.secondaryOffset);
-            S_AudioManager.Current.PlayDelayed(saw.aAudioWrapper, saw.delSeconds, soundObject, Unstoppable);
+            S_AudioManager.Current.PlayDelayed(saw.aAudioWrapper, saw.delSeconds, soundObject, unstoppable);
         }
         ResetLevelOffset();
     }
