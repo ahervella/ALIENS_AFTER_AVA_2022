@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 using static UnityEngine.InputSystem.InputAction;
 
 [RequireComponent(typeof(BoxCollider))]
+[RequireComponent(typeof(AudioWrapperSource))]
 public class PlayerRunner : MonoBehaviour
 {
     [SerializeField]
@@ -72,8 +73,11 @@ public class PlayerRunner : MonoBehaviour
 
     private Coroutine sprintCR = null;
 
+    private AudioWrapperSource audioSource;
+
     private void Awake()
     {
+        audioSource = GetComponent<AudioWrapperSource>();
         RegisterForInputs();
         SetPlayerStartPosition();
         StartHealCoroutine();
@@ -153,8 +157,8 @@ public class PlayerRunner : MonoBehaviour
 
     private void InputManager_Dev1(CallbackContext ctx)
     {
-        TakeDamage(PlayerActionEnum.DODGE_L);
-        Debug.Log($"health: {currLives.Value}");
+        //TakeDamage(PlayerActionEnum.DODGE_L);
+        //Debug.Log($"health: {currLives.Value}");
     }
 
     private void InputManager_Dev2(CallbackContext ctx)
@@ -257,7 +261,12 @@ public class PlayerRunner : MonoBehaviour
         treadmillToggleDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(0, transitionTime));
     }
 
-    public void OnEnterHazard(PlayerActionEnum avoidAction, PlayerActionEnum takeDownAction, TerrAddonEnum obstacleType, out bool dodged)
+    public void OnEnterHazard(
+        PlayerActionEnum avoidAction,
+        PlayerActionEnum takeDownAction,
+        TerrAddonEnum obstacleType,
+        AAudioWrapperV2 hurtSFX,
+        out bool dodged)
     {
         dodged = false;
 
@@ -289,13 +298,13 @@ public class PlayerRunner : MonoBehaviour
             return;
         }
 
-        TakeDamage(avoidAction);
+        TakeDamage(avoidAction, hurtSFX);
     }
 
-    public void OnEnterProjectile(WeaponEnum weaponType, out bool dodged)
+    public void OnEnterProjectile(WeaponEnum weaponType, AAudioWrapperV2 hurtSFX, out bool dodged)
     {
         //TODO: do we need tyhe projectile (weapon) type in the end?
-        OnEnterHazard(PlayerActionEnum.ROLL, PlayerActionEnum.NONE, TerrAddonEnum.PROJECTILE, out dodged);
+        OnEnterHazard(PlayerActionEnum.ROLL, PlayerActionEnum.NONE, TerrAddonEnum.PROJECTILE, hurtSFX, out dodged);
     }
 
     private void StartTussle(bool advantage)
@@ -304,7 +313,7 @@ public class PlayerRunner : MonoBehaviour
         tussleInitDelegate.InvokeDelegateMethod(advantage);
     }
 
-    private void TakeDamage(PlayerActionEnum requiredAction)
+    private void TakeDamage(PlayerActionEnum requiredAction, AAudioWrapperV2 hurtSFX)
     {
         /*
         //TODO: only necessary if we ever do a mid air hurt with a falling animation
@@ -317,6 +326,10 @@ public class PlayerRunner : MonoBehaviour
         }
         */
         if (developerSettings.Invincibility) { return; }
+
+        //TODO: seperate sounds of player getting hurt due to hurt action,
+        //and impact of specific objects
+        hurtSFX.PlayAudioWrapper(audioSource);
         currAction.PerformCorrespondingHurt(requiredAction);
         currLives.ModifyValue(-1);
     }

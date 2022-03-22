@@ -26,6 +26,9 @@ public class ArmamentManager : MonoBehaviour
     [SerializeField]
     private Transform playerCenterSpawnPoint = null;
 
+    [SerializeField]
+    private AudioWrapperSource audioSource = null;
+
     private Dictionary<AArmament, Coroutine> coolDownDict = new Dictionary<AArmament, Coroutine>();
 
     private void Awake()
@@ -66,7 +69,7 @@ public class ArmamentManager : MonoBehaviour
 
         coolDownDict[armament] = StartCoroutine(CoolDownCoroutine(armament));
         Transform spawnPoint = armament is Weapon ? projectileSpawnPoint : playerCenterSpawnPoint;
-        armament.UseArmament(spawnPoint);
+        armament.UseArmament(audioSource, spawnPoint);
         return true;
     }
 

@@ -19,6 +19,9 @@ public abstract class AArmament : ScriptableObject
     [SerializeField]
     private List<ArmamentRequirement> requirements = new List<ArmamentRequirement>();
 
+    [SerializeField]
+    private AAudioWrapperV2 utilizeAudio = null;
+
     public ArmamentRequirement GetRequirements()
     {
         foreach (ArmamentRequirement aq in requirements)
@@ -34,8 +37,9 @@ public abstract class AArmament : ScriptableObject
         return null;
     }
 
-    public virtual void UseArmament(Transform spawnNode)
+    public virtual void UseArmament(AudioWrapperSource audioSource, Transform spawnNode)
     {
+        utilizeAudio?.PlayAudioWrapper(audioSource);
         Instantiate(armamentFirePrefab, spawnNode);
     }
 }

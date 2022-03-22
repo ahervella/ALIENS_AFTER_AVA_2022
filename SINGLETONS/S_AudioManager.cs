@@ -174,17 +174,34 @@ public class S_AudioManager : Singleton<S_AudioManager>
     /// <param name="obj">GameObject to stop the coroutines on</param>
     public void StopAllDelayedSounds(AudioWrapperSource obj)
     {
+        StopAllDelayedSounds(soundCRs, obj);
+    }
+
+    private void StopAllDelayedSounds(Dictionary<AudioWrapperSource, List<Coroutine>> soundCRDict, AudioWrapperSource obj)
+    {
         //TODO: is this expensive to add and remove so frequently? Cause
         //we don't want to have deleted object keys chilling in there
         //as long as a player hasn't lost a run...
 
-        if (soundCRs.TryGetValue(obj, out var crList))
+        if (soundCRDict.TryGetValue(obj, out var crList))
         {
             foreach (Coroutine cr in crList)
             {
                 StopCoroutine(cr);
             }
-            soundCRs.Remove(obj);
+            soundCRDict.Remove(obj);
         }
+    }
+
+    /// <summary>
+    /// Stops all sound coroutines for this audio wrapper source,
+    /// and removes all references of this object from the audio manager
+    /// singleton
+    /// </summary>
+    /// <param name="source"></param>
+    public void OnAudioWrapperSourceDestroyed(AudioWrapperSource source)
+    {
+        StopAllDelayedSounds(soundCRs, source);
+        StopAllDelayedSounds(unstoppableSoundCRs, source);
     }
 }

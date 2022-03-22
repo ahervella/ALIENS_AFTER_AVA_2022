@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(BoxCollider))]
+[RequireComponent(typeof(AudioWrapperSource))]
 public class Projectile : MonoBehaviour
 {
     [SerializeField]
@@ -27,7 +28,15 @@ public class Projectile : MonoBehaviour
     private DestructionSprite destructionSpritePrefab = null;
 
     [SerializeField]
+    private AAudioWrapperV2 travelAudio = null;
+
+    [SerializeField]
+    private AAudioWrapperV2 impactAudio = null;
+
+    [SerializeField]
     private bool isAlienProjectile = false;
+
+    private AudioWrapperSource audioSource;
 
     private void Awake()
     {
@@ -42,6 +51,9 @@ public class Projectile : MonoBehaviour
         //depending on the isAlienProjectile flag?
         BoxCollider hitBox = GetComponent<BoxCollider>();
         hitBox.isTrigger = !isAlienProjectile;
+
+        audioSource = GetComponent<AudioWrapperSource>();
+        travelAudio?.PlayAudioWrapper(audioSource);
     }
 
     private void Update()
@@ -64,7 +76,9 @@ public class Projectile : MonoBehaviour
         PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
         if (player != null)
         {
-            player.OnEnterProjectile(weaponType, out bool dodged);
+            //We give the player the audio so its from their source,
+            //and so we don't prematurely delete this source object
+            player.OnEnterProjectile(weaponType, impactAudio, out bool dodged);
 
             if (dodged) { MadeImpact(); }
             return;

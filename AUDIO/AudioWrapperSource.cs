@@ -59,4 +59,9 @@ public class AudioWrapperSource : MonoBehaviour
     {
         this.mixerGroup = mixerGroup;
     }
+
+    private void OnDestroy()
+    {
+        S_AudioManager.Current.OnAudioWrapperSourceDestroyed(this);
+    }
 }
