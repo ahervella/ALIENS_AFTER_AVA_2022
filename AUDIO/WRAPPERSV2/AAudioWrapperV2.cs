@@ -7,7 +7,7 @@ using UnityEngine.Audio;
 public abstract class AAudioWrapperV2 : ScriptableObject
 {
     [SerializeField]
-    [Range(-60f, 0f)]
+    [Range(-60f, 20f)]
     protected float levelOffsetDb = 0;
 
     [NonSerialized]

@@ -29,10 +29,12 @@ public class S_AudioManager : Singleton<S_AudioManager>
 
     private bool cachedPausedToggle = false;
 
-    private Dictionary<AudioWrapperSource, List<Coroutine>> soundCRs = new Dictionary<AudioWrapperSource, List<Coroutine>>();
-    private Dictionary<AudioWrapperSource, List<Coroutine>> unstoppableSoundCRs = new Dictionary<AudioWrapperSource, List<Coroutine>>();
+    private Dictionary<AudioWrapperSource, Dictionary<int, Coroutine>> soundCRs = new Dictionary<AudioWrapperSource, Dictionary<int, Coroutine>>();
+    private Dictionary<AudioWrapperSource, Dictionary<int, Coroutine>> unstoppableSoundCRs = new Dictionary<AudioWrapperSource, Dictionary<int, Coroutine>>();
 
     public event System.Action<bool> PauseToggleAllAudioClipWrapperV2s = delegate { };
+
+    private int randUniqueInt = 0;
 
     protected override void OnAwake()
     {
@@ -92,13 +94,13 @@ public class S_AudioManager : Singleton<S_AudioManager>
         loopSettings.SpawnAndPlayNewLoopObjectSource(newMode);
     }
 
-    private void StopAllDelayedSounds(Dictionary<AudioWrapperSource, List<Coroutine>> soundCRDict)
+    private void StopAllDelayedSounds(Dictionary<AudioWrapperSource, Dictionary<int, Coroutine>> soundCRDict)
     {
         foreach (AudioWrapperSource key in soundCRDict.Keys)
         {
-            foreach (Coroutine cr in soundCRDict[key])
+            foreach (KeyValuePair<int, Coroutine> kvp in soundCRDict[key])
             {
-                StopCoroutine(cr);
+                StopCoroutine(soundCRDict[key][kvp.Key]);
             }
         }
     }
@@ -124,17 +126,19 @@ public class S_AudioManager : Singleton<S_AudioManager>
     /// <param name="unstoppable">Prevents this AudioWrapper and its children from being stopped by another AudioWrapper being played</param>
     public void PlayDelayed(AAudioWrapperV2 aw, float del, AudioWrapperSource soundObject, bool unstoppable)
     {
-        Coroutine newCR = null;
-        newCR = StartCoroutine(PlayDelayedCR(aw, del, soundObject, newCR));
+        //TODO: realistically need to worry about this being too large? lol
+        int newCRID = randUniqueInt++;
 
-        Dictionary<AudioWrapperSource, List<Coroutine>> soundCRDict = unstoppable ? unstoppableSoundCRs : soundCRs;
+        Coroutine newCR = StartCoroutine(PlayDelayedCR(aw, del, soundObject, newCRID));
+
+        Dictionary<AudioWrapperSource, Dictionary<int, Coroutine>> soundCRDict = unstoppable ? unstoppableSoundCRs : soundCRs;
 
         if (!soundCRDict.ContainsKey(soundObject))
         {
-            soundCRDict.Add(soundObject, new List<Coroutine>());
+            soundCRDict.Add(soundObject, new Dictionary<int, Coroutine>());
         }
 
-        soundCRDict[soundObject].Add(newCR);
+        soundCRDict[soundObject].Add(newCRID, newCR);
     }
 
     /// <summary>
@@ -144,7 +148,7 @@ public class S_AudioManager : Singleton<S_AudioManager>
     /// <param name="delay"Time to delay before playing in seconds></param>
     /// <param name="soundObject">AudioWrapperSource to play the AudioWrapper from</param>
     /// <returns></returns>
-    private IEnumerator PlayDelayedCR(AAudioWrapperV2 aw, float delay, AudioWrapperSource soundObject, Coroutine selfCR)
+    private IEnumerator PlayDelayedCR(AAudioWrapperV2 aw, float delay, AudioWrapperSource soundObject, int crID)
     {
         //TODO: test pausing is working correctly
         while (cachedPausedToggle)
@@ -157,19 +161,19 @@ public class S_AudioManager : Singleton<S_AudioManager>
         if (soundObject != null)
         {
             aw.PlayAudioWrapper(soundObject);
-            RemoveFromSoundCRDict(soundCRs, soundObject, selfCR);
-            RemoveFromSoundCRDict(unstoppableSoundCRs, soundObject, selfCR);
+            RemoveFromSoundCRDict(soundCRs, soundObject, crID);
+            RemoveFromSoundCRDict(unstoppableSoundCRs, soundObject, crID);
         }
     }
 
-    private void RemoveFromSoundCRDict(Dictionary<AudioWrapperSource, List<Coroutine>> soundCRDict, AudioWrapperSource soundObject, Coroutine cr)
+    private void RemoveFromSoundCRDict(Dictionary<AudioWrapperSource, Dictionary<int, Coroutine>> soundCRDict, AudioWrapperSource soundObject, int crID)
     {
         if (!soundCRDict.ContainsKey(soundObject))
         {
             return;
         }
 
-        soundCRDict[soundObject].Remove(cr);
+        soundCRDict[soundObject].Remove(crID);
 
         if (soundCRDict[soundObject].Count == 0)
         {
@@ -188,7 +192,7 @@ public class S_AudioManager : Singleton<S_AudioManager>
         StopAllDelayedSounds(soundCRs, obj);
     }
 
-    private void StopAllDelayedSounds(Dictionary<AudioWrapperSource, List<Coroutine>> soundCRDict, AudioWrapperSource obj)
+    private void StopAllDelayedSounds(Dictionary<AudioWrapperSource, Dictionary<int, Coroutine>> soundCRDict, AudioWrapperSource obj)
     {
         //TODO: is this expensive to add and remove so frequently? Cause
         //we don't want to have deleted object keys chilling in there
@@ -196,9 +200,9 @@ public class S_AudioManager : Singleton<S_AudioManager>
 
         if (soundCRDict.TryGetValue(obj, out var crList))
         {
-            foreach (Coroutine cr in crList)
+            foreach (KeyValuePair<int, Coroutine> kvp in crList)
             {
-                StopCoroutine(cr);
+                StopCoroutine(kvp.Value);
             }
             soundCRDict.Remove(obj);
         }

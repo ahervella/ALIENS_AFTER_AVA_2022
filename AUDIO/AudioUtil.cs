@@ -59,7 +59,7 @@ public static class AudioUtil
 
                 if (!thisSource.isPlaying)//If it isn't playing
                 {
-                    Debug.Log($"BALH:   {thisSource.clip.name} -> {thisSource.isPlaying}");
+                    //Debug.Log($"BALH:   {thisSource.clip.name} -> {thisSource.isPlaying}");
                     return thisSource; //Use this source
                 }
             }
@@ -69,7 +69,7 @@ public static class AudioUtil
         return addedSource;
     }
 
-    public static bool IsAudioSourceActive(AudioWrapperSource aws)
+    public static bool IsAudioSourceNonLoopAndActive(AudioWrapperSource aws)
     {
         if (S_AudioManager.Current.AudioSourceHasAudioQueued(aws))
         {
@@ -78,7 +78,8 @@ public static class AudioUtil
 
         foreach(AudioSource a in aws.GetComponents<AudioSource>())
         {
-            if (a.isPlaying)
+            //only for one time sounds that are still playing
+            if (a.isPlaying && !a.loop)
             {
                 return true;
             }
