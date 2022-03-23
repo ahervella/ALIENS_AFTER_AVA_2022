@@ -265,7 +265,6 @@ public class PlayerRunner : MonoBehaviour
         PlayerActionEnum avoidAction,
         PlayerActionEnum takeDownAction,
         TerrAddonEnum obstacleType,
-        AAudioWrapperV2 hurtSFX,
         out bool dodged)
     {
         dodged = false;
@@ -298,13 +297,13 @@ public class PlayerRunner : MonoBehaviour
             return;
         }
 
-        TakeDamage(avoidAction, hurtSFX);
+        TakeDamage(avoidAction);
     }
 
-    public void OnEnterProjectile(WeaponEnum weaponType, AAudioWrapperV2 hurtSFX, out bool dodged)
+    public void OnEnterProjectile(WeaponEnum weaponType, out bool dodged)
     {
         //TODO: do we need tyhe projectile (weapon) type in the end?
-        OnEnterHazard(PlayerActionEnum.ROLL, PlayerActionEnum.NONE, TerrAddonEnum.PROJECTILE, hurtSFX, out dodged);
+        OnEnterHazard(PlayerActionEnum.ROLL, PlayerActionEnum.NONE, TerrAddonEnum.PROJECTILE, out dodged);
     }
 
     private void StartTussle(bool advantage)
@@ -313,7 +312,7 @@ public class PlayerRunner : MonoBehaviour
         tussleInitDelegate.InvokeDelegateMethod(advantage);
     }
 
-    private void TakeDamage(PlayerActionEnum requiredAction, AAudioWrapperV2 hurtSFX)
+    private void TakeDamage(PlayerActionEnum requiredAction)
     {
         /*
         //TODO: only necessary if we ever do a mid air hurt with a falling animation
@@ -329,7 +328,6 @@ public class PlayerRunner : MonoBehaviour
 
         //TODO: seperate sounds of player getting hurt due to hurt action,
         //and impact of specific objects
-        hurtSFX.PlayAudioWrapper(audioSource);
         currAction.PerformCorrespondingHurt(requiredAction);
         currLives.ModifyValue(-1);
     }

@@ -227,7 +227,7 @@ public class EnvTreadmill : MonoBehaviour
     private void DestroyAddon(TerrAddon ta)
     {
         if (ta == null) { return; }
-        Destroy(ta.gameObject);
+        SafeDestroy(ta.gameObject);
     }
 
     private void WrapAddon(TerrAddon ta, int newHorizPosDiff)

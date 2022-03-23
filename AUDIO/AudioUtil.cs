@@ -68,4 +68,21 @@ public static class AudioUtil
         AudioSource addedSource = source.gameObject.AddComponent<AudioSource>();
         return addedSource;
     }
+
+    public static bool IsAudioSourceActive(AudioWrapperSource aws)
+    {
+        if (S_AudioManager.Current.AudioSourceHasAudioQueued(aws))
+        {
+            return true;
+        }
+
+        foreach(AudioSource a in aws.GetComponents<AudioSource>())
+        {
+            if (a.isPlaying)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }

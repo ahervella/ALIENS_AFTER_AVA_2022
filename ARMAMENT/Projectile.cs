@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static HelperUtil;
 
 [RequireComponent(typeof(BoxCollider))]
 [RequireComponent(typeof(AudioWrapperSource))]
@@ -66,7 +67,7 @@ public class Projectile : MonoBehaviour
         if (isAlienProjectile) { return; }
 
 
-        Destroy(hazard.gameObject);
+        SafeDestroy(hazard.gameObject);
 
         MadeImpact();
     }
@@ -78,7 +79,7 @@ public class Projectile : MonoBehaviour
         {
             //We give the player the audio so its from their source,
             //and so we don't prematurely delete this source object
-            player.OnEnterProjectile(weaponType, impactAudio, out bool dodged);
+            player.OnEnterProjectile(weaponType, /*impactAudio, */out bool dodged);
 
             if (dodged) { MadeImpact(); }
             return;
@@ -87,6 +88,8 @@ public class Projectile : MonoBehaviour
 
     private void MadeImpact()
     {
+        impactAudio?.PlayAudioWrapper(audioSource);
+
         if (OnImpactPrefab != null)
         {
             GameObject instance = Instantiate(OnImpactPrefab, transform.parent);
@@ -96,7 +99,7 @@ public class Projectile : MonoBehaviour
         if (destroyOnImpact)
         {
             destructionSpritePrefab?.InstantiateDestruction(transform.parent, transform);
-            Destroy(gameObject);
+            SafeDestroy(gameObject);
         }
     }
 }

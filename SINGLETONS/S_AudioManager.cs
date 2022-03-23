@@ -104,6 +104,17 @@ public class S_AudioManager : Singleton<S_AudioManager>
     }
 
     /// <summary>
+    /// Returns whether there are still unstoppable audio sources to be played
+    /// </summary>
+    /// <param name="aws">The audio source to check</param>
+    /// <returns></returns>
+    public bool AudioSourceHasAudioQueued(AudioWrapperSource aws)
+    {
+        //TODO: reconsider whether we need to keep track of stoppable vs unstoppable sounds anymore
+        return unstoppableSoundCRs.ContainsKey(aws) || soundCRs.ContainsKey(aws);
+    }
+
+    /// <summary>
     /// Starts a coroutine to play an AudioWrapper after a delay time,
     /// will add that coroutine to a list on the object if the wrapper is "stoppable"
     /// </summary>

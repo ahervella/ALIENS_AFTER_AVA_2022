@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static HelperUtil;
 
 public class MuzzleFlash : MonoBehaviour
 {
@@ -15,6 +16,6 @@ public class MuzzleFlash : MonoBehaviour
 
     public void AE_OnAnimationFinished()
     {
-        Destroy(gameObject);
+        SafeDestroy(gameObject);
     }
 }

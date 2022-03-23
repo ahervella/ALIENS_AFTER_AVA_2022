@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static HelperUtil;
 
 public class GrappleHook : MonoBehaviour
 {
@@ -67,7 +68,7 @@ public class GrappleHook : MonoBehaviour
         //or changed action prior to reeling in, stop the whole thing
         if (newAction != PlayerActionEnum.GRAPPLE_REEL)
         {
-            Destroy(gameObject);
+            SafeDestroy(gameObject);
         }
     }
 
@@ -75,7 +76,7 @@ public class GrappleHook : MonoBehaviour
     {
         if (!newVal)
         {
-            Destroy(gameObject);
+            SafeDestroy(gameObject);
         }
     }
 
@@ -216,6 +217,6 @@ public class GrappleHook : MonoBehaviour
             SetSpritePositions(currDist);
         }
 
-        Destroy(gameObject);
+        SafeDestroy(gameObject);
     }
 }

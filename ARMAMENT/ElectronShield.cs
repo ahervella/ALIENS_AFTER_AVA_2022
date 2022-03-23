@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static HelperUtil;
 
 [RequireComponent(typeof(FaceCamera))]
 public class ElectronShield : MonoBehaviour
@@ -27,7 +28,7 @@ public class ElectronShield : MonoBehaviour
     {
         if (!newVal)
         {
-            Destroy(gameObject);
+            SafeDestroy(gameObject);
             shieldOnFlag.DeRegisterForPropertyChanged(OnShieldFlagChange);
         }
     }

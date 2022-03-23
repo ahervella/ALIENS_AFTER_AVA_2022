@@ -29,4 +29,20 @@ public static class HelperUtil
         float theta = origPerc * Mathf.PI / 2f;
         return Mathf.Sin(theta);
     }
+
+    /// <summary>
+    /// Safely destroys a gameobject
+    /// </summary>
+    /// <param name="go">GameObject to destroy</param>
+    public static void SafeDestroy(GameObject go)
+    {
+        SafeAudioWrapperSource saws = go.GetComponent<SafeAudioWrapperSource>();
+        if (saws == null)
+        {
+            Object.Destroy(go);
+            return;
+        }
+
+        saws.SafeDestroy();
+    }
 }

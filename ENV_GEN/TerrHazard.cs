@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(AudioWrapperSource))]
 public class TerrHazard : TerrAddon
 {
     [SerializeField]
@@ -22,12 +23,15 @@ public class TerrHazard : TerrAddon
     [SerializeField]
     private AAudioWrapperV2 impactAudio = null;
 
+    protected AudioWrapperSource audioSource;
+
     //for aliens that inherit have their own serialized field
     protected PlayerActionEnum hazardTakeDownReqAction = PlayerActionEnum.NONE;
 
     protected override void Awake()
     {
         base.Awake();
+        audioSource = GetComponent<AudioWrapperSource>();
         SetHitBoxDimensions();
         hitBox.SetOnTriggerMethod(OnTriggerEnterDamageHitBox);
     }
@@ -53,7 +57,8 @@ public class TerrHazard : TerrAddon
         PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
         if (player != null)
         {
-            player.OnEnterHazard(requiredAvoidAction, hazardTakeDownReqAction, TerrAddonEnum, impactAudio, out _);
+            impactAudio.PlayAudioWrapper(audioSource);
+            player.OnEnterHazard(requiredAvoidAction, hazardTakeDownReqAction, TerrAddonEnum, out _);
             return;
         }
 

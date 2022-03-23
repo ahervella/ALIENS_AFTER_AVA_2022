@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using PowerTools;
+using static HelperUtil;
 
 [RequireComponent(typeof(SpriteAnim))]
 public class DestructionSprite : MonoBehaviour
@@ -11,7 +12,7 @@ public class DestructionSprite : MonoBehaviour
 
     public void AE_OnAnimationFinished()
     {
-        Destroy(object2Destroy == null ? gameObject : object2Destroy);
+        SafeDestroy(object2Destroy == null ? gameObject : object2Destroy);
     }
 
     public DestructionSprite InstantiateDestruction(Transform parent, Transform spawnPosRot)

@@ -28,13 +28,9 @@ public class HazardAlien : TerrHazard
 
     protected bool stunnedFlag = false;
 
-    private AudioWrapperSource audioSource;
-
     protected override void Awake()
     {
         base.Awake();
-
-        audioSource = GetComponent<AudioWrapperSource>();
 
         hazardTakeDownReqAction = takeDownReqAction;
 
