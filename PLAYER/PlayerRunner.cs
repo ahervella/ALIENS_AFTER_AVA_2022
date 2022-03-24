@@ -21,8 +21,6 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private IntPropertySO currLives = null;
 
-    private Coroutine healCR = null;
-
     [SerializeField]
     private DSO_LaneChange laneChangeDelegate = null;
 
@@ -80,7 +78,6 @@ public class PlayerRunner : MonoBehaviour
         audioSource = GetComponent<AudioWrapperSource>();
         RegisterForInputs();
         SetPlayerStartPosition();
-        StartHealCoroutine();
         currAction.RegisterForPropertyChanged(OnActionChange);
         shieldOnFlag.RegisterForPropertyChanged(OnShieldChange);
     }
@@ -164,7 +161,6 @@ public class PlayerRunner : MonoBehaviour
     private void InputManager_Dev2(CallbackContext ctx)
     {
         currLives.ModifyValue(1);
-        Debug.Log($"health: {currLives.Value}");
     }
 
     private void InputManager_Dev3(CallbackContext ctx)
@@ -333,26 +329,7 @@ public class PlayerRunner : MonoBehaviour
         currLives.ModifyValue(-1);
     }
 
-    private void StartHealCoroutine()
-    {
-        if (healCR != null)
-        {
-            StopCoroutine(healCR);
-        }
-
-        healCR = StartCoroutine(HealDamageCoroutine());
-    }
-
-    private IEnumerator HealDamageCoroutine()
-    {
-        while (currLives.Value < currLives.MaxValue())
-        {
-            yield return new WaitForSeconds(settings.LifeRecoveryTime);
-            currLives.ModifyValue(1);
-        }
-
-        healCR = null;
-    }
+    
 
     private bool TryUseArmament(bool isWeapon, int loadoutIndex)
     {
