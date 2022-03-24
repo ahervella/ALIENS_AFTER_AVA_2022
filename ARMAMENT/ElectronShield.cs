@@ -4,6 +4,7 @@ using UnityEngine;
 using static HelperUtil;
 
 [RequireComponent(typeof(FaceCamera))]
+[RequireComponent(typeof(SafeAudioWrapperSource))]
 public class ElectronShield : MonoBehaviour
 {
     [SerializeField]

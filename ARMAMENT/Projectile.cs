@@ -4,7 +4,7 @@ using UnityEngine;
 using static HelperUtil;
 
 [RequireComponent(typeof(BoxCollider))]
-[RequireComponent(typeof(AudioWrapperSource))]
+[RequireComponent(typeof(SafeAudioWrapperSource))]
 public class Projectile : MonoBehaviour
 {
     [SerializeField]
