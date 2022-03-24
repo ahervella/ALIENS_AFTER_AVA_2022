@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using UnityEngine.Video;
 using Random = UnityEngine.Random;
+using static HelperUtil;
 
 [CreateAssetMenu(fileName = "SO_TussleSettings", menuName = "ScriptableObjects/StaticData/SO_TussleSettings")]
 public class SO_TussleSettings : ScriptableObject
@@ -53,15 +54,7 @@ public class SO_TussleSettings : ScriptableObject
 
     public TussleVideoWrapper GetTussleVideoWrapper(TussleVideoType videoType)
     {
-        foreach (TussleVideoWrapper tvw in videoWrappers)
-        {
-            if (tvw.VideoType == videoType)
-            {
-                return tvw;
-            }
-        }
-        Debug.LogError($"No video found for tussle type {videoType}");
-        return null;
+        return GetWrapperFromFunc(videoWrappers, tvw => tvw.VideoType, videoType, LogEnum.ERROR, null);
     }
 
     public float GetCurrZoneTussleTime()

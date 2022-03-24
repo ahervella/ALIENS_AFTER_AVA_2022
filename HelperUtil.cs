@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+using Object = UnityEngine.Object;
 
 public static class HelperUtil
 {
@@ -44,5 +46,53 @@ public static class HelperUtil
         }
 
         saws.SafeDestroy();
+    }
+
+    /// <summary>
+    /// Helper function that gets a wrapper from a list of wrappers given a key
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="K"></typeparam>
+    /// <param name="wrappers">List of wrappers to search</param>
+    /// <param name="wrapper2Key">Function for getting the wrapper's key</param>
+    /// <param name="targetKey">Key we are looking to match</param>
+    /// <param name="debugLogType">Type of log to print</param>
+    /// <param name="failReturnVal">Fail return value</param>
+    /// <param name="customMsg">Custom log message</param>
+    /// <returns>The wrapper that has the matching target key</returns>
+    public static T GetWrapperFromFunc<T, K>(
+        List<T> wrappers,
+        Func<T, K> wrapper2Key,
+        K targetKey,
+        LogEnum debugLogType,
+        T failReturnVal,
+        string customMsg = null)
+    {
+        foreach(T wrapper in wrappers)
+        {
+            if (targetKey.Equals(wrapper2Key(wrapper)))
+            {
+                return wrapper;
+            }
+        }
+
+        string msg = customMsg ?? $"Could not find {targetKey} amongst {wrappers}";
+
+        switch (debugLogType)
+        {
+            case LogEnum.WARNING:
+                Debug.LogWarning(msg);
+                break;
+            case LogEnum.ERROR:
+                Debug.LogError(msg);
+                break;
+        }
+
+        return failReturnVal;
+    }
+
+    public enum LogEnum
+    {
+        NONE = 0, WARNING = 1, ERROR = 2
     }
 }

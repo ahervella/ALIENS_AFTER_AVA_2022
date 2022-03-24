@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using static HelperUtil;
 
 [CreateAssetMenu(fileName = "SO_EnergySettings", menuName = "ScriptableObjects/StaticData/SO_EnergySettings")]
 public class SO_EnergySettings : ScriptableObject
@@ -35,15 +36,7 @@ public class SO_EnergySettings : ScriptableObject
 
     public int GetEnergyReward(PlayerActionEnum action)
     {
-        foreach (PlayerEnergyWrapper pew in playerEnergyRewards)
-        {
-            if (pew.Action == action)
-            {
-                return pew.Energy;
-            }
-        }
-
-        Debug.LogError($"No energy quantitfy found for action {action}");
-        return -1;
+        PlayerEnergyWrapper wrapper = GetWrapperFromFunc( playerEnergyRewards, pew => pew.Action, action, LogEnum.ERROR, null);
+        return wrapper == null? -1 : wrapper.Energy;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Random = UnityEngine.Random;
+using static HelperUtil;
 
 [CreateAssetMenu(fileName = "SO_ShooterSettings", menuName = "ScriptableObjects/StaticData/SO_ShooterSettings")]
 public class SO_ShooterSettings : ScriptableObject
@@ -53,16 +54,10 @@ public class SO_ShooterSettings : ScriptableObject
 
         public ShooterWrapper GetShooterWrapper(IntPropertySO currZone)
         {
-            foreach(ShooterZoneWrapper szw in shooterWrappers)
-            {
-                if (szw.Zone == currZone.Value)
-                {
-                    return new ShooterWrapper(weaponPrefab, szw.DelayTime);
-                }
-            }
+            ShooterZoneWrapper wrapper = GetWrapperFromFunc(shooterWrappers, szw => szw.Zone, currZone.Value, LogEnum.ERROR, null,
+                "Something went wrong with the shooter zone wrapper :(");
 
-            Debug.LogError("Something went wrong with the shooter zone wrapper :(");
-            return null;
+            return wrapper == null ? null : new ShooterWrapper(weaponPrefab, wrapper.DelayTime);
         }
     }
 

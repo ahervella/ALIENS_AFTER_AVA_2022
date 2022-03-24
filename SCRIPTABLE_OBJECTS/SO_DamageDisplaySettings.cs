@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using static HelperUtil;
 
 [CreateAssetMenu(fileName = "SO_DamageDisplaySettings", menuName = "ScriptableObjects/StaticData/SO_DamageDisplaySettings")]
 public class SO_DamageDisplaySettings : ScriptableObject
@@ -34,15 +35,7 @@ public class SO_DamageDisplaySettings : ScriptableObject
 
     public DamageWrapper GetDamageWrapper(int lifeCount)
     {
-        foreach (DamageWrapper dw in damageWrappers)
-        {
-            if (dw.LifeAmount == lifeCount)
-            {
-                return dw;
-            }
-        }
-
-        return defaultDamageWrapper;
+        return GetWrapperFromFunc(damageWrappers, dw => dw.LifeAmount, lifeCount, LogEnum.NONE, defaultDamageWrapper);
     }
 
     [SerializeField]

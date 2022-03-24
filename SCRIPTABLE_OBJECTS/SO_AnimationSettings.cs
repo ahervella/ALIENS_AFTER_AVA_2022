@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using System.Linq;
+using static HelperUtil;
 
 public abstract class SO_AnimationSettings<T> : ScriptableObject
 {
@@ -11,17 +11,7 @@ public abstract class SO_AnimationSettings<T> : ScriptableObject
 
     public AnimationWrapper<T> GetAnimationWrapper(T action)
     {
-        //return animWrappers.FirstOrDefault(wrapper => wrapper.Action.Equals(action));
-        foreach(AnimationWrapper<T> aw in animWrappers)
-        {
-            if (aw.Action.Equals(action))
-            {
-                return aw;
-            }
-        }
-
-        Debug.LogWarning($"Could not find an animation wrapper for {action} :(");
-        return null;
+        return GetWrapperFromFunc(animWrappers, aw => aw.Action, action, LogEnum.WARNING, null);
     }
 }
 
