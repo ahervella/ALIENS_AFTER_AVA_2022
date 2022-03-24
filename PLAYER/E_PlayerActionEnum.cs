@@ -19,5 +19,6 @@
     TAKE_DAMAGE_GROUND = 14,
 
     GRAPPLE_REEL = 15,
-    ANY_ACTION = 16
+    ANY_ACTION = 16,
+    TUSSLE = 17
 }

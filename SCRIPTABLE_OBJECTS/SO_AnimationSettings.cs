@@ -20,7 +20,7 @@ public abstract class SO_AnimationSettings<T> : ScriptableObject
             }
         }
 
-        Debug.LogError($"Could not find an animation wrapper for {action} :(");
+        Debug.LogWarning($"Could not find an animation wrapper for {action} :(");
         return null;
     }
 }

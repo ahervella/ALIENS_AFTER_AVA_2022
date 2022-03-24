@@ -69,6 +69,11 @@ public static class AudioUtil
         return addedSource;
     }
 
+    /// <summary>
+    /// Determins whether the audio wrapper source is active and is also not a loop.
+    /// </summary>
+    /// <param name="aws">the audio wrapper source to check</param>
+    /// <returns>Returns whether this is true or not</returns>
     public static bool IsAudioSourceNonLoopAndActive(AudioWrapperSource aws)
     {
         if (S_AudioManager.Current.AudioSourceHasAudioQueued(aws))
@@ -85,5 +90,17 @@ public static class AudioUtil
             }
         }
         return false;
+    }
+
+    /// <summary>
+    /// Stops all audio from this audio wrapper source
+    /// </summary>
+    /// <param name="aws">the aduio source to all sounds from</param>
+    public static void StopAllAudioSourceSounds(AudioWrapperSource aws)
+    {
+        foreach (AudioSource a in aws.gameObject.GetComponents<AudioSource>())
+        {
+            a.Stop();
+        }
     }
 }

@@ -272,11 +272,11 @@ public class PlayerRunner : MonoBehaviour
         //TODO: since grappling puts alien in stun, do we need the first check?
         //Is it safe to leave it in case there is an alien infront of the one we grappled??
         //Even though that shouldn't ever be possible (unless an alien pops out in front?)
-        if (currAction.Value == PlayerActionEnum.GRAPPLE_REEL
-            || takeDownAction == currAction.Value
+        if (/*currAction.Value == PlayerActionEnum.GRAPPLE_REEL
+            || */takeDownAction == currAction.Value
             || takeDownAction == PlayerActionEnum.ANY_ACTION)
         {
-            StartTussle(false);
+            StartTussle(true);
             return;
         }
 
@@ -309,6 +309,7 @@ public class PlayerRunner : MonoBehaviour
     private void StartTussle(bool advantage)
     {
         Debug.Log("Loading tussle scene...");
+        currAction.ModifyValue(PlayerActionEnum.TUSSLE);
         tussleInitDelegate.InvokeDelegateMethod(advantage);
     }
 

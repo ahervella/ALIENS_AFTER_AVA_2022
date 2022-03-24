@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static HelperUtil;
+using static AudioUtil;
 
+[RequireComponent(typeof(SafeAudioWrapperSource))]
 public class GrappleHook : MonoBehaviour
 {
     [SerializeField]
@@ -48,12 +50,18 @@ public class GrappleHook : MonoBehaviour
     [SerializeField]
     private GameObject grappleRopeContainer = null;
 
+    [SerializeField]
+    private AAudioWrapperV2 grapplingSnagAudio = null;
+
+    private AudioWrapperSource audioSource;
+
     private Coroutine grappleWindowCR = null;
     private Coroutine grappleRetractCR = null;
     private Coroutine grappleReelInCR = null;
 
     private void Awake()
     {
+        audioSource = GetComponent<AudioWrapperSource>();
         cachedMaskLayer = 1 << grappleLayer;
 
         grappleOnFlag.ModifyValue(true);
@@ -169,6 +177,10 @@ public class GrappleHook : MonoBehaviour
 
     private void ReelInTowardsAlien(GameObject target)
     {
+        StopAllAudioSourceSounds(audioSource);
+
+        grapplingSnagAudio.PlayAudioWrapper(audioSource);
+
         Debug.Log("reeling in towards alien");
 
         HazardAlien alienObj = null;
