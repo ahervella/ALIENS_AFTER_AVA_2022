@@ -93,10 +93,10 @@ public class SO_TerrZoneWrapper : ScriptableObject
 
     
 
-    public TerrAddon GenerateRandomNewAddon()
+    public TerrAddon GenerateRandomNewAddon(bool getOnlyFoley)
     {
         //first roll dice for spawning any addon
-        if (Random.value < addonSpawnLikelihood)
+        if (!getOnlyFoley && Random.value < addonSpawnLikelihood)
         {
             return GetRandomTerrFromWeights(TerrAddonCachedPercents, TerrAddons);
         }

@@ -47,4 +47,8 @@ public class SO_TerrSettings : ScriptableObject
     [SerializeField]
     private float rewardBoxTileLengthFront = 1;
     public float RewardBoxLengthFront => rewardBoxTileLengthFront * tileDims.y;
+
+    [SerializeField]
+    private int startHazardFreeRowsFromPlayer = 1;
+    public int StartHazardFreeRowsFromPlayer => startHazardFreeRowsFromPlayer;
 }

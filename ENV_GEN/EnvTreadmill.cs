@@ -31,6 +31,9 @@ public class EnvTreadmill : MonoBehaviour
     private DSO_LaneChange laneChangeDelegate = null;
 
     [SerializeField]
+    private BoolPropertySO spawnOnlyFoleyPSO = null;
+
+    [SerializeField]
     private DSO_TreadmillSpeedChange treadmillToggleDelegate = null;
 
     private Coroutine treadmillToggleCR = null;
@@ -171,13 +174,18 @@ public class EnvTreadmill : MonoBehaviour
         renderedInterPoints = new Data2D<float>(settings.InterCols, settings.InterRows, newFloat);
         UpdateMeshRender();
 
-        for(int i = 0; i < settings.TileRows; i++)
+        //Setup populated grid:
+
+        spawnOnlyFoleyPSO.ModifyValue(true);
+
+        for (int i = 0; i < settings.TileRows; i++)
         {
+            if (i == settings.StartHazardFreeRowsFromPlayer)
+            {
+                spawnOnlyFoleyPSO.ModifyValue(false);
+            }
             ShiftTerrainRowsDown();
         }
-
-        //fully populate the grid with terr addons before beginning run
-        //generatedTerrAddons.InitalizeAllValues();
     }
 
 
@@ -342,7 +350,9 @@ public class EnvTreadmill : MonoBehaviour
         generatedTerrAddons.ShiftRows(1);
         renderedGroundPoints.ShiftRows(1);
         renderedInterPoints.ShiftRows((1 + settings.InterCount));
-        UpdateMeshRender();
+
+        //TODO: uncomment if we decide to alter terrain mesh
+        //UpdateMeshRender();
 
         //TODO: make sure we some how compensate for objects that are
         //multiple tiles long (whether we place the player the same
@@ -366,7 +376,9 @@ public class EnvTreadmill : MonoBehaviour
         generatedTerrAddons.ShiftColsWrapped(dir);
         renderedGroundPoints.ShiftColsWrapped(dir);
         renderedInterPoints.ShiftColsWrapped(dir * (1 + settings.InterCount));
-        UpdateMeshRender();
+
+        //TODO: uncomment if we decide to alter terrain mesh
+        //UpdateMeshRender();
 
         //TODO: make sure we compensate for objects wider than 1 tile such that we
         //have a wide enough environment (relative to the maximum width of a terrAddon)
