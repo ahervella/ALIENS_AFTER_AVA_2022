@@ -20,6 +20,11 @@ public class TerrHazard : TerrAddon
     [SerializeField]
     private BoxColliderSP hitBox = null;
 
+    private IntPropertySO rewardBoxTileLength = null;
+
+    [SerializeField]
+    private BoxColliderSP energyRewardBox = null;
+
     [SerializeField]
     private AAudioWrapperV2 impactAudio = null;
 
@@ -32,8 +37,17 @@ public class TerrHazard : TerrAddon
     {
         base.Awake();
         audioSource = GetComponent<AudioWrapperSource>();
+        InitBoxColliders();
+
+
+    }
+
+    private void InitBoxColliders()
+    {
         SetHitBoxDimensions();
+        SetRewardBoxDimensions(hitBox.Box());
         hitBox.SetOnTriggerMethod(OnTriggerEnterDamageHitBox);
+        energyRewardBox.SetExitTriggerMethod(OnTriggerExitRewardBox);
     }
 
     private void SetHitBoxDimensions()
@@ -52,6 +66,15 @@ public class TerrHazard : TerrAddon
         hitBox.Box().center = new Vector3(0, hitBoxDimensions.y / 2f, 0);
     }
 
+    private void SetRewardBoxDimensions(BoxCollider hitBox)
+    {
+        //Hack: save computation by using hit box values
+        Vector3 rewardBoxDims = hitBox.size + new Vector3(0, 0, terrSettings.RewardBoxLengthFront);
+
+        energyRewardBox.Box().size = rewardBoxDims;
+        energyRewardBox.Box().center = new Vector3(0, rewardBoxDims.y / 2f, -(rewardBoxDims.z - hitBox.size.z) / 2f);
+    }
+
     private void OnTriggerEnterDamageHitBox(Collider other)
     {
         PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
@@ -66,6 +89,16 @@ public class TerrHazard : TerrAddon
         if (projectile != null)
         {
             projectile.OnEnteredHazard(this);
+        }
+    }
+
+
+    protected virtual void OnTriggerExitRewardBox(Collider other)
+    {
+        PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
+        if (player != null)
+        {
+            player.OnExitHazardRewardArea();
         }
     }
 }

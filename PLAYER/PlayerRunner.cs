@@ -69,6 +69,9 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private SO_DeveloperToolsSettings developerSettings = null;
 
+    [SerializeField]
+    private SO_EnergySettings energySettings = null;
+
     private Coroutine sprintCR = null;
 
     private AudioWrapperSource audioSource;
@@ -255,6 +258,14 @@ public class PlayerRunner : MonoBehaviour
     public void AE_PauseTreadmill(float transitionTime)
     {
         treadmillToggleDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(0, transitionTime));
+    }
+
+    public void OnExitHazardRewardArea()
+    {
+        if (!currAction.IsPlayingHurtAnim())
+        {
+            currEnergy.ModifyValue(energySettings.GetEnergyReward(currAction.Value));
+        }
     }
 
     public void OnEnterHazard(

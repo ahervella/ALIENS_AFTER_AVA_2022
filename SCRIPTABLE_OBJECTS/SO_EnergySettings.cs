@@ -36,7 +36,7 @@ public class SO_EnergySettings : ScriptableObject
 
     public int GetEnergyReward(PlayerActionEnum action)
     {
-        PlayerEnergyWrapper wrapper = GetWrapperFromFunc( playerEnergyRewards, pew => pew.Action, action, LogEnum.ERROR, null);
-        return wrapper == null? -1 : wrapper.Energy;
+        PlayerEnergyWrapper wrapper = GetWrapperFromFunc( playerEnergyRewards, pew => pew.Action, action, LogEnum.WARNING, null);
+        return wrapper == null? 0 : wrapper.Energy;
     }
 }

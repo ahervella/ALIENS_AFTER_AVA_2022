@@ -18,6 +18,8 @@ public class SO_TerrSettings : ScriptableObject
     private int floorCount;
     public int FloorCount => floorCount;
 
+    //TODO: do we need this lane count if we have the other dimension still?
+    //at least simplify it
     [SerializeField]
     private int laneCount;
     public int LaneCount => laneCount;
@@ -41,4 +43,8 @@ public class SO_TerrSettings : ScriptableObject
     public int InterCols => PointCols + TileCols * InterCount;
 
     public int InterRows => PointRows + TileRows * InterCount;
+
+    [SerializeField]
+    private float rewardBoxTileLengthFront = 1;
+    public float RewardBoxLengthFront => rewardBoxTileLengthFront * tileDims.y;
 }
