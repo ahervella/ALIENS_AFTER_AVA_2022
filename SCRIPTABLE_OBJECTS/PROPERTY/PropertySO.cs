@@ -9,7 +9,10 @@ public abstract class PropertySO<T> : PropertySO
     PropertyChanged OnPropertyChanged;
 
     [SerializeField]
-    private T startingValue = default(T);
+    private T startingValue = default;
+
+    [SerializeField]
+    private bool triggerChangeWithStartVal = true;
 
     [NonSerialized]
     private T currentValue;
@@ -18,7 +21,13 @@ public abstract class PropertySO<T> : PropertySO
 
     private void OnEnable()
     {
-        ResetToStart();
+        currentValue = startingValue;
+
+        if (triggerChangeWithStartVal)
+        {
+
+            OnPropertyChanged?.Invoke(currentValue, currentValue);
+        }
     }
 
     public T RegisterForPropertyChanged(PropertyChanged method)
