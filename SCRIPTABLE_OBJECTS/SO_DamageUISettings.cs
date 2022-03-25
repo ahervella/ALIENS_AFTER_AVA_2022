@@ -4,8 +4,8 @@ using UnityEngine;
 using System;
 using static HelperUtil;
 
-[CreateAssetMenu(fileName = "SO_DamageDisplaySettings", menuName = "ScriptableObjects/StaticData/SO_DamageDisplaySettings")]
-public class SO_DamageDisplaySettings : ScriptableObject
+[CreateAssetMenu(fileName = "SO_DamageUISettings", menuName = "ScriptableObjects/StaticData/SO_DamageUISettings")]
+public class SO_DamageUISettings : ScriptableObject
 {
     [SerializeField]
     private Material camTintMat = null;

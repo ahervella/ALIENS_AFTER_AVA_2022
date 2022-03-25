@@ -8,7 +8,7 @@ using static HelperUtil;
 public class DamageImpactManager : MonoBehaviour
 {
     [SerializeField]
-    private SO_DamageDisplaySettings settings = null;
+    private SO_DamageUISettings settings = null;
 
     [SerializeField]
     private IntPropertySO currLivesSO = null;

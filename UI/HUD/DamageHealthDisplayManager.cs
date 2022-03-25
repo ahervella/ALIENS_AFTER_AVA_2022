@@ -11,10 +11,10 @@ using UnityEngine.UI;
 using static HelperUtil;
 
 [RequireComponent(typeof(Image))]
-public class DamageDisplayManager : MonoBehaviour
+public class DamageHealthDisplayManager : MonoBehaviour
 {
     [SerializeField]
-    private SO_DamageDisplaySettings settings = null;
+    private SO_DamageUISettings settings = null;
 
     [SerializeField]
     private IntPropertySO currLivesSO = null;
@@ -27,7 +27,7 @@ public class DamageDisplayManager : MonoBehaviour
     private float currDamageTweenPerc = 0;
     private float cachedDamageAlphaMin = 0f;
     private float cachedDamageAlphaMax = 0f;
-    private int flashTweenDirection = 1;
+    private int flashTweenDirection;
 
     private float currTintTweenPerc = 0;
     private float prevTintPerc = 0;
@@ -37,36 +37,36 @@ public class DamageDisplayManager : MonoBehaviour
     private void Awake()
     {
         damageImg = GetComponent<Image>();
+        SetHurtTintVisiblePerc(0);
+        damageImg.color = new Color(1, 1, 1, 0);
         currLivesSO.RegisterForPropertyChanged(OnLivesChanged);
-        settings.CamTintMat.color = new Color(1, 1, 1, 0);
-        OnLivesChanged(currLivesSO.Value, currLivesSO.Value);
+    }
+
+    private void Start()
+    {
+        damageImg.color = new Color(1, 1, 1, 0);
     }
 
     private void OnLivesChanged(int prevLife, int newLife)
     {
         cachedDW = settings.GetDamageWrapper(newLife);
-
-        //if just starting run
-        if (damageAlphaCR == null)
-        {
-            cachedDamageAlphaMax = cachedDW.DamageAlphaPercentMax;
-            cachedDamageAlphaMin = cachedDW.DamageAlphaPercentMin;
-            StartFlashingDamageAlpha();
-        }
-
-
-        prevTintPerc = 1 - settings.CamTintMat.color.a;
+        StartFlashingDamageSprite();
         StartTintCoroutine();
     }
 
-    private void StartFlashingDamageAlpha()
+
+    private void StartFlashingDamageSprite()
     {
-        StopFlashingDamageAlpha();
-        currDamageTweenPerc = 0f;
-        damageAlphaCR = StartCoroutine(DamageFlashCoroutine());
+        //if in progress, it will finish on its own when
+        if (damageAlphaCR != null) { return; }
+
+        StopFlashingDamageSprite();
+        currDamageTweenPerc = 1f;
+        flashTweenDirection = 1;
+        StartCoroutine(DamageSpriteFlashCoroutine());
     }
 
-    private void StopFlashingDamageAlpha()
+    private void StopFlashingDamageSprite()
     {
         if (damageAlphaCR == null)
         {
@@ -77,9 +77,9 @@ public class DamageDisplayManager : MonoBehaviour
         damageAlphaCR = null;
     }
 
-    private IEnumerator DamageFlashCoroutine()
+    private IEnumerator DamageSpriteFlashCoroutine()
     {
-        while (true)
+        while (cachedDamageAlphaMin != cachedDamageAlphaMax)
         {
             currDamageTweenPerc += Time.deltaTime / (cachedDW.DamageAlphaPulseTime / 2) * flashTweenDirection;
 
@@ -87,38 +87,36 @@ public class DamageDisplayManager : MonoBehaviour
 
             damageImg.color = new Color(1, 1, 1, alpha);
 
-
+            //when reached end of either swing...
             if (currDamageTweenPerc <= 0)
             {
                 currDamageTweenPerc = 0;
                 flashTweenDirection = 1;
-                cachedDamageAlphaMax = cachedDW.DamageAlphaPercentMax;
 
-                if (cachedDamageAlphaMax == cachedDamageAlphaMin)
-                {
-                    StopFlashingDamageAlpha();
-                }
+                //instead when lives change, change the cached values at the end of each swing
+                //to keep constant smooth transitions
+                cachedDamageAlphaMax = cachedDW.DamageAlphaPercentMax;
             }
             else if (currDamageTweenPerc >= 1)
             {
                 currDamageTweenPerc = 1;
                 flashTweenDirection = -1;
                 cachedDamageAlphaMin = cachedDW.DamageAlphaPercentMin;
-
-                if (cachedDamageAlphaMax == cachedDamageAlphaMin)
-                {
-                    StopFlashingDamageAlpha();
-                }
             }
 
             yield return null;
         }
+
+        StopFlashingDamageSprite();
     }
 
+
+    //The following is just for the red tint that does not flash multiple times
 
     private void StartTintCoroutine()
     {
         StopTintCoroutine();
+        prevTintPerc = 1 - settings.CamTintMat.color.a;
         currTintTweenPerc = 0;
         tintCR = StartCoroutine(TintCoroutine());
     }
@@ -140,18 +138,28 @@ public class DamageDisplayManager : MonoBehaviour
         {
             currTintTweenPerc += Time.deltaTime / settings.TintTweenTime;
 
-            float rgbMultiplyer = Mathf.Lerp(prevTintPerc, cachedDW.TintPercent, EasedPercent(currTintTweenPerc));
+            float visiblePerc = Mathf.Lerp(prevTintPerc, cachedDW.TintPercent, EasedPercent(currTintTweenPerc));
 
-            float r = settings.HurtTintColor.r * rgbMultiplyer;
-            float g = settings.HurtTintColor.g * rgbMultiplyer;
-            float b = settings.HurtTintColor.b * rgbMultiplyer;
-            float a = 1 - rgbMultiplyer;
-
-            settings.CamTintMat.SetColor("_Color", new Color(r, g, b, a));
+            SetHurtTintVisiblePerc(visiblePerc);
 
             yield return null;
         }
 
         StopTintCoroutine();
+    }
+
+    private void SetHurtTintVisiblePerc(float perc)
+    {
+        float r = settings.HurtTintColor.r * perc;
+        float g = settings.HurtTintColor.g * perc;
+        float b = settings.HurtTintColor.b * perc;
+        float a = 1 - perc;
+
+        settings.CamTintMat.SetColor("_Color", new Color(r, g, b, a));
+    }
+
+    private void OnDestroy()
+    {
+        SetHurtTintVisiblePerc(0);
     }
 }
