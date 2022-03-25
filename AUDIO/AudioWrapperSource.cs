@@ -62,6 +62,6 @@ public class AudioWrapperSource : MonoBehaviour
 
     private void OnDestroy()
     {
-        S_AudioManager.Current.OnAudioWrapperSourceDestroyed(this);
+        S_AudioManager.OnDestroyCurrent?.OnAudioWrapperSourceDestroyed(this);
     }
 }

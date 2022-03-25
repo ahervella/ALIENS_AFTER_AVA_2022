@@ -34,6 +34,31 @@ public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
         }
     }
 
+    //TODO: make a more robust solution that returns this version when
+    //changing scenes or closing player? Or different calls to things when
+    //this is happening vs being normally destroyed?
+
+    /// <summary>
+    /// Used to get the current when calling the singleton from any OnDestroy
+    /// in case the singleton was already destroyed
+    /// which only happens when stopping the game or changing scenes
+    /// </summary>
+    public static T OnDestroyCurrent
+    {
+        get
+        {
+            if (threadSafe)
+            {
+                lock (_lock)
+                {
+                    return _current;
+                }
+            }
+
+            return _current;
+        }
+    }
+
     private static T GetSingleton()
     {
         if (_current == null)
