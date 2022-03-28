@@ -14,7 +14,7 @@ public class TussleTester : MonoBehaviour
     [SerializeField]
     private BoolDelegateSO tussleResolveDebugDelegate = null;
 
-    private void Awake()
+    private void Start()
     {
         inputManager.RegisterForInput(InputEnum.DEV_1, InputManager_StartDis);
         inputManager.RegisterForInput(InputEnum.DEV_2, InputManager_StartAdv);

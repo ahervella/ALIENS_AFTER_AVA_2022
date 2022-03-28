@@ -72,7 +72,6 @@ public class PlayerRunner : MonoBehaviour
 
     private void Awake()
     {
-        RegisterForInputs();
         SetPlayerStartPosition();
         currAction.RegisterForPropertyChanged(OnActionChange);
         shieldOnFlag.RegisterForPropertyChanged(OnShieldChange);
@@ -80,6 +79,7 @@ public class PlayerRunner : MonoBehaviour
 
     private void Start()
     {
+        RegisterForInputs();
         currAction.ModifyValue(PlayerActionEnum.RUN);
     }
 
