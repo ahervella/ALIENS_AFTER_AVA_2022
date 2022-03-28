@@ -50,6 +50,9 @@ public class DamageHealthDisplayManager : MonoBehaviour
     private void OnLivesChanged(int prevLife, int newLife)
     {
         cachedDW = settings.GetDamageWrapper(newLife);
+        cachedDamageAlphaMax = cachedDW.DamageAlphaPercentMax;
+        cachedDamageAlphaMin = cachedDW.DamageAlphaPercentMin;
+
         StartFlashingDamageSprite();
         StartTintCoroutine();
     }
@@ -63,7 +66,7 @@ public class DamageHealthDisplayManager : MonoBehaviour
         StopFlashingDamageSprite();
         currDamageTweenPerc = 1f;
         flashTweenDirection = 1;
-        StartCoroutine(DamageSpriteFlashCoroutine());
+        damageAlphaCR = StartCoroutine(DamageSpriteFlashCoroutine());
     }
 
     private void StopFlashingDamageSprite()

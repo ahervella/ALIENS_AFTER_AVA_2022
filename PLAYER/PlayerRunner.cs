@@ -6,7 +6,6 @@ using UnityEngine.SceneManagement;
 using static UnityEngine.InputSystem.InputAction;
 
 [RequireComponent(typeof(BoxCollider))]
-[RequireComponent(typeof(AudioWrapperSource))]
 public class PlayerRunner : MonoBehaviour
 {
     [SerializeField]
@@ -20,9 +19,6 @@ public class PlayerRunner : MonoBehaviour
 
     [SerializeField]
     private IntPropertySO currLives = null;
-
-    [SerializeField]
-    private DSO_LaneChange laneChangeDelegate = null;
 
     [SerializeField]
     private DSO_UseArmament useArmament = null;
@@ -74,11 +70,8 @@ public class PlayerRunner : MonoBehaviour
 
     private Coroutine sprintCR = null;
 
-    private AudioWrapperSource audioSource;
-
     private void Awake()
     {
-        audioSource = GetComponent<AudioWrapperSource>();
         RegisterForInputs();
         SetPlayerStartPosition();
         currAction.RegisterForPropertyChanged(OnActionChange);
@@ -183,11 +176,11 @@ public class PlayerRunner : MonoBehaviour
     {
         if (dev_toggleTreadmill)
         {
-            AE_PauseTreadmill(1f);
+            playerAnimmator.AE_PauseTreadmill(1f);
             return;
         }
 
-        AE_ResumeTreadmill(1f);
+        playerAnimmator.AE_ResumeTreadmill(1f);
 
         dev_toggleTreadmill = !dev_toggleTreadmill;
     }
@@ -243,21 +236,6 @@ public class PlayerRunner : MonoBehaviour
         yield return new WaitForSeconds(settings.SprintTime);
         playerAnimmator.AE_OnAnimFinished();
         sprintCR = null;
-    }
-
-    public void AE_LaneChange(int dir)
-    {
-        laneChangeDelegate.InvokeDelegateMethod(new LaneChange(dir > 0, settings.LaneChangeTime));
-    }
-
-    public void AE_ResumeTreadmill(float transitionTime)
-    {
-        treadmillToggleDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(1, transitionTime));
-    }
-
-    public void AE_PauseTreadmill(float transitionTime)
-    {
-        treadmillToggleDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(0, transitionTime));
     }
 
     public void OnExitHazardRewardArea()

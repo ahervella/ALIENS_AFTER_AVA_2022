@@ -21,7 +21,10 @@ public class HealthRecoveryManager : MonoBehaviour
     private void OnCurrLivesChange(int oldLives, int newLives)
     {
         Debug.Log($"New Health val: {newLives}");
-        StartHealCoroutine();
+        if (newLives > currLives.MinValue())
+        {
+            StartHealCoroutine(); ;
+        }
     }
 
     private void StartHealCoroutine()
