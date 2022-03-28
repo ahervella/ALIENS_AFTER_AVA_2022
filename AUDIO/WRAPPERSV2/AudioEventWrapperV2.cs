@@ -14,13 +14,16 @@ public class AudioEventWrapperV2 : AAudioWrapperV2
     public class SeqAudioWrapperV2
     {
         [SerializeField]
-        public AAudioWrapperV2 aAudioWrapper;
+        private AAudioWrapperV2 aAudioWrapper = null;
+        public AAudioWrapperV2 AAudioWrapper => aAudioWrapper;
 
         [SerializeField, Range(0f, 2f)]
-        public float delSeconds = 0;
+        private float delSeconds = 0;
+        public float DelSeconds => delSeconds;
 
         [SerializeField, Range(-60f, 20f)]
-        public float secondaryOffset = 0;
+        private float secondaryOffset = 0;
+        public float SecondaryOffset => secondaryOffset;
     }
 
     [SerializeField]
@@ -30,14 +33,14 @@ public class AudioEventWrapperV2 : AAudioWrapperV2
     {
         foreach (SeqAudioWrapperV2 saw in seqAudioWrappers)
         {
-            if (saw == null)
+            if (saw == null || saw.AAudioWrapper == null)
             {
-                Debug.Log($"SeqAudioWrapperV2 is null in AudioEventWrapperV2 {name}");
+                Debug.Log($"SeqAudioWrapperV2 or it's audio wrapper is null in AudioEventWrapperV2 {name}");
                 continue;
             }
-            saw.aAudioWrapper.AddOffset(currLevelOffsetDb);
-            saw.aAudioWrapper.AddOffset(saw.secondaryOffset);
-            S_AudioManager.Current.PlayDelayed(saw.aAudioWrapper, saw.delSeconds, soundObject, unstoppable);
+            saw.AAudioWrapper.AddOffset(currLevelOffsetDb);
+            saw.AAudioWrapper.AddOffset(saw.SecondaryOffset);
+            S_AudioManager.Current.PlayDelayed(saw.AAudioWrapper, saw.DelSeconds, soundObject, unstoppable);
         }
         ResetLevelOffset();
     }
