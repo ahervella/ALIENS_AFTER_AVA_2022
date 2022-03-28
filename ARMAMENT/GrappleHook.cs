@@ -45,7 +45,7 @@ public class GrappleHook : MonoBehaviour
     private SpriteRenderer grappleRope = null;
 
     [SerializeField]
-    private SpriteRenderer grappleHook = null;
+    private GameObject grappleHook = null;
 
     [SerializeField]
     private GameObject grappleRopeContainer = null;
@@ -197,7 +197,7 @@ public class GrappleHook : MonoBehaviour
         speedChangeDelegate.InvokeDelegateMethod(treadmillSpeedChange);
         currAction.ModifyValue(PlayerActionEnum.GRAPPLE_REEL);
 
-        grappleReelInCR = StartCoroutine(ReelInCoroutine(target));
+        grappleReelInCR = StartCoroutine(ReelInCoroutine(alienObj.gameObject));
     }
 
     private IEnumerator ReelInCoroutine(GameObject target)
