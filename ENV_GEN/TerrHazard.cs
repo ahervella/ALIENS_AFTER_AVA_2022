@@ -44,8 +44,8 @@ public class TerrHazard : TerrAddon
     {
         SetHitBoxDimensions();
         SetRewardBoxDimensions(hitBox.Box());
-        hitBox.SetOnTriggerMethod(OnTriggerEnterDamageHitBox);
-        energyRewardBox.SetExitTriggerMethod(OnTriggerExitRewardBox);
+        hitBox.SetOnTriggerEnterMethod(OnTriggerEnterDamageHitBox);
+        energyRewardBox.SetOnTriggerExitMethod(OnTriggerExitRewardBox);
     }
 
     private void SetHitBoxDimensions()
