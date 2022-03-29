@@ -54,7 +54,7 @@ public class SO_InputManager : ScriptableObject
         }
     }
 
-    private void EnsureIsEnabled()
+    public void EnsureIsEnabled()
     {
         //idealy we find somewhere to do this on awake but
         //this is the only way to make sure that anything that
