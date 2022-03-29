@@ -12,7 +12,6 @@ public class EnvNodeGenerator : MonoBehaviour
 
     [SerializeField]
     private BoolPropertySO spawnOnlyFoleyPSO = null;
-    private bool cachedSpawnOnlyFoley = false;
 
     [SerializeField]
     private List<SO_TerrZoneWrapper> zoneWrappers = null;
@@ -22,7 +21,6 @@ public class EnvNodeGenerator : MonoBehaviour
     private void Awake()
     {
         currZone.RegisterForPropertyChanged(OnZoneChange);
-        spawnOnlyFoleyPSO.RegisterForPropertyChanged(OnSpawnOnlyFoleyChanged);
     }
 
     private void OnZoneChange(int prevZone, int newZone)
@@ -41,11 +39,6 @@ public class EnvNodeGenerator : MonoBehaviour
         Debug.LogError($"Could not find zone wrapper for zone {newZone} :(");
     }
 
-    private void OnSpawnOnlyFoleyChanged(bool oldVal, bool newVal)
-    {
-        cachedSpawnOnlyFoley = newVal;
-    }
-
     public TerrAddon GetNewAddon(int colIndex, int rowIndex, Data2D<TerrAddon> currAddons)
     {
         if (cachedZoneWrapper == null)
@@ -58,7 +51,7 @@ public class EnvNodeGenerator : MonoBehaviour
 
     private TerrAddon TryGetNewViolationFreeAddon(int colIndex, int rowIndex, Data2D<TerrAddon> currAddons)
     {
-        TerrAddon newAddon = cachedZoneWrapper.GenerateRandomNewAddon(cachedSpawnOnlyFoley);
+        TerrAddon newAddon = cachedZoneWrapper.GenerateRandomNewAddon(spawnOnlyFoleyPSO.Value);
         if (newAddon == null) { return null; }
 
         //have to account for wrapping effect, such that there may be violations in wrapped space

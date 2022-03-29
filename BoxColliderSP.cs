@@ -6,11 +6,11 @@ using System;
 [RequireComponent(typeof(BoxCollider))]
 public class BoxColliderSP : MonoBehaviour
 {
-    Action<Collider> onTriggerMethod = null;
-    Action<Collider> exitTriggerMethod = null;
+    Action<Collider> onTriggerEnterMethod = null;
+    Action<Collider> onTriggerExitMethod = null;
 
-    Action<Collision> onColliderMethod = null;
-    Action<Collision> exitColliderMethod = null;
+    Action<Collision> onColliderEnterMethod = null;
+    Action<Collision> onColliderExitMethod = null;
 
     private BoxCollider box;
     public BoxCollider Box()
@@ -22,44 +22,44 @@ public class BoxColliderSP : MonoBehaviour
         return box;
     }
 
-    public void SetOnTriggerMethod(Action<Collider> method)
+    public void SetOnTriggerEnterMethod(Action<Collider> method)
     {
-        onTriggerMethod = method;
+        onTriggerEnterMethod = method;
     }
 
-    public void SetExitTriggerMethod(Action<Collider> method)
+    public void SetOnTriggerExitMethod(Action<Collider> method)
     {
-        exitTriggerMethod = method;
+        onTriggerExitMethod = method;
     }
 
-    public void SetOnCollisionMethod(Action<Collision> method)
+    public void SetOnCollisionEnterMethod(Action<Collision> method)
     {
-        onColliderMethod = method;
+        onColliderEnterMethod = method;
     }
 
-    public void SetExitCollisionMethod(Action<Collision> method)
+    public void SetOnCollisionExitMethod(Action<Collision> method)
     {
-        exitColliderMethod = method;
+        onColliderExitMethod = method;
     }
 
 
     private void OnTriggerEnter(Collider other)
     {
-        onTriggerMethod?.Invoke(other);
+        onTriggerEnterMethod?.Invoke(other);
     }
 
     private void OnTriggerExit(Collider other)
     {
-        exitTriggerMethod?.Invoke(other);
+        onTriggerExitMethod?.Invoke(other);
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        onColliderMethod?.Invoke(collision);
+        onColliderEnterMethod?.Invoke(collision);
     }
 
     private void OnCollisionExit(Collision collision)
     {
-        exitColliderMethod?.Invoke(collision);
+        onColliderExitMethod?.Invoke(collision);
     }
 }

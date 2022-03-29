@@ -36,7 +36,7 @@ public class HazardAlien : TerrHazard
 
         currTreadmillSpeed.RegisterForPropertyChanged(OnTreadmillSpeedChange);
         OnTreadmillSpeedChange(currTreadmillSpeed.Value, currTreadmillSpeed.Value);
-        attackTrigger.SetOnTriggerMethod(OnTriggerEnterAttackBox);
+        attackTrigger.SetOnTriggerEnterMethod(OnTriggerEnterAttackBox);
     }
 
     private void OnTreadmillSpeedChange(float oldSpeed, float newSpeed)
@@ -61,7 +61,7 @@ public class HazardAlien : TerrHazard
                 sprite.Play(attackAnimation);
                 attackAudio.PlayAudioWrapper(audioSource);
             }
-            attackTrigger.SetOnTriggerMethod(null);
+            attackTrigger.SetOnTriggerEnterMethod(null);
         }
     }
 
