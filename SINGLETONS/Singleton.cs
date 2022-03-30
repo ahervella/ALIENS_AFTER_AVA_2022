@@ -11,6 +11,7 @@ using UnityEngine;
 
 public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 {
+    [SerializeField]
     protected bool persistent = true;
 
     protected static bool threadSafe = true;

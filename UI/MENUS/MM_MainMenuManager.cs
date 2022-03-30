@@ -30,10 +30,22 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
     protected override void Awake()
     {
         base.Awake();
-
         loopVideoScreenShotRef.enabled = false;
+
+        AssignButtonMethods();
+
         ResetSequence();
         StartMainMenuSequence();
+    }
+
+    private void AssignButtonMethods()
+    {
+        AssignOnButtonPressedMethod(MainMenuButtonEnum.RUN, PlayGame);
+    }
+
+    private void PlayGame()
+    {
+        S_GameModeManager.Current.LoadGameMode(GameModeEnum.PLAY, false);
     }
 
     private void ResetSequence()
