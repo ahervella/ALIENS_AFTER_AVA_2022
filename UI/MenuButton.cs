@@ -6,12 +6,13 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using static UnityEngine.InputSystem.InputAction;
 
 [RequireComponent(typeof(Button))]
-public class MenuButton : MonoBehaviour, ISelectHandler, IPointerEnterHandler, IDeselectHandler, IPointerExitHandler
+public class MenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
     [SerializeField]
-    private Button button = null;
+    private MenuButtonGroup<ButtonNavEnum> adjacentButtons = null;
 
     [SerializeField]
     private TextMeshProUGUI text = null;
@@ -22,60 +23,75 @@ public class MenuButton : MonoBehaviour, ISelectHandler, IPointerEnterHandler, I
     [SerializeField]
     private Color selectColor = default;
 
-    public bool ButtonEnabled { get; set; } = true;
+    //The action paramaters are this button (MenuButton)
+    //and whether the mouse entered or exited (bool)
+    private Action<MenuButton, bool> OnMouseSelectButtonChangedMethod = null;
+    private Action OnMousePressButtonMethod = null;
 
-    private void Awake()
+    private Action OnPressMethod = null;
+
+    public MenuButton GetAdjacentButton(ButtonNavEnum dir)
     {
-        OnDeselect();
+        return adjacentButtons.GetButton(dir);
     }
 
-    public void SubscribeToClick(UnityAction method)
+    public void SetOnMouseSelectMethod(Action<MenuButton, bool> selectMethod)
     {
-        button.onClick.AddListener(OnClickMethod(method));
+        OnMouseSelectButtonChangedMethod = selectMethod;
     }
 
-    private UnityAction OnClickMethod(UnityAction method)
+    public void SetOnMousePressMethod(Action pressMethod)
     {
-        if (!ButtonEnabled) { return null; }
-        return method;
+        OnMousePressButtonMethod = pressMethod;
+    }
+
+    public void SetPressMethod(Action method)
+    {
+        OnPressMethod = method;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        OnSelect(eventData);
+        OnMouseSelectButtonChangedMethod(this, true);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        OnDeselect(eventData);
+        OnMouseSelectButtonChangedMethod(this, false);
     }
 
-    public void OnSelect(BaseEventData eventData)
+    public void OnPointerClick(PointerEventData eventData)
     {
-        OnSelect();
+        OnMousePressButtonMethod();
     }
 
     public void OnSelect()
     {
-        if (!ButtonEnabled) { return; }
         text.color = selectColor;
         text.fontStyle = FontStyles.Underline | FontStyles.Bold;
     }
 
-    public void OnDeselect(BaseEventData eventData)
-    {
-        OnDeselect();
-    }
-
     public void OnDeselect()
     {
-        if (!ButtonEnabled) { return; }
         text.color = idleColor;
         text.fontStyle = FontStyles.Bold;
     }
 
+    public void OnPress()
+    {
+        Debug.Log("pressed " + name);
+        OnPressMethod?.Invoke();
+    }
+
     public void SetAlpha(float a)
     {
+        Debug.Log("alpha set to " + a);
         text.color = new Color(text.color.r, text.color.g, text.color.b, a);
     }
 }
+
+public enum ButtonNavEnum
+{
+    LEFT = 0, RIGHT = 1, UP = 2, DOWN = 3
+}
+

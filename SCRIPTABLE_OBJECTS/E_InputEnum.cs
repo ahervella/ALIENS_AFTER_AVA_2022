@@ -4,6 +4,7 @@
     NAV_RIGHT = 1,
     NAV_UP = 2,
     NAV_DOWN = 3,
+    NAV_DIR = 17,
     NAV_SELECT = 4,
     NAV_BACK = 5,
     GAME_LEFT = 6,

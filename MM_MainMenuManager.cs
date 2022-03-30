@@ -6,7 +6,7 @@ using UnityEngine.Video;
 using UnityEngine.UI;
 using System;
 
-public class MainMenuManager : MonoBehaviour
+public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
 {
     [SerializeField]
     private SO_MainMenuSettings settings = null;
@@ -23,40 +23,25 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField]
     private Image titleSprite = null;
 
-    [SerializeField]
-    private MenuButtonGroup<MainMenuButtonEnum> buttonGroup = null;
-
-    private enum MainMenuButtonEnum
-    {
-        RUN = 0, BACKPACK = 1, QUIT = 2
-    }
-
-    [SerializeField]
-    private SO_InputManager inputManager = null;
-
     private Coroutine loopVideoFadeCR = null;
     private Coroutine titleFadeCR = null;
     private Coroutine menuButtonsFadeCR = null;
 
-    private void Awake()
+    protected override void Awake()
     {
-        loopVideoScreenShotRef.enabled = false;
-        inputManager.EnsureIsEnabled();
-    }
+        base.Awake();
 
-    //to let Buttons run their awake first
-    private void Start()
-    {
-        ResetAll();
+        loopVideoScreenShotRef.enabled = false;
+        ResetSequence();
         StartMainMenuSequence();
     }
 
-    private void ResetAll()
+    private void ResetSequence()
     {
         loopVideoFade.color = new Color(0, 0, 0, 1);
         titleSprite.color = new Color(1, 1, 1, 0);
-        buttonGroup.GetMenuButton(MainMenuButtonEnum.RUN).OnSelect();
         buttonGroup.ForEachButton(mb => mb.SetAlpha(0));
+        MenuEnabled = false;
     }
 
     private void StartMainMenuSequence()
@@ -77,7 +62,13 @@ public class MainMenuManager : MonoBehaviour
             settings.ButtonPromptTotalDelay,
             settings.ButtonPromptFadeInTime,
             a => buttonGroup.ForEachButton(mb => mb.SetAlpha(a)),
-            () => menuButtonsFadeCR = null)); ;
+            OnButtonsFadeInComplete)); ;
+    }
+
+    private void OnButtonsFadeInComplete()
+    {
+        menuButtonsFadeCR = null;
+        MenuEnabled = true;
     }
 
     private IEnumerator FadeCoroutine(float delay, float fadeTime, Action<float> setAlpha, Action finishCR)
@@ -97,4 +88,9 @@ public class MainMenuManager : MonoBehaviour
     }
 }
 
+
+public enum MainMenuButtonEnum
+{
+    RUN = 0, BACKPACK = 1, QUIT = 2
+}
 

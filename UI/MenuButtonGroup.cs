@@ -10,7 +10,7 @@ public class MenuButtonGroup<T>
     [SerializeField]
     private List<MenuButtonWrapper<T>> menuButtonWrappers = new List<MenuButtonWrapper<T>>();
 
-    public MenuButton GetMenuButton(T enumVal)
+    public MenuButton GetButton(T enumVal)
     {
         MenuButtonWrapper<T> wrapper =  GetWrapperFromFunc(
             menuButtonWrappers,
@@ -18,7 +18,7 @@ public class MenuButtonGroup<T>
             enumVal, LogEnum.WARNING,
             null);
 
-        return wrapper.MenuButton;
+        return wrapper?.MenuButton;
     }
 
     public void ForEachButton(Action<MenuButton> method)
