@@ -20,6 +20,9 @@ public class PlayerAnimation : BaseAnimation<PlayerActionEnum>
     private DSO_LaneChange laneChangeDelegate = null;
 
     [SerializeField]
+    private BoolDelegateSO playerDeathTrigger = null;
+
+    [SerializeField]
     private SO_PlayerRunnerSettings playerSettings = null;
 
     protected override void OnPlayerActionChange(PlayerActionEnum prevAction, PlayerActionEnum newAction)
@@ -46,6 +49,7 @@ public class PlayerAnimation : BaseAnimation<PlayerActionEnum>
         if (currLives.Value <= currLives.MinValue())
         {
             spriteAnimator.Stop();
+            playerDeathTrigger.InvokeDelegateMethod(true);
         }
     }
 

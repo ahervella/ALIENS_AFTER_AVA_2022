@@ -30,23 +30,32 @@ public class S_GameModeManager : Singleton<S_GameModeManager>
         AsyncLoadGameMode(gameMode, true, onFinishLoading);
     }*/
 
-    public void ReplaceGameModeScene(GameModeEnum gameMode, Action onFinishLoading = null)
+    //TODO: should this be private and subscribe to the gamemode change (and/or do we want to make sure
+    //all things get that change before changing scenes?)
+    public bool TryReplaceGameModeScene(GameModeEnum gameMode, Action onFinishLoading = null)
     {
         if (loadingCR != null)
         {
             Debug.Log("Currently loading a scene already, can't load scene right now!");
-            return;
+            return false;
         }
 
         OnGameModeUnloadedDelegate?.Invoke();
 
-        AsyncLoadGameMode(gameMode, false, onFinishLoading);
-    }
-
-    private void AsyncLoadGameMode(GameModeEnum gameMode, bool additive, Action onFinishLoading = null)
-    {
         string gameModeSceneName = settings.GetSceneName(gameMode);
 
+        if (gameModeSceneName.Equals(string.Empty))
+        {
+            Debug.Log("No scene found for game mode " + gameMode.ToString());
+            return false;
+        }
+
+        AsyncLoadGameMode(gameModeSceneName, false, onFinishLoading);
+        return true;
+    }
+
+    private void AsyncLoadGameMode(string gameModeSceneName, bool additive, Action onFinishLoading = null)
+    {
         Action onFinishCR = delegate { };
         onFinishCR += onFinishLoading;
 

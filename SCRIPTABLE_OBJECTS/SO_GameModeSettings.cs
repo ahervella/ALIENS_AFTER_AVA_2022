@@ -32,6 +32,6 @@ public class SO_GameModeSettings : ScriptableObject
             return wrapper.SceneName;
         }
 
-        return default;
+        return string.Empty;
     }
 }

@@ -8,7 +8,7 @@ public enum GameModeEnum
     BACKPACK,
     PAUSE,
     MAINMENU,
-    EXIT,
+    QUIT,
     BOOT,
     TUTORIAL
 }

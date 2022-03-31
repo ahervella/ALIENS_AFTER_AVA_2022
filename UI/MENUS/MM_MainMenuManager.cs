@@ -24,6 +24,9 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
     private Image titleSprite = null;
 
     [SerializeField]
+    private PSO_CurrentGameMode currGameMode = null;
+
+    [SerializeField]
     private SO_DeveloperToolsSettings devToolsS = null;
 
     private Coroutine loopVideoFadeCR = null;
@@ -44,11 +47,23 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
     private void AssignButtonMethods()
     {
         AssignOnButtonPressedMethod(MainMenuButtonEnum.RUN, PlayGame);
+        AssignOnButtonPressedMethod(MainMenuButtonEnum.QUIT, QuitGameApplication);
+        AssignOnButtonPressedMethod(MainMenuButtonEnum.BACKPACK, OpenBackpack);
     }
 
     private void PlayGame()
     {
-        S_GameModeManager.Current.ReplaceGameModeScene(GameModeEnum.PLAY);
+        currGameMode.ModifyValue(GameModeEnum.PLAY);
+    }
+
+    private void QuitGameApplication()
+    {
+        currGameMode.ModifyValue(GameModeEnum.QUIT);
+    }
+
+    private void OpenBackpack()
+    {
+        currGameMode.ModifyValue(GameModeEnum.BACKPACK);
     }
 
     private void ResetSequence()
@@ -61,21 +76,23 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
 
     private void StartMainMenuSequence()
     {
+        MainMenuTimingWrapper wrapper = settings.GetTimingWrapper();
+
         loopVideoFadeCR = StartCoroutine(FadeCoroutine(
-            settings.VideoDelayFromBlack,
-            settings.VideoFadeInTime,
+            wrapper.VideoDelayFromBlack,
+            wrapper.VideoFadeInTime,
             a => loopVideoFade.color = new Color(0, 0, 0, 1 - a),
             () => loopVideoFadeCR = null));
 
         titleFadeCR = StartCoroutine(FadeCoroutine(
-            settings.TitleTotalDelay,
-            settings.TitleFadeInTime,
+            wrapper.TitleTotalDelay,
+            wrapper.TitleFadeInTime,
             a => titleSprite.color = new Color(1, 1, 1, a),
             () => titleFadeCR = null));
 
         menuButtonsFadeCR = StartCoroutine(FadeCoroutine(
-            settings.ButtonPromptTotalDelay,
-            settings.ButtonPromptFadeInTime,
+            wrapper.ButtonPromptTotalDelay,
+            wrapper.ButtonPromptFadeInTime,
             a => buttonGroup.ForEachButton(mb => mb.SetAlpha(a)),
             OnButtonsFadeInComplete)); ;
     }
