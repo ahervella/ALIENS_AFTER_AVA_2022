@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameModeController : MonoBehaviour
+public class LegacyGameModeController : MonoBehaviour
 {
     [SerializeField]
     private GameModeEnum gameMode = GameModeEnum.BACKPACK;

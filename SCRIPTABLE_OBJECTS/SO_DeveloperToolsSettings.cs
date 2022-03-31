@@ -9,5 +9,9 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     private bool invincibility = false;
     public bool Invincibility => invincibility;
 
+    [SerializeField]
+    private bool instantMainMenuIntro = false;
+    public bool InstantMainMenuIntro => instantMainMenuIntro;
+
     //TODO: mute just music, infinite energy bar, no delay for changing moves, no timer delays, etc.
 }

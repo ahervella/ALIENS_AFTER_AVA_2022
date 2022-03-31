@@ -23,6 +23,9 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
     [SerializeField]
     private Image titleSprite = null;
 
+    [SerializeField]
+    private SO_DeveloperToolsSettings devToolsS = null;
+
     private Coroutine loopVideoFadeCR = null;
     private Coroutine titleFadeCR = null;
     private Coroutine menuButtonsFadeCR = null;
@@ -45,7 +48,7 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
 
     private void PlayGame()
     {
-        S_GameModeManager.Current.LoadGameMode(GameModeEnum.PLAY, false);
+        S_GameModeManager.Current.ReplaceGameModeScene(GameModeEnum.PLAY);
     }
 
     private void ResetSequence()
@@ -85,6 +88,12 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
 
     private IEnumerator FadeCoroutine(float delay, float fadeTime, Action<float> setAlpha, Action finishCR)
     {
+        if (devToolsS.InstantMainMenuIntro)
+        {
+            delay = 0.1f;
+            fadeTime = 0.1f;
+        }
+
         yield return new WaitForSeconds(delay);
 
         float timer = 0;

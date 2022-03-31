@@ -4,9 +4,6 @@ using UnityEngine;
 [Serializable]
 public abstract class PropertySO<T> : PropertySO
 {
-    public delegate void PropertyChanged(T oldValue, T newValue);
-
-    PropertyChanged OnPropertyChanged;
 
     [SerializeField]
     private T startingValue = default;
@@ -17,6 +14,17 @@ public abstract class PropertySO<T> : PropertySO
     [NonSerialized]
     private T currentValue;
 
+    //This one shot is used so we don't have to rely
+    //on the ScriptableObject OnEnable which has had mixed results in the past
+    [NonSerialized]
+    private bool registeredWithGameModeManager = false;
+
+    public delegate void PropertyChanged(T oldValue, T newValue);
+
+    PropertyChanged OnPropertyChanged;
+
+    PropertyChanged OnGameModeSceneUnloadedCleanUp;
+
     public T Value => currentValue;
 
     private void OnEnable()
@@ -25,24 +33,48 @@ public abstract class PropertySO<T> : PropertySO
 
         if (triggerChangeWithStartVal)
         {
-
             OnPropertyChanged?.Invoke(currentValue, currentValue);
         }
     }
 
-    public T RegisterForPropertyChanged(PropertyChanged method)
+    public T RegisterForPropertyChanged(PropertyChanged method, bool persistant = false)
     {
         //deregister first because this revoes all method instance
         //of this name, such that we make sure each method is registered
         //only once
         OnPropertyChanged -= method;
         OnPropertyChanged += method;
+
+        if (!persistant)
+        {
+            RegisterForGameModeSceneUnloaded(method);
+        }
+
         return Value;
+    }
+
+    private void RegisterForGameModeSceneUnloaded(PropertyChanged method)
+    {
+        if (!registeredWithGameModeManager)
+        { 
+            S_GameModeManager.Current.RegisterForGameModeSceneUnloaded(S_GameModeManager_OnGameModeSceneUnloaded);
+            registeredWithGameModeManager = true;
+        }
+
+        OnGameModeSceneUnloadedCleanUp -= method;
+        OnGameModeSceneUnloadedCleanUp += method;
+    }
+
+    private void S_GameModeManager_OnGameModeSceneUnloaded()
+    {
+        OnPropertyChanged -= OnGameModeSceneUnloadedCleanUp;
+        OnGameModeSceneUnloadedCleanUp = null;
     }
 
     public void DeRegisterForPropertyChanged(PropertyChanged method)
     {
         OnPropertyChanged -= method;
+        OnGameModeSceneUnloadedCleanUp -= method;
     }
 
     protected void SetValue(T newValue)
