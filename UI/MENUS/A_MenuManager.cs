@@ -23,7 +23,7 @@ public abstract class A_MenuManager<T> : MonoBehaviour
     protected virtual void Awake()
     {
         buttonGroup.ForEachButton(mb => mb.SetOnMouseSelectMethod(OnMouseSelectButtonChanged));
-        buttonGroup.ForEachButton(mb => mb.SetOnMousePressMethod(PressButton));
+        buttonGroup.ForEachButton(mb => mb.SetOnMousePressMethod(OnMouseButtonPress));
 
 
         SelectButton(selectedStartButton);
@@ -35,11 +35,11 @@ public abstract class A_MenuManager<T> : MonoBehaviour
         inputManager.RegisterForInput(InputEnum.NAV_SELECT, InputManager_OnNavSelect);
     }
 
-    private void OnMouseSelectButtonChanged(MenuButton button, bool selectedButton)
+    private void OnMouseSelectButtonChanged(MenuButton button, bool selectedVsDeselected)
     {
         if (!MenuEnabled) { return; }
 
-        if (selectedButton)
+        if (selectedVsDeselected)
         {
             mouseSelectedButton = button;
             SelectButton(button);
@@ -47,7 +47,11 @@ public abstract class A_MenuManager<T> : MonoBehaviour
         }
 
         mouseSelectedButton = null;
-        button.OnDeselect();
+        if (button != selectedButton)
+        {
+            button.OnDeselect();
+        }
+
     }
 
     private void SelectButton(MenuButton button)
@@ -58,13 +62,6 @@ public abstract class A_MenuManager<T> : MonoBehaviour
         selectedButton = button;
         selectedButton.OnSelect();
         mouseSelectedButton?.OnSelect();
-    }
-
-    private void PressButton()
-    {
-        if (!MenuEnabled) { return; }
-
-        selectedButton.OnPress();
     }
 
     private void InputManager_OnNavDirPressed(CallbackContext context)
@@ -97,12 +94,21 @@ public abstract class A_MenuManager<T> : MonoBehaviour
         }
     }
 
+    private void OnMouseButtonPress()
+    {
+        if (!MenuEnabled) { return; }
+
+        mouseSelectedButton.OnPress();
+        SelectButton(mouseSelectedButton);
+    }
+
     private void InputManager_OnNavSelect(CallbackContext context)
     {
         if (!MenuEnabled) { return; }
 
         selectedButton.OnPress();
     }
+
 
     protected void AssignOnButtonPressedMethod(T enumVal, Action pressMethod)
     {
