@@ -19,11 +19,11 @@ public abstract class DelegateSO<PARAM_TYPE, RETURN_TYPE> : ScriptableObject
         OnInvokeDelegateMethod = invokeMethod;
         if (!persistant)
         {
-            RegisterForGameModeReplaced(invokeMethod);
+            RegisterForGameModeReplaced();
         }
     }
 
-    private void RegisterForGameModeReplaced(InvokeDelegate invokeMethod)
+    private void RegisterForGameModeReplaced()
     {
         if (!registeredWithGameModeManager)
         {

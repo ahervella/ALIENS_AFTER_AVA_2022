@@ -21,9 +21,9 @@ public abstract class PropertySO<T> : PropertySO
 
     public delegate void PropertyChanged(T oldValue, T newValue);
 
-    PropertyChanged OnPropertyChanged;
+    private PropertyChanged OnPropertyChanged;
 
-    PropertyChanged OnGameModeSceneUnloadedCleanUp;
+    private PropertyChanged OnGameModeSceneUnloadedPersistance;
 
     public T Value => currentValue;
 
@@ -39,13 +39,19 @@ public abstract class PropertySO<T> : PropertySO
 
     public T RegisterForPropertyChanged(PropertyChanged method, bool persistant = false)
     {
+        if (!registeredWithGameModeManager && !persistant)
+        {
+            S_GameModeManager.Current.RegisterForGameModeSceneUnloaded(S_GameModeManager_OnGameModeSceneUnloaded);
+            registeredWithGameModeManager = true;
+        }
+
         //deregister first because this revoes all method instance
         //of this name, such that we make sure each method is registered
         //only once
         OnPropertyChanged -= method;
         OnPropertyChanged += method;
 
-        if (!persistant)
+        if (persistant)
         {
             RegisterForGameModeSceneUnloaded(method);
         }
@@ -55,26 +61,29 @@ public abstract class PropertySO<T> : PropertySO
 
     private void RegisterForGameModeSceneUnloaded(PropertyChanged method)
     {
-        if (!registeredWithGameModeManager)
-        { 
-            S_GameModeManager.Current.RegisterForGameModeSceneUnloaded(S_GameModeManager_OnGameModeSceneUnloaded);
-            registeredWithGameModeManager = true;
-        }
-
-        OnGameModeSceneUnloadedCleanUp -= method;
-        OnGameModeSceneUnloadedCleanUp += method;
+        OnGameModeSceneUnloadedPersistance -= method;
+        OnGameModeSceneUnloadedPersistance += method;
     }
 
     private void S_GameModeManager_OnGameModeSceneUnloaded()
     {
-        OnPropertyChanged -= OnGameModeSceneUnloadedCleanUp;
-        OnGameModeSceneUnloadedCleanUp = null;
+        //TODO: look more into why we were getting IndexOutOfRange
+        //exceptions here when performing the reverese (saving the
+        //we want to unregister, as done successfully in the InputManager)
+        //And for DelegatePSOs as well;
+        OnPropertyChanged = null;
+        if (OnGameModeSceneUnloadedPersistance != null)
+        {
+            OnPropertyChanged = OnGameModeSceneUnloadedPersistance;
+        }
+
+        OnGameModeSceneUnloadedPersistance = null;
     }
 
     public void DeRegisterForPropertyChanged(PropertyChanged method)
     {
         OnPropertyChanged -= method;
-        OnGameModeSceneUnloadedCleanUp -= method;
+        OnGameModeSceneUnloadedPersistance -= method;
     }
 
     protected void SetValue(T newValue)

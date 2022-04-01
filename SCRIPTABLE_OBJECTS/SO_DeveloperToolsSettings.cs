@@ -13,5 +13,13 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     private bool instantMainMenuIntro = false;
     public bool InstantMainMenuIntro => instantMainMenuIntro;
 
+    [SerializeField]
+    private bool skipDeathSequence = false;
+    public bool SkipDeathSequence => skipDeathSequence;
+
+    [SerializeField]
+    private bool startWith1Life = false;
+    public bool StartWith1Life => startWith1Life;
+
     //TODO: mute just music, infinite energy bar, no delay for changing moves, no timer delays, etc.
 }

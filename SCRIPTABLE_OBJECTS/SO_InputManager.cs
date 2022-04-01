@@ -26,18 +26,24 @@ public class SO_InputManager : ScriptableObject
         public InputEnum InputType => inputType;
     }
 
+    [NonSerialized]
+    private bool registeredWithGameModeManager = false;
 
-    public void RegisterForAnyInput(Action<CallbackContext> method)
+    [NonSerialized]
+    private Dictionary<InputWrapper, Action<CallbackContext>>
+        unregisterOnGameModeSceneReplaceDict = new Dictionary<InputWrapper, Action<CallbackContext>>();
+
+    public void RegisterForAnyInput(Action<CallbackContext> method, bool persistant = false)
     {
-        AnyInputRegistrationChanged(method, true);
+        AnyInputRegistrationChanged(method, true, persistant);
     }
 
-    public void UnregisterFromAnyInput(Action<CallbackContext> method)
+    public void UnregisterFromAnyInput(Action<CallbackContext> method, bool persistant = false)
     {
-        AnyInputRegistrationChanged(method, false);
+        AnyInputRegistrationChanged(method, false, persistant);
     }
 
-    private void AnyInputRegistrationChanged(Action<CallbackContext> method, bool registering)
+    private void AnyInputRegistrationChanged(Action<CallbackContext> method, bool registering, bool persistant)
     {
         if (registering)
         {
@@ -51,6 +57,8 @@ public class SO_InputManager : ScriptableObject
             {
                 iw.InputAction.action.performed += method;
             }
+
+            RegisterForGameModeSceneUnloaded(iw, method, registering, persistant);
         }
     }
 
@@ -66,17 +74,17 @@ public class SO_InputManager : ScriptableObject
     }
 
 
-    public void RegisterForInput(InputEnum input, Action<CallbackContext> method)
+    public void RegisterForInput(InputEnum input, Action<CallbackContext> method, bool persistant = false)
     {
-        InputRegistrationChanged(input, method, true);
+        InputRegistrationChanged(input, method, true, persistant);
     }
 
-    public void UnregisterFromInput(InputEnum input, Action<CallbackContext> method)
+    public void UnregisterFromInput(InputEnum input, Action<CallbackContext> method, bool persistant = false)
     {
-        InputRegistrationChanged(input, method, false);
+        InputRegistrationChanged(input, method, false, persistant);
     }
 
-    private void InputRegistrationChanged(InputEnum input, Action<CallbackContext> method, bool registering)
+    private void InputRegistrationChanged(InputEnum input, Action<CallbackContext> method, bool registering, bool persistant)
     {
         if (registering)
         {
@@ -91,12 +99,47 @@ public class SO_InputManager : ScriptableObject
                 if (registering)
                 {
                     iw.InputAction.action.performed += method;
-                } 
+                }
+
+                RegisterForGameModeSceneUnloaded(iw, method, registering, persistant);
+
                 return;
             }
         }
 
         Debug.LogErrorFormat("Couldn't find InputWrapper for inputEnum {0}", input.ToString());
+    }
+
+    private void RegisterForGameModeSceneUnloaded(InputWrapper iw, Action<CallbackContext> method, bool registering, bool persistant)
+    {
+        if (!registeredWithGameModeManager)
+        {
+            S_GameModeManager.Current.RegisterForGameModeSceneUnloaded(S_GameModeManager_OnGameModeSceneUnloaded);
+            registeredWithGameModeManager = true;
+        }
+
+        //TODO any way to make this logic cleaner?
+        if (!unregisterOnGameModeSceneReplaceDict.ContainsKey(iw))
+        {
+            if (!registering || persistant) { return; }
+            unregisterOnGameModeSceneReplaceDict.Add(iw, null);
+        }
+
+        unregisterOnGameModeSceneReplaceDict[iw] -= method;
+
+        if (!persistant && registering)
+        {
+            unregisterOnGameModeSceneReplaceDict[iw] += method;
+        }
+    }
+
+    private void S_GameModeManager_OnGameModeSceneUnloaded()
+    {
+        foreach(KeyValuePair<InputWrapper, Action<CallbackContext>> kvp in unregisterOnGameModeSceneReplaceDict)
+        {
+            kvp.Key.InputAction.action.performed -= kvp.Value;
+        }
+        unregisterOnGameModeSceneReplaceDict.Clear();
     }
 }
 

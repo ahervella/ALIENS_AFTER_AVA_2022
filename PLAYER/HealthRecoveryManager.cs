@@ -11,10 +11,18 @@ public class HealthRecoveryManager : MonoBehaviour
     [SerializeField]
     private SO_PlayerRunnerSettings playerSettings = null;
 
+    [SerializeField]
+    private SO_DeveloperToolsSettings devToolsSettings = null;
+
     private Coroutine healCR = null;
 
     private void Awake()
     {
+        if (devToolsSettings.StartWith1Life)
+        {
+            currLives.ModifyValue(-currLives.Value + 1);
+        }
+
         currLives.RegisterForPropertyChanged(OnCurrLivesChange);
     }
 
