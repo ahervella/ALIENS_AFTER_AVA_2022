@@ -18,6 +18,14 @@ public class PSO_CurrentGameMode : PropertySO<GameModeEnum>
             prevVal = Value;
             Debug.Log("Changing game mode to " + mod.ToString());
             SetValue(mod);
+
+            if (mod == GameModeEnum.QUIT)
+            {
+                Debug.Log("Quitting game...");
+                S_GameModeManager.Current.QuitGame();
+                return;
+            }
+
             S_GameModeManager.Current.TryReplaceGameModeScene(mod);
         }
     }

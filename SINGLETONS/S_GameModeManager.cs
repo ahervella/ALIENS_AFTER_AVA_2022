@@ -89,4 +89,14 @@ public class S_GameModeManager : Singleton<S_GameModeManager>
         OnGameModeUnloadedDelegate -= delegateMethod;
         OnGameModeUnloadedDelegate += delegateMethod;
     }
+
+    public void QuitGame()
+    {
+        OnGameModeUnloadedDelegate?.Invoke();
+        #if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+        #else
+               Application.Quit();
+        #endif
+    }
 }
