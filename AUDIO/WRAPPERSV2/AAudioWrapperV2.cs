@@ -34,6 +34,8 @@ public abstract class AAudioWrapperV2 : ScriptableObject
             S_AudioManager.Current.StopAllDelayedSounds(soundObject);
         }
 
+        currLevelOffsetDb += levelOffsetDb;
+
         PlayAudio(soundObject);
 
         ResetLevelOffset();
@@ -53,6 +55,6 @@ public abstract class AAudioWrapperV2 : ScriptableObject
     //This prevents offsets from compounding
     public void ResetLevelOffset()
     {
-        currLevelOffsetDb = levelOffsetDb;
+        currLevelOffsetDb = 0;// levelOffsetDb;
     }
 }

@@ -108,22 +108,29 @@ public static class AudioUtil
     {
         fadeTime = Mathf.Max(fadeTime, 0.0001f);
 
-        StopAllAudioSourceSounds(aws);
-        yield return null;
-        aw.PlayAudioWrapper(aws);
-        yield return null;
+        if (fadeInVsOut)
+        {
+            aw.PlayAudioWrapper(aws);
+            StopAllAudioSourceSounds(aws);
+            yield return null;
+        }
+        
         AudioSource[] sources = aws.GetComponents<AudioSource>();
         Dictionary<AudioSource, float> originalVol = new Dictionary<AudioSource, float>();
         foreach(AudioSource source in sources)
         {
             originalVol.Add(source, source.volume);
+
+            if (fadeInVsOut)
+            {
+                source.Play();
+            }
         }
 
         float currFadeTime = 0;
 
         while (currFadeTime < fadeTime)
         {
-            yield return null;
             currFadeTime += Time.deltaTime;
 
             foreach (AudioSource source in sources)
@@ -141,6 +148,7 @@ public static class AudioUtil
 
                 float startDB = fadeInVsOut ? 0 : originalVol[source];
                 source.volume = Mathf.Lerp(startDB, targetVol, currFadeTime / fadeTime);
+                yield return null;
             }
         }
     }

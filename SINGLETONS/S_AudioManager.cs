@@ -86,6 +86,11 @@ public class S_AudioManager : Singleton<S_AudioManager>
             cachedPausedToggle = false;
         }
 
+        if (newMode == GameModeEnum.MAINMENU)
+        {
+            mixerSettings.SetMixerEffectSnapshot(MixerEffectEnum.DEFAULT_LIFE);
+        }
+
         PlayGameModeAudioLoop(newMode);
     }
 
@@ -117,13 +122,11 @@ public class S_AudioManager : Singleton<S_AudioManager>
             if (kvp.Key == newMode)
             {
                 StartCoroutine(FadeAudioCR(loopAW.AudioWrapper, aws, true, loopAW.FadeAudioInTime));
-                //loopAW.AudioWrapper.PlayAudioWrapper(aws);
                 continue;
             }
 
             LoopAudioWrapper otherLoopAW = loopSettings.GetAudioLoopWrapper(kvp.Key);
             StartCoroutine(FadeAudioCR(otherLoopAW.AudioWrapper, aws, false, otherLoopAW.FadeAudioOutTime));
-            //StopAllAudioSourceSounds(aws);
         }
     }
 

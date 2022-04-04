@@ -1,8 +1,8 @@
 ﻿public enum MixerEffectEnum
 {
-    NONE,
-    MUTE_START,
-    DEFAULT_LIFE,
-    LAST_LIFE,
-    GAME_OVER
+    NONE = 0,
+    MUTE_START = 1,
+    DEFAULT_LIFE = 2,
+    LAST_LIFE = 3,
+    GAME_OVER = 4
 }
