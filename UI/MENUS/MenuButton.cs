@@ -85,7 +85,7 @@ public class MenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     public void SetAlpha(float a)
     {
-        Debug.Log("alpha set to " + a);
+        //Debug.Log("alpha set to " + a);
         text.color = new Color(text.color.r, text.color.g, text.color.b, a);
     }
 }

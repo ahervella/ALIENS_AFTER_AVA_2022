@@ -36,17 +36,21 @@ public class S_AudioManager : Singleton<S_AudioManager>
 
     private int randUniqueInt = 0;
 
+    private Dictionary<GameModeEnum, GameObject> loopedAudioDict = new Dictionary<GameModeEnum, GameObject>();
+
     protected override void OnAwake()
     {
-        currLives.RegisterForPropertyChanged(OnCurrLivesChange);
-        currGameMode.RegisterForPropertyChanged(OnGameModeChanged);
+        currLives.RegisterForPropertyChanged(OnCurrLivesChange, persistent);
+        currGameMode.RegisterForPropertyChanged(OnGameModeChanged, persistent);
+
+        //Can't use start because would trigger it every time we change scene
+        StartCoroutine(StartCR());
     }
 
-
-    //TODO: take out once scene switching is in place
-    private void Start()
+    private IEnumerator StartCR()
     {
-        OnSceneChange(GameModeEnum.PLAY);
+        yield return null;
+        OnGameModeChanged(currGameMode.Value, currGameMode.Value);
         OnCurrLivesChange(-1, currLives.Value);
     }
 
@@ -81,17 +85,46 @@ public class S_AudioManager : Singleton<S_AudioManager>
             PauseToggleAllAudioClipWrapperV2s(false);
             cachedPausedToggle = false;
         }
+
+        PlayGameModeAudioLoop(newMode);
     }
 
-    //TODO: link with scene manager once in place
-    private void OnSceneChange(GameModeEnum newMode)
+    private void PlayGameModeAudioLoop(GameModeEnum newMode)
     {
         StopAllDelayedSounds(soundCRs);
         StopAllDelayedSounds(unstoppableSoundCRs);
         soundCRs.Clear();
         unstoppableSoundCRs.Clear();
 
-        loopSettings.SpawnAndPlayNewLoopObjectSource(newMode);
+        //loopSettings.GetAudioWrapperAndMixer(newMode, out AAudioWrapperV2 aaw, out AudioMixerGroup mix);
+
+        LoopAudioWrapper loopAW = loopSettings.GetAudioLoopWrapper(newMode);
+
+        if (!loopedAudioDict.ContainsKey(newMode))
+        {
+            GameObject newObj = new GameObject($"LOOPED_AUDIO-{newMode}");
+            newObj.transform.parent = transform;
+            AudioWrapperSource aws = newObj.AddComponent<AudioWrapperSource>();
+            aws.SetMixerGroup(loopAW.MixerGroup);
+
+            loopedAudioDict.Add(newMode, newObj);
+        }
+
+        foreach(KeyValuePair<GameModeEnum, GameObject> kvp in loopedAudioDict)
+        {
+            AudioWrapperSource aws = kvp.Value.GetComponent<AudioWrapperSource>();
+
+            if (kvp.Key == newMode)
+            {
+                StartCoroutine(FadeAudioCR(loopAW.AudioWrapper, aws, true, loopAW.FadeAudioInTime));
+                //loopAW.AudioWrapper.PlayAudioWrapper(aws);
+                continue;
+            }
+
+            LoopAudioWrapper otherLoopAW = loopSettings.GetAudioLoopWrapper(kvp.Key);
+            StartCoroutine(FadeAudioCR(otherLoopAW.AudioWrapper, aws, false, otherLoopAW.FadeAudioOutTime));
+            //StopAllAudioSourceSounds(aws);
+        }
     }
 
     private void StopAllDelayedSounds(Dictionary<AudioWrapperSource, Dictionary<int, Coroutine>> soundCRDict)

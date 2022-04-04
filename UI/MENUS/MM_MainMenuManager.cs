@@ -6,6 +6,7 @@ using UnityEngine.Video;
 using UnityEngine.UI;
 using System;
 
+[RequireComponent(typeof(AudioWrapperSource))]
 public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
 {
     [SerializeField]
@@ -33,9 +34,14 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
     private Coroutine titleFadeCR = null;
     private Coroutine menuButtonsFadeCR = null;
 
+    private AudioWrapperSource audioSource;
+
     protected override void Awake()
     {
         base.Awake();
+
+        audioSource = GetComponent<AudioWrapperSource>();
+
         loopVideoScreenShotRef.enabled = false;
 
         AssignButtonMethods();
@@ -76,6 +82,8 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
 
     private void StartMainMenuSequence()
     {
+        //settings.MainMenuAudio.PlayAudioWrapper(audioSource);
+
         MainMenuTimingWrapper wrapper = settings.GetTimingWrapper();
 
         loopVideoFadeCR = StartCoroutine(FadeCoroutine(

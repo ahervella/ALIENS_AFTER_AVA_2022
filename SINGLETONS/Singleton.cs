@@ -14,6 +14,11 @@ public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
     [SerializeField]
     protected bool persistent = true;
 
+    [SerializeField]
+    protected bool oneshotAwake = true;
+
+    private bool cachedAwakeFlag = false;
+
     protected static bool threadSafe = true;
 
     private static readonly object _lock = new object();
@@ -71,17 +76,10 @@ public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 
     private static T CreateSingleton()
     {
-        //First find all singletons that may be in the scene
-        T[] instances = FindObjectsOfType<T>();
-        int count = instances.Length;
-        if (count > 0)
+        if (FindAndDeleteSingletonDups())
         {
-            //delete others that shouldn't be there
-            for (int i = 1; i < count; i++)
-            {
-                DeleteSingletonDuplicate(instances[i]);
-            }
-            return instances[0];
+            //should only be one left
+            return FindObjectOfType<T>();
         }
 
         //If none in the scene, make one now
@@ -91,17 +89,48 @@ public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
         return instance;
     }
 
+    /// <summary>
+    /// Finds and deletes duplicate singletons
+    /// </summary>
+    /// <returns>Whether there is already a singleton available</returns>
+    private static bool FindAndDeleteSingletonDups()
+    {
+        //First find all singletons that may be in the scene
+        T[] instances = FindObjectsOfType<T>();
+        int count = instances.Length;
+        if (count > 1)
+        {
+            //delete others that shouldn't be there
+            for (int i = 0; i < count; i++)
+            {
+                if (instances[i] == _current)
+                {
+                    continue;
+                }
+                DeleteSingletonDuplicate(instances[i]);
+            }
+            return true;
+        }
+        return count == 1;
+    }
+
     private static void DeleteSingletonDuplicate(T instance)
     {
         Debug.LogWarning($"[{nameof(T)}] There should not be more than one singleton of each type in the scene." +
                     $"Deleting duplicate singleton of type {typeof(T).Name}: {instance.name}");
         Destroy(instance.gameObject);
     }
-
     protected void Awake()
     {
         lock (_lock)
         {
+            Debug.Log($"Awake singleton: {name}, ID: {GetInstanceID()}");
+            FindAndDeleteSingletonDups();
+
+            //Even if we clean up and destroy dups, won't happen till end of
+            //frame, so do this
+            if (this != Current) { return; }
+
             //In case we reach here before awake of other objects that reference it during awake,
             //creates singleton now instead of later,
             //makes sure we delete duplicates
@@ -120,6 +149,11 @@ public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
     }
 
     protected virtual void OnAwake() { }
+
+    private void OnDestroy()
+    {
+        Debug.Log($"Destroyed Singleton {name} with ID: {GetInstanceID()}");
+    }
 }
 
 

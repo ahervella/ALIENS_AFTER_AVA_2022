@@ -37,9 +37,9 @@ public abstract class PropertySO<T> : PropertySO
         }
     }
 
-    public T RegisterForPropertyChanged(PropertyChanged method, bool persistant = false)
+    public T RegisterForPropertyChanged(PropertyChanged method, bool persistent = false)
     {
-        if (!registeredWithGameModeManager && !persistant)
+        if (!registeredWithGameModeManager && !persistent)
         {
             S_GameModeManager.Current.RegisterForGameModeSceneUnloaded(S_GameModeManager_OnGameModeSceneUnloaded);
             registeredWithGameModeManager = true;
@@ -51,7 +51,7 @@ public abstract class PropertySO<T> : PropertySO
         OnPropertyChanged -= method;
         OnPropertyChanged += method;
 
-        if (persistant)
+        if (persistent)
         {
             RegisterForGameModeSceneUnloaded(method);
         }

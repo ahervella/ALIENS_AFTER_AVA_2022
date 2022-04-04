@@ -43,7 +43,7 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
     /// <param name="acw">AudioClipWrapperV2 from which a clip will be chosen and played</param>
     /// <param name="soundObject">GameObject to play from</param>
     /// <returns>Returns the AudioClip which was played</returns>
-    private void PlayAudioClipWrapperV2(AudioWrapperSource soundObject)
+    private AudioSource PlayAudioClipWrapperV2(AudioWrapperSource soundObject)
     {
         S_AudioManager.Current.PauseToggleAllAudioClipWrapperV2s -= TogglePause;
         S_AudioManager.Current.PauseToggleAllAudioClipWrapperV2s += TogglePause;
@@ -72,6 +72,7 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
         AssignSourceProperties(cachedSource, volDb, randPitchCents, clip);
         cachedSource.loop = loop;
         cachedSource.Play();
+        return cachedSource;
     }
 
     private void TogglePause(bool pause)

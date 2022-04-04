@@ -103,4 +103,45 @@ public static class AudioUtil
             a.Stop();
         }
     }
+
+    public static IEnumerator FadeAudioCR(AAudioWrapperV2 aw, AudioWrapperSource aws, bool fadeInVsOut, float fadeTime)
+    {
+        fadeTime = Mathf.Max(fadeTime, 0.0001f);
+
+        StopAllAudioSourceSounds(aws);
+        yield return null;
+        aw.PlayAudioWrapper(aws);
+        yield return null;
+        AudioSource[] sources = aws.GetComponents<AudioSource>();
+        Dictionary<AudioSource, float> originalVol = new Dictionary<AudioSource, float>();
+        foreach(AudioSource source in sources)
+        {
+            originalVol.Add(source, source.volume);
+        }
+
+        float currFadeTime = 0;
+
+        while (currFadeTime < fadeTime)
+        {
+            yield return null;
+            currFadeTime += Time.deltaTime;
+
+            foreach (AudioSource source in sources)
+            {
+                float targetVol = fadeInVsOut ? originalVol[source] : 0;
+                if (currFadeTime >= fadeTime)
+                {
+                    source.volume = targetVol;
+                    if (!fadeInVsOut)
+                    {
+                        source.Stop();
+                    }
+                    continue;
+                }
+
+                float startDB = fadeInVsOut ? 0 : originalVol[source];
+                source.volume = Mathf.Lerp(startDB, targetVol, currFadeTime / fadeTime);
+            }
+        }
+    }
 }

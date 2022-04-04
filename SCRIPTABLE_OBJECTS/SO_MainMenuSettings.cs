@@ -7,6 +7,10 @@ using System;
 public class SO_MainMenuSettings : ScriptableObject
 {
     [SerializeField]
+    private AAudioWrapperV2 mainMenuAudio = null;
+    public AAudioWrapperV2 MainMenuAudio => mainMenuAudio;
+
+    [SerializeField]
     private PSO_CurrentGameMode currGameMode = null;
 
     [SerializeField]
