@@ -56,8 +56,18 @@ public class EnergyBarManager : MonoBehaviour
         energyBarDisplayDelegate.SetInvokeMethod(SetVisibility);
         currEnergy.RegisterForPropertyChanged(OnEnergyChanged);
         currAction.RegisterForPropertyChanged(OnActionChanged);
-        currEnergy.ModifyValue(settings.StartingEnergy);
         blockFractionPerc = 0;
+    }
+
+    private void Start()
+    {
+        SetStartingEnergy();
+    }
+
+    private void SetStartingEnergy()
+    {
+        currEnergy.ModifyValue(settings.StartingEnergy);
+        currTweenPerc = 1;
     }
 
     private int SetVisibility(bool visibility)

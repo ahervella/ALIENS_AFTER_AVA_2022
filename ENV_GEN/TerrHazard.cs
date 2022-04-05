@@ -78,8 +78,11 @@ public class TerrHazard : TerrAddon
         PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
         if (player != null)
         {
-            impactAudio.PlayAudioWrapper(audioSource);
-            player.OnEnterHazard(requiredAvoidAction, hazardTakeDownReqAction, TerrAddonEnum, out _);
+            player.OnEnterHazard(requiredAvoidAction, hazardTakeDownReqAction, TerrAddonEnum, out bool dodged);
+            if (!dodged)
+            {
+                impactAudio.PlayAudioWrapper(audioSource);
+            }
             return;
         }
 

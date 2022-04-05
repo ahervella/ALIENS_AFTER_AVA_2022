@@ -75,6 +75,7 @@ public abstract class PropertySO<T> : PropertySO
         if (OnGameModeSceneUnloadedPersistance != null)
         {
             OnPropertyChanged = OnGameModeSceneUnloadedPersistance;
+            return;
         }
 
         OnGameModeSceneUnloadedPersistance = null;

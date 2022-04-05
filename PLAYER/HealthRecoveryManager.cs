@@ -18,12 +18,15 @@ public class HealthRecoveryManager : MonoBehaviour
 
     private void Awake()
     {
+        currLives.RegisterForPropertyChanged(OnCurrLivesChange);
+    }
+
+    private void Start()
+    {
         if (devToolsSettings.StartWith1Life)
         {
             currLives.ModifyValue(-currLives.Value + 1);
         }
-
-        currLives.RegisterForPropertyChanged(OnCurrLivesChange);
     }
 
     private void OnCurrLivesChange(int oldLives, int newLives)

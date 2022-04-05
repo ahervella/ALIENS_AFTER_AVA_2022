@@ -48,8 +48,8 @@ public class MM_PauseMenuManager : A_MenuManager<PauseMenuButtonEnum>
 
     private void OnQuit()
     {
-        Time.timeScale = 1;
         currGameMode.ModifyValue(GameModeEnum.MAINMENU);
+        Time.timeScale = 1;
     }
 }
 

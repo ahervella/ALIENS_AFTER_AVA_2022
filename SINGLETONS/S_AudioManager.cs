@@ -79,11 +79,15 @@ public class S_AudioManager : Singleton<S_AudioManager>
         {
             PauseToggleAllAudioClipWrapperV2s(true);
             cachedPausedToggle = true;
+            return;
         }
-        else if (prevMode == GameModeEnum.PAUSE && newMode == GameModeEnum.PLAY)
+        else if (prevMode == GameModeEnum.PAUSE)
         {
             PauseToggleAllAudioClipWrapperV2s(false);
             cachedPausedToggle = false;
+
+            //if unpaused, and still running, dont reset audio in PlayGameModeAudioLoop
+            if (newMode == GameModeEnum.PLAY) { return; }
         }
 
         if (newMode == GameModeEnum.MAINMENU)
@@ -194,7 +198,7 @@ public class S_AudioManager : Singleton<S_AudioManager>
             yield return null;
         }
 
-        yield return new WaitForSecondsRealtime(delay);
+        yield return new WaitForSeconds(delay);
 
         if (soundObject != null)
         {
