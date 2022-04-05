@@ -105,6 +105,8 @@ public class S_AudioManager : Singleton<S_AudioManager>
 
         LoopAudioWrapper loopAW = loopSettings.GetAudioLoopWrapper(newMode);
 
+        if (loopAW == null) { return; }
+
         if (!loopedAudioDict.ContainsKey(newMode))
         {
             GameObject newObj = new GameObject($"LOOPED_AUDIO-{newMode}");

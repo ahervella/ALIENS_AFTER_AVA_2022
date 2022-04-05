@@ -4,11 +4,12 @@ using UnityEngine;
 
 public enum GameModeEnum 
 {
-    PLAY,
-    BACKPACK,
-    PAUSE,
-    MAINMENU,
-    QUIT,
-    BOOT,
-    TUTORIAL
+    PLAY = 0,
+    BACKPACK = 1,
+    PAUSE = 2,
+    MAINMENU = 3,
+    QUIT = 4,
+    BOOT = 5,
+    TUTORIAL = 6,
+    NONE = 7
 }

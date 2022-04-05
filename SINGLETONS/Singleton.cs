@@ -14,11 +14,6 @@ public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
     [SerializeField]
     protected bool persistent = true;
 
-    [SerializeField]
-    protected bool oneshotAwake = true;
-
-    private bool cachedAwakeFlag = false;
-
     protected static bool threadSafe = true;
 
     private static readonly object _lock = new object();
@@ -124,7 +119,7 @@ public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
     {
         lock (_lock)
         {
-            Debug.Log($"Awake singleton: {name}, ID: {GetInstanceID()}");
+            //Debug.Log($"Awake singleton: {name}, ID: {GetInstanceID()}");
             FindAndDeleteSingletonDups();
 
             //Even if we clean up and destroy dups, won't happen till end of
@@ -150,10 +145,10 @@ public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 
     protected virtual void OnAwake() { }
 
-    private void OnDestroy()
-    {
-        Debug.Log($"Destroyed Singleton {name} with ID: {GetInstanceID()}");
-    }
+    //private void OnDestroy()
+    //{
+    //    Debug.Log($"Destroyed Singleton {name} with ID: {GetInstanceID()}");
+    //}
 }
 
 

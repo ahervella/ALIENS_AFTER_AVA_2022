@@ -36,10 +36,8 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
 
     private AudioWrapperSource audioSource;
 
-    protected override void Awake()
+    protected override void OnMenuAwake()
     {
-        base.Awake();
-
         audioSource = GetComponent<AudioWrapperSource>();
 
         loopVideoScreenShotRef.enabled = false;

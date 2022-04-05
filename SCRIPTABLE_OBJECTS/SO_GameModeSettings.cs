@@ -25,7 +25,7 @@ public class SO_GameModeSettings : ScriptableObject
 
     public string GetSceneName(GameModeEnum gameMode)
     {
-        GameModeWrapper wrapper = GetWrapperFromFunc(wrappers, gmw => gmw.GameMode, gameMode, LogEnum.ERROR, null);
+        GameModeWrapper wrapper = GetWrapperFromFunc(wrappers, gmw => gmw.GameMode, gameMode, LogEnum.WARNING, null);
 
         if (wrapper != null)
         {

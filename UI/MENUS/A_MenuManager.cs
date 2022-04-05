@@ -10,7 +10,7 @@ public abstract class A_MenuManager<T> : MonoBehaviour
     private MenuButton selectedStartButton = null;
 
     [SerializeField]
-    private SO_InputManager inputManager = null;
+    protected SO_InputManager inputManager = null;
 
     [SerializeField]
     protected MenuButtonGroup<T> buttonGroup = null;
@@ -20,14 +20,17 @@ public abstract class A_MenuManager<T> : MonoBehaviour
     private MenuButton selectedButton;
     private MenuButton mouseSelectedButton = null;
 
-    protected virtual void Awake()
+    private void Awake()
     {
         buttonGroup.ForEachButton(mb => mb.SetOnMouseSelectMethod(OnMouseSelectButtonChanged));
         buttonGroup.ForEachButton(mb => mb.SetOnMousePressMethod(OnMouseButtonPress));
 
-
         SelectButton(selectedStartButton);
+
+        OnMenuAwake();
     }
+
+    protected abstract void OnMenuAwake();
 
     private void Start()
     {

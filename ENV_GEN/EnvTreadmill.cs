@@ -60,7 +60,8 @@ public class EnvTreadmill : MonoBehaviour
 
     private LaneChange targetLaneChange;
     private float colShiftPerc;
-    
+
+    private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
 
     private void Start()
     {
@@ -326,6 +327,7 @@ public class EnvTreadmill : MonoBehaviour
 
     private void Update()
     {
+        if (gamePaused) { return; }
         TickTreadmillVertMove();
         TickTreadmillHorzWrap();
     }

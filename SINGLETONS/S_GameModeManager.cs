@@ -17,6 +17,8 @@ public class S_GameModeManager : Singleton<S_GameModeManager>
 
     private GameModeUnloadedDelegate OnGameModeUnloadedDelegate;
 
+    private string currentSceneName = string.Empty;
+
     //TODO: delete if we follow through with only relying on prefabs for additive operations
     /*
     public void AddGameModeScene(GameModeEnum gameMode, Action onFinishLoading = null)
@@ -32,7 +34,7 @@ public class S_GameModeManager : Singleton<S_GameModeManager>
 
     //TODO: should this be private and subscribe to the gamemode change (and/or do we want to make sure
     //all things get that change before changing scenes?)
-    public bool TryReplaceGameModeScene(GameModeEnum gameMode, Action onFinishLoading = null)
+    public bool TryReplaceGameModeScene(GameModeEnum newMode, Action onFinishLoading = null)
     {
         if (loadingCR != null)
         {
@@ -40,15 +42,28 @@ public class S_GameModeManager : Singleton<S_GameModeManager>
             return false;
         }
 
-        OnGameModeUnloadedDelegate?.Invoke();
-
-        string gameModeSceneName = settings.GetSceneName(gameMode);
+        string gameModeSceneName = settings.GetSceneName(newMode);
 
         if (gameModeSceneName.Equals(string.Empty))
         {
-            Debug.Log("No scene found for game mode " + gameMode.ToString());
+            Debug.Log("No scene found for game mode " + newMode.ToString());
             return false;
         }
+
+        if (currentSceneName.Equals(string.Empty))
+        {
+            //in case we started the game not from boot
+            currentSceneName = SceneManager.GetActiveScene().name;
+        }
+
+        if (gameModeSceneName.Equals(currentSceneName))
+        {
+            //still in the same scene, no need to switch
+            Debug.Log("Desired scene switch is current scene for game mode:" + newMode.ToString());
+            return false;
+        }
+
+        currentSceneName = gameModeSceneName;
 
         AsyncLoadGameMode(gameModeSceneName, false, onFinishLoading);
         return true;
@@ -56,6 +71,8 @@ public class S_GameModeManager : Singleton<S_GameModeManager>
 
     private void AsyncLoadGameMode(string gameModeSceneName, bool additive, Action onFinishLoading = null)
     {
+        OnGameModeUnloadedDelegate?.Invoke();
+
         Action onFinishCR = delegate { };
         onFinishCR += onFinishLoading;
 

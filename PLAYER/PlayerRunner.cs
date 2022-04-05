@@ -75,6 +75,7 @@ public class PlayerRunner : MonoBehaviour
         SetPlayerStartPosition();
         currAction.RegisterForPropertyChanged(OnActionChange);
         shieldOnFlag.RegisterForPropertyChanged(OnShieldChange);
+        currGameMode.RegisterForPropertyChanged(OnGameModeChange);
     }
 
     private void Start()
@@ -98,7 +99,7 @@ public class PlayerRunner : MonoBehaviour
         inputManager.RegisterForInput(InputEnum.GAME_JUMP, InputManager_Jump);
         inputManager.RegisterForInput(InputEnum.GAME_SPRINT, InputManager_Sprint);
         inputManager.RegisterForInput(InputEnum.GAME_ROLL, InputManager_Roll);
-        inputManager.RegisterForInput(InputEnum.GAME_PAUSE, InputManager_Pause);
+        //inputManager.RegisterForInput(InputEnum.GAME_PAUSE, InputManager_Pause);
 
         inputManager.RegisterForInput(InputEnum.DEV_1, InputManager_Dev1);
         inputManager.RegisterForInput(InputEnum.DEV_2, InputManager_Dev2);
@@ -109,6 +110,26 @@ public class PlayerRunner : MonoBehaviour
         inputManager.RegisterForInput(InputEnum.DEV_7, InputManager_Dev7);
         inputManager.RegisterForInput(InputEnum.DEV_8, InputManager_Dev8);
         inputManager.RegisterForInput(InputEnum.DEV_9, InputManager_Dev9);
+    }
+
+    private void UnregisterFromInputs()
+    {
+        inputManager.UnregisterFromInput(InputEnum.GAME_LEFT, InputManager_DodgeLeft);
+        inputManager.UnregisterFromInput(InputEnum.GAME_RIGHT, InputManager_DodgeRight);
+        inputManager.UnregisterFromInput(InputEnum.GAME_JUMP, InputManager_Jump);
+        inputManager.UnregisterFromInput(InputEnum.GAME_SPRINT, InputManager_Sprint);
+        inputManager.UnregisterFromInput(InputEnum.GAME_ROLL, InputManager_Roll);
+        //inputManager.UnregisterFromInput(InputEnum.GAME_PAUSE, InputManager_Pause);
+
+        inputManager.UnregisterFromInput(InputEnum.DEV_1, InputManager_Dev1);
+        inputManager.UnregisterFromInput(InputEnum.DEV_2, InputManager_Dev2);
+        inputManager.UnregisterFromInput(InputEnum.DEV_3, InputManager_Dev3);
+        inputManager.UnregisterFromInput(InputEnum.DEV_4, InputManager_Dev4);
+        inputManager.UnregisterFromInput(InputEnum.DEV_5, InputManager_Dev5);
+        inputManager.UnregisterFromInput(InputEnum.DEV_6, InputManager_Dev6);
+        inputManager.UnregisterFromInput(InputEnum.DEV_7, InputManager_Dev7);
+        inputManager.UnregisterFromInput(InputEnum.DEV_8, InputManager_Dev8);
+        inputManager.UnregisterFromInput(InputEnum.DEV_9, InputManager_Dev9);
     }
 
     //TODO: take out dev testing for health and energy bar from here eventually!
@@ -140,12 +161,6 @@ public class PlayerRunner : MonoBehaviour
     {
         Debug.Log("Input_Roll");
         currAction.TryPerform(PlayerActionEnum.ROLL);
-    }
-
-    private void InputManager_Pause(CallbackContext ctx)
-    {
-        Debug.Log("Pause");
-        //Pause Game
     }
 
     private void InputManager_Dev1(CallbackContext ctx)
@@ -213,6 +228,19 @@ public class PlayerRunner : MonoBehaviour
     private void OnActionChange(PlayerActionEnum oldAction, PlayerActionEnum newAction)
     {
         StopSprintCR();
+    }
+
+    private void OnGameModeChange(GameModeEnum oldMode, GameModeEnum newMode)
+    {
+        //return;
+        if (newMode == GameModeEnum.PAUSE)
+        {
+            UnregisterFromInputs();
+        }
+        if (oldMode == GameModeEnum.PAUSE && newMode == GameModeEnum.PLAY)
+        {
+            RegisterForInputs();
+        }
     }
 
     private void StopSprintCR()
