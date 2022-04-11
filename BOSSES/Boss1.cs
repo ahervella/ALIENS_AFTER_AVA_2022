@@ -99,7 +99,7 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
     {
         Vector3 finalSpqwnPos = transform.position;
         transform.position = new Vector3(finalSpqwnPos.x, settings.SpawnYPos, finalSpqwnPos.z);
-        //Camera resitricted zoom to show it appeared!
+        //TODO: Camera resitricted zoom to show it appeared!
         StartCoroutine(SpawnSequenceCR(finalSpqwnPos));
     }
 
