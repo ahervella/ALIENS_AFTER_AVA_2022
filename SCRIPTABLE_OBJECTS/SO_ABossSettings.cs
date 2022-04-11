@@ -26,6 +26,18 @@ public abstract class SO_ABossSettings : ScriptableObject
     private bool spawnAsChildOfTerr = false;
     public bool SpawnAsChildOfTerr => spawnAsChildOfTerr;
 
+    [Serializable]
+    protected class RageValue<T>
+    {
+        [SerializeField]
+        private T prerageVal = default;
+
+        [SerializeField]
+        private T rageVal = default;
+
+        public T GetVal(bool rage) => rage ? rageVal : prerageVal;
+    }
+
     /*
     [SerializeField]
     private List<BossAnimationWrapper<BOSS_STATE>> animWrappers = new List<BossAnimationWrapper<BOSS_STATE>>();

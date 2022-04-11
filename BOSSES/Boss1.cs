@@ -8,12 +8,15 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
     [SerializeField]
     private DSO_LaneChange laneChangeDelegate = null;
 
+    private List<Shooter> spawnedBulletShooters = new List<Shooter>();
+
     private Coroutine idleFloatCR = null;
     private Coroutine shootCR = null;
 
     protected override void InitDeath()
     {
         SafeStopCoroutine(ref idleFloatCR, this);
+        StopShooting();
         currState.ModifyValue(Boss1State.DEATH);
     }
 
@@ -59,10 +62,8 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
     private IEnumerator IdleFloatCR()
     {
-        while (true)
-        {
-            yield return null;
-        }
+        yield return new WaitForSeconds(settings.GetRandRangeShootPhaseTime(Rage));
+        currState.ModifyValue(Boss1State.SHOOT);
     }
 
     private void Shoot()
@@ -72,18 +73,42 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
     private IEnumerator ShootCR()
     {
-        yield return new WaitForSeconds(settings.ShootDelay(Rage));
+        //TODO: maybe in the future can randomize the guns / types of bullets
+        //the boss can shoot with this!
+        ShooterWrapper sw = settings.ShootSettings(Rage).GetRandShooterWrapper();
 
-        for (int i = 0; i < settings.ShootRounds(Rage); i++)
-        {
-            FireBullets();
-            yield return new WaitForSeconds(settings.ShootDelay(Rage));
-        }
+        yield return new WaitForSeconds(sw.DelayTime);
+
+        StartFiringBullets(sw);
+
+        yield return new WaitForSeconds(sw.DelayTime * settings.BulletsPerShot(Rage));
+
         currState.ModifyValue(Boss1State.SHOOT_END);
+        StopShooting();
     }
 
-    private void FireBullets()
+    private void StopShooting()
     {
+        foreach(Shooter s in spawnedBulletShooters)
+        {
+            SafeDestroy(s.gameObject);
+        }
+        spawnedBulletShooters.Clear();
+        SafeStopCoroutine(ref shootCR, this);
+    }
+
+    private void StartFiringBullets(ShooterWrapper sw)
+    {
+        int totalBullets = settings.BulletsPerShot(Rage);
+
+        for (int i = 0; i < totalBullets; i++)
+        {
+            float spawnLaneOffset = (i - i / 2) * terrSettings.TileDims.x;
+            Vector3 spawnPosRel2Boss = new Vector3(spawnLaneOffset, settings.HeightOfBullet - transform.position.y, 0);
+            Shooter instance = Shooter.InstantiateShooterObject(transform, spawnPosRel2Boss, settings.ShootSettings(Rage));
+            spawnedBulletShooters.Add(instance);
+        }
+
         Debug.Log("Boss 1 bullets fired!");
     }
 

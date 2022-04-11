@@ -6,18 +6,12 @@ using UnityEngine;
 public class SO_Boss1Settings : SO_ABossSettings
 {
     [SerializeField]
-    private float prerageShootDelay = default;
+    private RageValue<SO_ShooterSettings> shootSettings = default;
+    public SO_ShooterSettings ShootSettings(bool rage) => shootSettings.GetVal(rage);
+    
     [SerializeField]
-    private float rageShootDelay = default;
-
-    public float ShootDelay(bool rage) => rage ? rageShootDelay : prerageShootDelay;
-
-    [SerializeField]
-    private int prerageShootRounds = default;
-    [SerializeField]
-    private int rageShootRounds = default;
-
-    public int ShootRounds(bool rage) => rage ? rageShootRounds : prerageShootRounds;
+    private RageValue<int> shootRounds = default;
+    public int ShootRounds(bool rage) => shootRounds.GetVal(rage);
 
     [SerializeField]
     private float spawnYPos = default;
@@ -26,6 +20,29 @@ public class SO_Boss1Settings : SO_ABossSettings
     [SerializeField]
     private float spawnTime = 3f;
     public float SpawnTime => spawnTime;
+
+    [SerializeField]
+    private RageValue<float> shootPhaseTime = default;
+
+    [SerializeField]
+    private RageValue<float> shootPhaseTimeOffsetRange = default;
+
+    public float GetRandRangeShootPhaseTime(bool rage)
+    {
+        float randOffset = Random.Range(
+            -shootPhaseTimeOffsetRange.GetVal(rage),
+            shootPhaseTimeOffsetRange.GetVal(rage));
+
+        return randOffset + shootPhaseTime.GetVal(rage);
+    }
+
+    [SerializeField]
+    private RageValue<int> bulletsPerShot = default;
+    public int BulletsPerShot(bool rage) => bulletsPerShot.GetVal(rage);
+
+    [SerializeField]
+    private float heightOfBullet = 5f;
+    public float HeightOfBullet => heightOfBullet;
 }
 
 public enum Boss1State

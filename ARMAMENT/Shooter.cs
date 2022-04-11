@@ -17,9 +17,22 @@ public class Shooter : MonoBehaviour
 
     private ShooterWrapper cachedShooterWrapper;
 
+    public static Shooter InstantiateShooterObject(Transform spawnParentRef, Vector3 offset, SO_ShooterSettings settings)
+    {
+        Shooter instance = new GameObject("INSTANCED_SHOOTER").AddComponent<Shooter>();
+        instance.transform.transform.parent = spawnParentRef;
+        instance.transform.localPosition = offset;
+
+        //hack to make this spawn at the given spawnRef with the offset :)
+        instance.spawnRef = instance.transform;
+        instance.settings = settings;
+        instance.AE_StartFiring();
+        return instance;
+    }
+
     private void Awake()
     {
-        aeExtender.AssignAnimationEvent(AE_StartFiring, 0);
+        aeExtender?.AssignAnimationEvent(AE_StartFiring, 0);
     }
 
     private void AE_StartFiring()
