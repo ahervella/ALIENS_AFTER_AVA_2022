@@ -25,18 +25,10 @@ public class PlayerAnimation : BaseAnimation<PlayerActionEnum>
     [SerializeField]
     private SO_PlayerRunnerSettings playerSettings = null;
 
-    protected override void OnPlayerActionChange(PlayerActionEnum prevAction, PlayerActionEnum newAction)
+    protected override void OnActionChange(PlayerActionEnum prevAction, PlayerActionEnum newAction)
     {
-        AnimationWrapper<PlayerActionEnum> paw = settings.GetAnimationWrapper(newAction);
-        if (paw != null)
-        {
-            if (paw.InitCameraAngle != null)
-            {
-                targetCameraAngle.ModifyValue(paw.InitCameraAngle);
-            }
-
-            spriteAnimator.Play(paw.Anim);
-        }
+        AnimationClip animClip = settings.GetAnimationAndChangeCamAngle(newAction, targetCameraAngle);
+        spriteAnimator.Play(animClip);
     }
 
     public void AE_TriggerActionCameraAngle(SO_CameraAngle ca)

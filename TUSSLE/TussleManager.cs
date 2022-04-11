@@ -43,8 +43,8 @@ public class TussleManager : MonoBehaviour
     private void Awake()
     {
         audioSource = GetComponent<AudioWrapperSource>();
-        tussleStartDelegate.SetInvokeMethod(InitiateTussle);
-        tussleResolveDebugDelegate.SetInvokeMethod(ResolveDebug);
+        tussleStartDelegate.RegisterForDelegateInvoked(InitiateTussle);
+        tussleResolveDebugDelegate.RegisterForDelegateInvoked(ResolveDebug);
         videoPlayer.targetCamera = Camera.main;
         videoPlayer.clip = null;
 

@@ -32,6 +32,7 @@ public class SO_TerrZoneWrapper : ScriptableObject
 
     [SerializeField]
     private float tileDistance2Boss = default;
+    public float TileDistance2Boss => tileDistance2Boss;
 
     [SerializeField]
     private TerrAddonWeightWrapper[] TerrAddons = null;
@@ -50,6 +51,10 @@ public class SO_TerrZoneWrapper : ScriptableObject
         private float weight = 0;
         public float Weight => weight;
     }
+
+    [SerializeField]
+    private AAlienBossBase bossPrefab = null;
+    public AAlienBossBase BossPrefab => bossPrefab;
 
     [NonSerialized]
     private float[] TerrAddonCachedPercents;

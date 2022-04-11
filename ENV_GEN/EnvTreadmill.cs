@@ -61,6 +61,9 @@ public class EnvTreadmill : MonoBehaviour
     private LaneChange targetLaneChange;
     private float colShiftPerc;
 
+    private float totalZoneDistTraveled = 0;
+    private bool bossSpawned = false;
+
     private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
 
     private void Start()
@@ -69,8 +72,8 @@ public class EnvTreadmill : MonoBehaviour
         GetComponent<MeshFilter>().mesh = mesh;
 
         currZone.RegisterForPropertyChanged(OnZoneWrapperChange);
-        laneChangeDelegate.SetInvokeMethod(OnLaneChange);
-        treadmillToggleDelegate.SetInvokeMethod(OnTreadmillSpeedChange);
+        laneChangeDelegate.RegisterForDelegateInvoked(OnLaneChange);
+        treadmillToggleDelegate.RegisterForDelegateInvoked(OnTreadmillSpeedChange);
 
         InitData2D();
 
@@ -336,6 +339,8 @@ public class EnvTreadmill : MonoBehaviour
     {
         float posVert = currSpeed * Time.deltaTime;
 
+        totalZoneDistTraveled += Mathf.Abs(posVert);
+
         if (posVert + transform.position.z <= -newRowThreshold)
         {
             posVert += settings.TileDims.y;
@@ -344,6 +349,13 @@ public class EnvTreadmill : MonoBehaviour
         }
 
         PositionChange(transform, 0, 0, posVert);
+
+        if (bossSpawned) { return; }
+
+        if (totalZoneDistTraveled >= currZoneWrapper.TileDistance2Boss * settings.TileDims.y)
+        {
+            SpawnZoneBoss();
+        }
     }
 
 
@@ -362,6 +374,11 @@ public class EnvTreadmill : MonoBehaviour
         //do a custom per terrAddon check
     }
 
+    private void SpawnZoneBoss()
+    {
+        bossSpawned = true;
+        currZoneWrapper.BossPrefab.InstantiateBoss(this);
+    }
 
 
     private Vector3 GetLocalTileCenter(int colIndex, int rowIndex, int floorIndex)

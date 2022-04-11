@@ -95,4 +95,56 @@ public static class HelperUtil
     {
         NONE = 0, WARNING = 1, ERROR = 2
     }
+
+    /// <summary>
+    /// Set the hit box dimensions using the terr settings
+    /// </summary>
+    public static void SetHitBoxDimensions(
+        BoxColliderSP hitBox,
+        Vector2 objTileDims,
+        SO_TerrSettings terrSettings,
+        Vector3PropertySO hitBoxDimEdgePercents)
+    {
+        Vector3 hitBoxDimensions = new Vector3(
+            objTileDims.x * terrSettings.TileDims.x,
+            terrSettings.FloorHeight,
+            objTileDims.y * terrSettings.TileDims.y);
+
+        hitBoxDimensions -= new Vector3(
+            terrSettings.TileDims.x * (1 - hitBoxDimEdgePercents.Value.x),
+            terrSettings.FloorHeight * (1 - hitBoxDimEdgePercents.Value.y),
+            terrSettings.TileDims.y * (1 - hitBoxDimEdgePercents.Value.z));
+
+        hitBox.Box().size = hitBoxDimensions;
+        hitBox.Box().center = new Vector3(0, hitBoxDimensions.y / 2f, 0);
+    }
+
+
+    //TODO: convert all cr uses to use this
+
+    /// <summary>
+    /// Safely start a coroutine by checking to see if it its reference is running (aka not null).
+    /// If so, stop that coroutine before beginning a new one
+    /// </summary>
+    /// <param name="cr">The coroutine reference</param>
+    /// <param name="crMethod">The routine method</param>
+    /// <param name="mbRef">MonoBeahviour reference to call Unity CR methods</param>
+    public static void SafeStartCoroutine(ref Coroutine cr, IEnumerator crMethod, MonoBehaviour mbRef)
+    {
+        SafeStopCoroutine(ref cr, mbRef);
+        cr = mbRef.StartCoroutine(crMethod);
+    }
+
+    /// <summary>
+    /// Safely stops a coroutine by checking if its running first
+    /// </summary>
+    /// <param name="cr">The coroutine reference</param>
+    /// <param name="mbRef">MonoBeahviour reference to call the Unity StopCR method</param>
+    public static void SafeStopCoroutine(ref Coroutine cr, MonoBehaviour mbRef)
+    {
+        if (cr != null)
+        {
+            mbRef.StopCoroutine(cr);
+        }
+    }
 }

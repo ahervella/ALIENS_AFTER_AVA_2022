@@ -5,46 +5,67 @@ using UnityEngine;
 
 public abstract class DelegateSO<PARAM_TYPE, RETURN_TYPE> : ScriptableObject
 {
-    //TODO: make this accept multiple methods instead of just one
+    //TODO: base class with property SO
 
     [NonSerialized]
     private bool registeredWithGameModeManager = false;
 
-    public delegate RETURN_TYPE InvokeDelegate(PARAM_TYPE param);
+    public delegate RETURN_TYPE DelegateInvoked(PARAM_TYPE param);
 
-    InvokeDelegate OnInvokeDelegateMethod;
+    DelegateInvoked OnDelegateInvoked;
+    DelegateInvoked OnGameModeSceneUnloadedPersistence;
 
-    public void SetInvokeMethod(InvokeDelegate invokeMethod, bool persistant = false)
-    {
-        OnInvokeDelegateMethod = invokeMethod;
-        if (!persistant)
-        {
-            RegisterForGameModeReplaced();
-        }
-    }
-
-    private void RegisterForGameModeReplaced()
+    public void RegisterForDelegateInvoked(DelegateInvoked method, bool persistant = false)
     {
         if (!registeredWithGameModeManager)
         {
             S_GameModeManager.Current.RegisterForGameModeSceneUnloaded(S_GameModeManager_OnGameModeReplaced);
             registeredWithGameModeManager = true;
         }
+
+        OnDelegateInvoked -= method;
+        OnDelegateInvoked += method;
+
+        if (!persistant)
+        {
+            RegisterForGameModeSceneUnloaded(method);
+        }
     }
 
     private void S_GameModeManager_OnGameModeReplaced()
     {
-        OnInvokeDelegateMethod = null;
+        OnDelegateInvoked = null;
+        if (OnGameModeSceneUnloadedPersistence != null)
+        {
+            OnDelegateInvoked = OnGameModeSceneUnloadedPersistence;
+            return;
+        }
+
+        OnGameModeSceneUnloadedPersistence = null;
+    }
+
+    private void RegisterForGameModeSceneUnloaded(DelegateInvoked method)
+    {
+        OnGameModeSceneUnloadedPersistence -= method;
+        OnGameModeSceneUnloadedPersistence += method;
+    }
+
+    public void DeRegisterFromDelegateInvoked(DelegateInvoked method)
+    {
+        OnDelegateInvoked -= method;
+        OnGameModeSceneUnloadedPersistence -= method;
     }
 
     public virtual RETURN_TYPE InvokeDelegateMethod(PARAM_TYPE param)
     {
-        if (OnInvokeDelegateMethod == null)
+        if (OnDelegateInvoked == null)
         {
-            Debug.Log($"Invoke method for DelegateSO {name} not set!");
+            Debug.Log($"No invoke methods for DelegateSO {name} were set!");
             return default;
         }
 
-        return OnInvokeDelegateMethod(param);
+        //TODO: what happens if we are returning multiple things from here? Does
+        //it just get the last or first one?
+        return OnDelegateInvoked(param);
     }
 }

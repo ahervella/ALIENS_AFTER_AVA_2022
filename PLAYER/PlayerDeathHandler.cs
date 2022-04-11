@@ -28,7 +28,7 @@ public class PlayerDeathHandler : MonoBehaviour
     {
         cut2BlackImg.color = new Color(0, 0, 0, 0);
         audioSource = GetComponent<AudioWrapperSource>();
-        playerDeathTrigger.SetInvokeMethod(OnDeath);
+        playerDeathTrigger.RegisterForDelegateInvoked(OnDeath);
     }
 
     private int OnDeath(bool _)

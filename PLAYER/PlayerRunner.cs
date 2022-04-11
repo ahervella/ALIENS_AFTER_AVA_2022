@@ -68,6 +68,9 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private SO_EnergySettings energySettings = null;
 
+    [SerializeField]
+    private IntPropertySO bossSpawnRowsAway = null;
+
     private Coroutine sprintCR = null;
 
     private void Awake()

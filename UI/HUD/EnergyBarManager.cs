@@ -53,7 +53,7 @@ public class EnergyBarManager : MonoBehaviour
     private void Awake()
     {
 
-        energyBarDisplayDelegate.SetInvokeMethod(SetVisibility);
+        energyBarDisplayDelegate.RegisterForDelegateInvoked(SetVisibility);
         currEnergy.RegisterForPropertyChanged(OnEnergyChanged);
         currAction.RegisterForPropertyChanged(OnActionChanged);
         blockFractionPerc = 0;

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static HelperUtil;
 
 [RequireComponent(typeof(AudioWrapperSource))]
 public class TerrHazard : TerrAddon
@@ -42,26 +43,10 @@ public class TerrHazard : TerrAddon
 
     private void InitBoxColliders()
     {
-        SetHitBoxDimensions();
+        SetHitBoxDimensions(hitBox, Dimensions(), terrSettings, hitBoxDimEdgePercents);
         SetRewardBoxDimensions(hitBox.Box());
         hitBox.SetOnTriggerEnterMethod(OnTriggerEnterDamageHitBox);
         energyRewardBox.SetOnTriggerExitMethod(OnTriggerExitRewardBox);
-    }
-
-    private void SetHitBoxDimensions()
-    {
-        Vector3 hitBoxDimensions = new Vector3(
-            Dimensions().x * terrSettings.TileDims.x,
-            terrSettings.FloorHeight,
-            Dimensions().y * terrSettings.TileDims.y);
-
-        hitBoxDimensions -= new Vector3(
-            terrSettings.TileDims.x * (1 - hitBoxDimEdgePercents.Value.x),
-            terrSettings.FloorHeight * (1 - hitBoxDimEdgePercents.Value.y),
-            terrSettings.TileDims.y * (1 - hitBoxDimEdgePercents.Value.z));
-
-        hitBox.Box().size = hitBoxDimensions;
-        hitBox.Box().center = new Vector3(0, hitBoxDimensions.y / 2f, 0);
     }
 
     private void SetRewardBoxDimensions(BoxCollider hitBox)

@@ -31,7 +31,7 @@ public class ArmamentManager : MonoBehaviour
     private void Awake()
     {
         InitCoolDownDict();
-        useArmamentDelegate.SetInvokeMethod(TryUseArmament);
+        useArmamentDelegate.RegisterForDelegateInvoked(TryUseArmament);
     }
 
     private void InitCoolDownDict()

@@ -9,6 +9,28 @@ public abstract class SO_AnimationSettings<T> : ScriptableObject
     [SerializeField]
     private List<AnimationWrapper<T>> animWrappers = new List<AnimationWrapper<T>>();
 
+    public AnimationClip GetAnimation(T action)
+    {
+        return GetAnimationAndChangeCamAngle(action, null);
+    }
+
+    public AnimationClip GetAnimationAndChangeCamAngle(T action, PSO_TargetCameraAngle targetCamAngle)
+    {
+        AnimationWrapper<T> wrapper = GetAnimationWrapper(action);
+        if (wrapper == null) { return null; }
+
+        if (wrapper.InitCameraAngle != null)
+        {
+            targetCamAngle?.ModifyValue(wrapper.InitCameraAngle);
+        }
+        if (wrapper.Anim == null)
+        {
+            Debug.LogError($"No animation clip set for animation setting: {name} -> {action}");
+        }
+
+        return wrapper.Anim;
+    }
+
     public AnimationWrapper<T> GetAnimationWrapper(T action)
     {
         return GetWrapperFromFunc(animWrappers, aw => aw.Action, action, LogEnum.WARNING, null);

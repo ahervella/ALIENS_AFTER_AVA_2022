@@ -9,8 +9,13 @@ public class SpriteFollowUp : MonoBehaviour
     [SerializeField]
     private AnimationClip followUpAnimation = null;
 
-    public void AE_OnAnimationFinished()
+    public void AE_OnAnimFollowUp()
     {
         GetComponent<SpriteAnim>().Play(followUpAnimation);
+    }
+
+    public void AE_OnAnimFollowUp(AnimationClip ac)
+    {
+        GetComponent<SpriteAnim>().Play(ac);
     }
 }

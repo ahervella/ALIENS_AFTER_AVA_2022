@@ -24,13 +24,13 @@ public abstract class BaseAnimation<T> : MonoBehaviour
 
     private void Awake()
     {
-        currAction.RegisterForPropertyChanged(OnPlayerActionChange);
+        currAction.RegisterForPropertyChanged(OnActionChange);
         spriteAnimator = GetComponent<SpriteAnim>();
         //included component if SpriteAnim is also included
         animator = GetComponent<Animator>();
     }
 
-    protected abstract void OnPlayerActionChange(T prevAction, T newAction);
+    protected abstract void OnActionChange(T prevAction, T newAction);
 
     public void AE_OnAnimFinished()
     {
