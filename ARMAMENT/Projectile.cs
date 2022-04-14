@@ -8,6 +8,9 @@ using static HelperUtil;
 public class Projectile : MonoBehaviour
 {
     [SerializeField]
+    private SO_TerrSettings terrSettings = null;
+
+    [SerializeField]
     private WeaponEnum weaponType;
 
     [SerializeField]
@@ -60,6 +63,18 @@ public class Projectile : MonoBehaviour
     private void Update()
     {
         transform.position += slope * Time.deltaTime;
+        CheckIfOutOfVerticalBounds();
+    }
+
+    private void CheckIfOutOfVerticalBounds()
+    {
+        //Destroy if one row behind 0 (which is when rows reset for terrNode)
+        //or if further than last row
+        if (transform.position.z > terrSettings.TileRows * terrSettings.TileDims.y
+            || transform.position.z < -terrSettings.TileDims.y)
+        {
+            SafeDestroy(gameObject);
+        }
     }
 
     public void OnEnteredHazard(TerrHazard hazard)

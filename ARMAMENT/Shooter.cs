@@ -17,14 +17,13 @@ public class Shooter : MonoBehaviour
 
     private ShooterWrapper cachedShooterWrapper;
 
-    public static Shooter InstantiateShooterObject(Transform spawnParentRef, Vector3 offset, SO_ShooterSettings settings)
+    public static Shooter InstantiateShooterObject(Transform shooterParentRef, Vector3 shooterPos, Transform bulletSpawnRef, SO_ShooterSettings settings)
     {
         Shooter instance = new GameObject("INSTANCED_SHOOTER").AddComponent<Shooter>();
-        instance.transform.transform.parent = spawnParentRef;
-        instance.transform.localPosition = offset;
+        instance.transform.transform.parent = shooterParentRef;
+        instance.transform.position = shooterPos;
 
-        //hack to make this spawn at the given spawnRef with the offset :)
-        instance.spawnRef = instance.transform;
+        instance.spawnRef = bulletSpawnRef;
         instance.settings = settings;
         instance.AE_StartFiring();
         return instance;
@@ -45,7 +44,8 @@ public class Shooter : MonoBehaviour
     {
         while (true)
         {
-            Instantiate(cachedShooterWrapper.WeaponPrefab, spawnRef);
+            GameObject weaponPrefab = Instantiate(cachedShooterWrapper.WeaponPrefab, spawnRef);
+            weaponPrefab.transform.position = transform.position;
             yield return new WaitForSeconds(cachedShooterWrapper.DelayTime);
         }
     }

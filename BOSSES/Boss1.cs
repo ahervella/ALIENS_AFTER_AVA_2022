@@ -62,7 +62,7 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
     private IEnumerator IdleFloatCR()
     {
-        yield return new WaitForSeconds(settings.GetRandRangeShootPhaseTime(Rage));
+        yield return new WaitForSeconds(settings.GetRandRangeIdlePhaseTime(Rage));
         currState.ModifyValue(Boss1State.SHOOT);
     }
 
@@ -81,7 +81,7 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
         StartFiringBullets(sw);
 
-        yield return new WaitForSeconds(sw.DelayTime * settings.BulletsPerShot(Rage));
+        yield return new WaitForSeconds(sw.DelayTime * settings.BulletsPerShot(Rage) * 0.95f);
 
         currState.ModifyValue(Boss1State.SHOOT_END);
         StopShooting();
@@ -103,9 +103,12 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
         for (int i = 0; i < totalBullets; i++)
         {
-            float spawnLaneOffset = (i - i / 2) * terrSettings.TileDims.x;
-            Vector3 spawnPosRel2Boss = new Vector3(spawnLaneOffset, settings.HeightOfBullet - transform.position.y, 0);
-            Shooter instance = Shooter.InstantiateShooterObject(transform, spawnPosRel2Boss, settings.ShootSettings(Rage));
+            float spawnLaneOffset = (i - totalBullets / 2) * terrSettings.TileDims.x;
+            Vector3 globalSpawnPos = new Vector3(spawnLaneOffset + transform.position.x, settings.HeightOfBullet, transform.position.z);
+
+            //spawn on horiz terrain transform so lane changing works with fired bullets
+            Shooter instance = Shooter.InstantiateShooterObject(transform, globalSpawnPos, terrainNode.HorizTransform, settings.ShootSettings(Rage));
+            
             spawnedBulletShooters.Add(instance);
         }
 
@@ -114,6 +117,8 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
     private int OnLaneChange(LaneChange laneChange)
     {
+        //TODO: set this transform onto the horiz transform of the treadmill
+        //and make sure we move over every lane change
         //float deltaX = laneChange.Dir * terrSettings.TileDims.x;
         //PositionChange(transform, deltaX, 0, 0);
         Debug.Log("boss 1 recognized lane changed: " + laneChange.Dir);

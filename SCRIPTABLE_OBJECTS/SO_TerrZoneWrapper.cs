@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Random = UnityEngine.Random;
+using static HelperUtil;
 
 [CreateAssetMenu(fileName = "SO_TerrZoneWrapper", menuName = "ScriptableObjects/StaticData/SO_TerrZoneWrapper")]
 public class SO_TerrZoneWrapper : ScriptableObject
@@ -35,10 +36,14 @@ public class SO_TerrZoneWrapper : ScriptableObject
     public float TileDistance2Boss => tileDistance2Boss;
 
     [SerializeField]
-    private TerrAddonWeightWrapper[] TerrAddons = null;
+    private List<ZonePhaseWrapper> terrAddonPhaseWrappers = new List<ZonePhaseWrapper>();
+
+    //Pretty sure we're only gonna need one set foley configs for each zone regardless of phase
+    [SerializeField]
+    private TerrAddonWeightWrapper[] terrFoleyAddons = default;
 
     [SerializeField]
-    private TerrAddonWeightWrapper[] TerrFoleyAddons = null;
+    private PSO_CurrentZonePhase currZonePhase = null;
 
     [Serializable]
     private class TerrAddonWeightWrapper
@@ -52,9 +57,24 @@ public class SO_TerrZoneWrapper : ScriptableObject
         public float Weight => weight;
     }
 
+    [Serializable]
+    private class ZonePhaseWrapper
+    {
+        [SerializeField]
+        private ZonePhaseEnum phase = ZonePhaseEnum.NO_BOSS;
+        public ZonePhaseEnum Phase => phase;
+
+        [SerializeField]
+        private TerrAddonWeightWrapper[] terrAddonWeightWrappers = null;
+        public TerrAddonWeightWrapper[] TerrAddonWeightWrappers => terrAddonWeightWrappers;
+    }
+
     [SerializeField]
     private AAlienBossBase bossPrefab = null;
     public AAlienBossBase BossPrefab => bossPrefab;
+
+    [NonSerialized]
+    private TerrAddonWeightWrapper[] cachedTerrAddons;
 
     [NonSerialized]
     private float[] TerrAddonCachedPercents;
@@ -62,15 +82,28 @@ public class SO_TerrZoneWrapper : ScriptableObject
     [NonSerialized]
     private float[] TerrFoleyAddonCachedPercents;
 
-    public void CacheWeightPercents()
+    public void InitAndCacheTerrAddonData()
     {
-        TerrAddonCachedPercents = GetWeightPercentsArray(TerrAddons);
-        TerrFoleyAddonCachedPercents = GetWeightPercentsArray(TerrFoleyAddons);
+        CacheTerrAddonWeightWrapper();
+        CacheWeightPercents();
+        CacheTerrSpawnViolations();
     }
 
-    public void CacheTerrSpawnViolations()
+    private void CacheTerrAddonWeightWrapper()
     {
-        foreach (TerrAddonWeightWrapper taww in TerrAddons)
+        cachedTerrAddons = GetWrapperFromFunc(
+            terrAddonPhaseWrappers, pw => pw.Phase, currZonePhase.Value, LogEnum.ERROR, null).TerrAddonWeightWrappers;
+    }
+
+    private void CacheWeightPercents()
+    {
+        TerrAddonCachedPercents = GetWeightPercentsArray(cachedTerrAddons);
+        TerrFoleyAddonCachedPercents = GetWeightPercentsArray(terrFoleyAddons);
+    }
+
+    private void CacheTerrSpawnViolations()
+    {
+        foreach (TerrAddonWeightWrapper taww in cachedTerrAddons)
         {
             taww.Addon.CacheSpawnViolations();
         }
@@ -103,12 +136,12 @@ public class SO_TerrZoneWrapper : ScriptableObject
         //first roll dice for spawning any addon
         if (!getOnlyFoley && Random.value < addonSpawnLikelihood)
         {
-            return GetRandomTerrFromWeights(TerrAddonCachedPercents, TerrAddons);
+            return GetRandomTerrFromWeights(TerrAddonCachedPercents, cachedTerrAddons);
         }
 
         if (Random.value < foleySpawnLikelihood)
         {
-            return GetRandomTerrFromWeights(TerrFoleyAddonCachedPercents, TerrFoleyAddons);
+            return GetRandomTerrFromWeights(TerrFoleyAddonCachedPercents, terrFoleyAddons);
         }
         return null;
     }
@@ -133,3 +166,5 @@ public class SO_TerrZoneWrapper : ScriptableObject
         return null;
     }
 }
+
+public enum ZonePhaseEnum { NO_BOSS = 0, BOSS = 1 }

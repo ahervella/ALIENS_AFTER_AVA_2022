@@ -23,8 +23,8 @@ public abstract class SO_ABossSettings : ScriptableObject
     public int SpawnTileRowsAway => spawnTileRowsAway;
 
     [SerializeField]
-    private bool spawnAsChildOfTerr = false;
-    public bool SpawnAsChildOfTerr => spawnAsChildOfTerr;
+    private BossSpawnEnum spawnType = BossSpawnEnum.INDEPENDENT;
+    public BossSpawnEnum SpawnType => spawnType;
 
     [Serializable]
     protected class RageValue<T>
@@ -37,7 +37,6 @@ public abstract class SO_ABossSettings : ScriptableObject
 
         public T GetVal(bool rage) => rage ? rageVal : prerageVal;
     }
-
     /*
     [SerializeField]
     private List<BossAnimationWrapper<BOSS_STATE>> animWrappers = new List<BossAnimationWrapper<BOSS_STATE>>();
@@ -63,3 +62,5 @@ public abstract class SO_ABossSettings : ScriptableObject
     }
     */
 }
+
+public enum BossSpawnEnum { INDEPENDENT = 0, TERR_HORIZ = 1, TERR_VERT = 2 }

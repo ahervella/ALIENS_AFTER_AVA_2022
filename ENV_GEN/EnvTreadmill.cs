@@ -16,6 +16,27 @@ public class EnvTreadmill : MonoBehaviour
     private SO_TerrSettings settings = null;
 
     [SerializeField]
+    private Transform terrNodesTransform = null;
+
+    //TODO: find a way around not having to expose these transforms?
+
+    /// <summary>
+    /// The horizontal component of this treadmill
+    /// which is a child of the treadmill transform
+    /// </summary>
+    [SerializeField]
+    private Transform horizTransform = null;
+    public Transform HorizTransform => horizTransform;
+
+    /// <summary>
+    /// the vertical component of this treadmill, which is
+    /// a child of the horizontal transform
+    /// </summary>
+    [SerializeField]
+    private Transform vertTransform = null;
+    public Transform VertTransform => vertTransform;
+
+    [SerializeField]
     private List<SO_TerrZoneWrapper> zoneWrappers;
 
     private SO_TerrZoneWrapper currZoneWrapper;
@@ -36,18 +57,16 @@ public class EnvTreadmill : MonoBehaviour
     [SerializeField]
     private DSO_TreadmillSpeedChange treadmillToggleDelegate = null;
 
-    private Coroutine treadmillToggleCR = null;
+    [SerializeField]
+    private PSO_CurrentZonePhase currZonePhase = null;
 
-    //[SerializeField]
-    //private PSO_CurrentTerrBossNode currTerrBossNode;
+    private Coroutine treadmillToggleCR = null;
 
     private Data2D<TerrAddon> generatedTerrAddons;
 
     private Data2D<float> renderedGroundPoints;
 
     private Data2D<float> renderedInterPoints;
-
-    //private int tileDistanceTraveled;
 
     private Mesh mesh;
     Vector3[] meshVerticies = null;
@@ -66,6 +85,11 @@ public class EnvTreadmill : MonoBehaviour
 
     private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
 
+    //TODO: HACK for now to get the transforms to shift properly
+    //for the horiz transform children without having to cache their initial
+    //positions
+    float prevHorizWrapPos = 0;
+
     private void Start()
     {
         mesh = new Mesh();
@@ -78,6 +102,9 @@ public class EnvTreadmill : MonoBehaviour
         InitData2D();
 
         transform.position = Vector3.zero;
+        terrNodesTransform.localPosition = Vector3.zero;
+        horizTransform.localPosition = Vector3.zero;
+        vertTransform.localPosition = Vector3.zero;
 
         newRowThreshold = settings.TileDims.y;
 
@@ -106,11 +133,14 @@ public class EnvTreadmill : MonoBehaviour
 
         //immediately offset the x delta of the grid
         float deltaX = lc.Dir * settings.TileDims.x;
-        PositionChange(transform, deltaX, 0, 0);
+        LocalPositionChange(terrNodesTransform, deltaX, 0, 0);
+        //TODO move all children instead of transform going in crazy values space wise
+        //LocalPositionChange(horizTransform, deltaX, 0, 0);
 
         //Start the treadmill horizontal tween to default x position
         colShiftPerc = 0;
         targetLaneChange = lc;
+        prevHorizWrapPos = targetLaneChange.Dir * settings.TileDims.x;
 
         return 0;
     }
@@ -220,7 +250,7 @@ public class EnvTreadmill : MonoBehaviour
         }
 
 
-        TerrAddon taInstance = taPrefab.InstantiateAddon(transform);
+        TerrAddon taInstance = taPrefab.InstantiateAddon(terrNodesTransform);
         if (taInstance.RandomYTileOffset)
         {
             taInstance.transform.localPosition += new Vector3(0, 0, settings.TileDims.y * Random.Range(-0.5f, 0.5f));
@@ -328,6 +358,17 @@ public class EnvTreadmill : MonoBehaviour
         return meshTriangles;
     }
 
+    public void AddTransformAsHorizChild(Transform newChild)
+    {
+        newChild.parent = horizTransform;
+    }
+
+    public void AddTransformAsVertChild(Transform newChild, bool destroyIfOutOfRange)
+    {
+        //TODO: would we need to implement destroyIfOutOfRange?
+        newChild.parent = vertTransform;
+    }
+
     private void Update()
     {
         if (gamePaused) { return; }
@@ -341,14 +382,18 @@ public class EnvTreadmill : MonoBehaviour
 
         totalZoneDistTraveled += Mathf.Abs(posVert);
 
-        if (posVert + transform.position.z <= -newRowThreshold)
+        if (posVert + terrNodesTransform.localPosition.z <= -newRowThreshold)
         {
             posVert += settings.TileDims.y;
 
             ShiftTerrainRowsDown();
         }
 
-        PositionChange(transform, 0, 0, posVert);
+        LocalPositionChange(terrNodesTransform, 0, 0, posVert);
+        ForEachTransformChild(vertTransform, child =>
+        {
+            LocalPositionChange(child.transform, 0, 0, posVert);
+        });
 
         if (bossSpawned) { return; }
 
@@ -357,7 +402,6 @@ public class EnvTreadmill : MonoBehaviour
             SpawnZoneBoss();
         }
     }
-
 
     private void ShiftTerrainRowsDown()
     {
@@ -374,9 +418,18 @@ public class EnvTreadmill : MonoBehaviour
         //do a custom per terrAddon check
     }
 
+    private void ForEachTransformChild(Transform trans, Action<Transform> method)
+    {
+        for (int i = 0; i < trans.childCount; i++)
+        {
+            method(trans.GetChild(i));
+        }
+    }
+
     private void SpawnZoneBoss()
     {
         bossSpawned = true;
+        currZonePhase.ModifyValue(ZonePhaseEnum.BOSS);
         currZoneWrapper.BossPrefab.InstantiateBoss(this);
     }
 
@@ -415,7 +468,19 @@ public class EnvTreadmill : MonoBehaviour
         float startXPos = targetLaneChange.Dir * settings.TileDims.x;
         float horizPos = Mathf.Lerp(startXPos, 0, easedColShiftPerc);
 
-        PositionChange(transform, horizPos - transform.position.x, 0, 0);
+        LocalPositionChange(terrNodesTransform, horizPos - terrNodesTransform.localPosition.x, 0, 0);
+        
+        ForEachTransformChild(horizTransform, child =>
+        {
+            PositionChange(child, horizPos - prevHorizWrapPos, 0, 0);
+        });
+
+        ForEachTransformChild(vertTransform, child =>
+        {
+            PositionChange(child, horizPos - prevHorizWrapPos, 0, 0);
+        });
+
+        prevHorizWrapPos = horizPos;
 
         if (horizPos == 0)
         {

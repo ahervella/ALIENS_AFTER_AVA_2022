@@ -32,13 +32,22 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     public override AAlienBossBase InstantiateBoss(EnvTreadmill terrainNode)
     {
-        this.terrainNode = terrainNode;
-
-        if (settings.SpawnAsChildOfTerr)
+        AAlienBoss<BOSS_STATE, BOSS_SETTINGS> instance = null;
+        switch (settings.SpawnType)
         {
-            return Instantiate(this, terrainNode.transform);
+            case BossSpawnEnum.INDEPENDENT:
+                instance = Instantiate(this);
+                break;
+            case BossSpawnEnum.TERR_HORIZ:
+                instance = Instantiate(this, terrainNode.HorizTransform);
+                break;
+            case BossSpawnEnum.TERR_VERT:
+                instance = Instantiate(this, terrainNode.VertTransform);
+                break;
         }
-        return Instantiate(this);
+
+        instance.terrainNode = terrainNode;
+        return instance;
     }
 
     private void Awake()
@@ -69,6 +78,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
         if (health <= settings.RageHealthThreshold)
         {
+            Debug.Log($"Activated Rage mode for boss {name}");
             Rage = true;
             InitRage();
         }

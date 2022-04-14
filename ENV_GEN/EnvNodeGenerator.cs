@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static HelperUtil;
 
 public class EnvNodeGenerator : MonoBehaviour
 {
@@ -9,6 +10,9 @@ public class EnvNodeGenerator : MonoBehaviour
 
     [SerializeField]
     private IntPropertySO currZone = null;
+
+    [SerializeField]
+    private PSO_CurrentZonePhase currZonePhase = null;
 
     [SerializeField]
     private BoolPropertySO spawnOnlyFoleyPSO = null;
@@ -21,22 +25,18 @@ public class EnvNodeGenerator : MonoBehaviour
     private void Awake()
     {
         currZone.RegisterForPropertyChanged(OnZoneChange);
+        currZonePhase.RegisterForPropertyChanged(OnZonePhaseChange);
     }
 
     private void OnZoneChange(int prevZone, int newZone)
     {
-        foreach (SO_TerrZoneWrapper zw in zoneWrappers)
-        {
-            if (zw.Zone == newZone)
-            {
-                cachedZoneWrapper = zw;
-                cachedZoneWrapper.CacheWeightPercents();
-                cachedZoneWrapper.CacheTerrSpawnViolations();
-                return;
-            }
-        }
+        cachedZoneWrapper = GetWrapperFromFunc(zoneWrappers, zw => zw.Zone, newZone, LogEnum.ERROR, null);
+        cachedZoneWrapper.InitAndCacheTerrAddonData();
+    }
 
-        Debug.LogError($"Could not find zone wrapper for zone {newZone} :(");
+    private void OnZonePhaseChange(ZonePhaseEnum oldPhase, ZonePhaseEnum newPhase)
+    {
+        cachedZoneWrapper.InitAndCacheTerrAddonData();
     }
 
     public TerrAddon GetNewAddon(int colIndex, int rowIndex, Data2D<TerrAddon> currAddons)

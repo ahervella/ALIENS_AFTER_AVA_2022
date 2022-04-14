@@ -22,18 +22,18 @@ public class SO_Boss1Settings : SO_ABossSettings
     public float SpawnTime => spawnTime;
 
     [SerializeField]
-    private RageValue<float> shootPhaseTime = default;
+    private RageValue<float> idlePhaseTime = default;
 
     [SerializeField]
-    private RageValue<float> shootPhaseTimeOffsetRange = default;
+    private RageValue<float> idlePhaseTimeOffsetRange = default;
 
-    public float GetRandRangeShootPhaseTime(bool rage)
+    public float GetRandRangeIdlePhaseTime(bool rage)
     {
         float randOffset = Random.Range(
-            -shootPhaseTimeOffsetRange.GetVal(rage),
-            shootPhaseTimeOffsetRange.GetVal(rage));
+            -idlePhaseTimeOffsetRange.GetVal(rage),
+            idlePhaseTimeOffsetRange.GetVal(rage));
 
-        return randOffset + shootPhaseTime.GetVal(rage);
+        return randOffset + idlePhaseTime.GetVal(rage);
     }
 
     [SerializeField]

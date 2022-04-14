@@ -7,7 +7,7 @@ using Object = UnityEngine.Object;
 public static class HelperUtil
 {
     /// <summary>
-    /// Shortcut for adding a vector 3 to a transforms position
+    /// Shortcut for adding a vector 3 to a transform's position
     /// </summary>
     /// <param name="t"></param>
     /// <param name="x"></param>
@@ -16,6 +16,18 @@ public static class HelperUtil
     public static void PositionChange(Transform t, float x, float y, float z)
     {
         t.position = new Vector3(t.position.x + x, t.position.y + y, t.position.z + z);
+    }
+
+    /// <summary>
+    /// Shortcut for adding a vector 3 to a transform's local position
+    /// </summary>
+    /// <param name="t"></param>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="z"></param>
+    public static void LocalPositionChange(Transform t, float x, float y, float z)
+    {
+        t.localPosition = new Vector3(t.localPosition.x + x, t.localPosition.y + y, t.localPosition.z + z);
     }
 
     /// <summary>
