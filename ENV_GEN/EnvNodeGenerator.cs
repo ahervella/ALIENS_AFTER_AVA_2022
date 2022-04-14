@@ -9,6 +9,9 @@ public class EnvNodeGenerator : MonoBehaviour
     private SO_TerrSettings settings = null;
 
     [SerializeField]
+    private SO_DeveloperToolsSettings devTools = null;
+
+    [SerializeField]
     private IntPropertySO currZone = null;
 
     [SerializeField]
@@ -51,7 +54,9 @@ public class EnvNodeGenerator : MonoBehaviour
 
     private TerrAddon TryGetNewViolationFreeAddon(int colIndex, int rowIndex, Data2D<TerrAddon> currAddons)
     {
-        TerrAddon newAddon = cachedZoneWrapper.GenerateRandomNewAddon(spawnOnlyFoleyPSO.Value);
+        if (devTools.SpawnNoTerrAddons) { return null; }
+
+        TerrAddon newAddon = cachedZoneWrapper.GenerateRandomNewAddon(spawnOnlyFoleyPSO.Value || devTools.SpawnOnlyFoley);
         if (newAddon == null) { return null; }
 
         //have to account for wrapping effect, such that there may be violations in wrapped space

@@ -21,5 +21,13 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     private bool startWith1Life = false;
     public bool StartWith1Life => startWith1Life;
 
+    [SerializeField]
+    private bool spawnOnlyFoley = false;
+    public bool SpawnOnlyFoley => spawnOnlyFoley;
+
+    [SerializeField]
+    private bool spawnNoTerrAddons = false;
+    public bool SpawnNoTerrAddons => spawnNoTerrAddons;
+
     //TODO: mute just music, infinite energy bar, no delay for changing moves, no timer delays, etc.
 }
