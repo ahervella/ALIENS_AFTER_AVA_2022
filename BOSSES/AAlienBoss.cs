@@ -28,7 +28,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     private AnimationEventExtender removeBossAEExtender = null;
 
     [SerializeField]
-    private PSO_CurrentZonePhase currZonePhase = null;
+    protected PSO_CurrentZonePhase currZonePhase = null;
 
     protected bool Rage { get; private set; } = false;
 

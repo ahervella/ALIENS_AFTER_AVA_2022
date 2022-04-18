@@ -22,6 +22,10 @@ public class SO_Boss1Settings : SO_ABossSettings
     public float SpawnTime => spawnTime;
 
     [SerializeField]
+    private float spawnDelay = 2f;
+    public float SpawnDelay => spawnDelay;
+
+    [SerializeField]
     private RageValue<float> idlePhaseTime = default;
 
     [SerializeField]

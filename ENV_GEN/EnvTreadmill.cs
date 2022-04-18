@@ -402,7 +402,7 @@ public class EnvTreadmill : MonoBehaviour
         if (totalZoneDistTraveled >= (currZoneWrapper.TileDistance2Boss - settings.TileRows) * settings.TileDims.y
             && currZonePhase.Value == ZonePhaseEnum.NO_BOSS)
         {
-            currZonePhase.ModifyValue(ZonePhaseEnum.BOSS);
+            currZonePhase.ModifyValue(ZonePhaseEnum.BOSS_SPAWN);
         }
 
         if (totalZoneDistTraveled >= currZoneWrapper.TileDistance2Boss * settings.TileDims.y)

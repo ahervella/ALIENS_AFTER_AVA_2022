@@ -135,6 +135,8 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
     private IEnumerator SpawnSequenceCR(Vector3 finalSpawnPos)
     {
+        yield return new WaitForSeconds(settings.SpawnDelay);
+
         float currTime = 0;
         while(currTime < settings.SpawnTime)
         {
@@ -147,6 +149,7 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
         }
 
         transform.position = finalSpawnPos;
+        currZonePhase.ModifyValue(ZonePhaseEnum.BOSS);
         currState.ModifyValue(Boss1State.IDLE);
     }
 }
