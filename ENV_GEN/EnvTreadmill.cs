@@ -397,6 +397,14 @@ public class EnvTreadmill : MonoBehaviour
 
         if (bossSpawned) { return; }
 
+        //need to trigger the envrionment change sooner so the right
+        //generated terrain appears at the front by the time we spawn the boss
+        if (totalZoneDistTraveled >= (currZoneWrapper.TileDistance2Boss - settings.TileRows) * settings.TileDims.y
+            && currZonePhase.Value == ZonePhaseEnum.NO_BOSS)
+        {
+            currZonePhase.ModifyValue(ZonePhaseEnum.BOSS);
+        }
+
         if (totalZoneDistTraveled >= currZoneWrapper.TileDistance2Boss * settings.TileDims.y)
         {
             SpawnZoneBoss();
@@ -429,7 +437,6 @@ public class EnvTreadmill : MonoBehaviour
     private void SpawnZoneBoss()
     {
         bossSpawned = true;
-        currZonePhase.ModifyValue(ZonePhaseEnum.BOSS);
         currZoneWrapper.BossPrefab.InstantiateBoss(this);
     }
 

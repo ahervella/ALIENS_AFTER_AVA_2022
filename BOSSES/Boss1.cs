@@ -22,7 +22,7 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
     protected override void InitRage()
     {
-        throw new System.NotImplementedException();
+        //TODO: Do rage animation or camera stuff
     }
 
     protected override void SetStartingPosition()
@@ -104,7 +104,7 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
         for (int i = 0; i < totalBullets; i++)
         {
             float spawnLaneOffset = (i - totalBullets / 2) * terrSettings.TileDims.x;
-            Vector3 globalSpawnPos = new Vector3(spawnLaneOffset + transform.position.x, settings.HeightOfBullet, transform.position.z);
+            Vector3 globalSpawnPos = new Vector3(spawnLaneOffset + transform.position.x, 0, transform.position.z);
 
             //spawn on horiz terrain transform so lane changing works with fired bullets
             Shooter instance = Shooter.InstantiateShooterObject(transform, globalSpawnPos, terrainNode.HorizTransform, settings.ShootSettings(Rage));

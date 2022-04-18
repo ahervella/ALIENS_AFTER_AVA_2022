@@ -167,4 +167,4 @@ public class SO_TerrZoneWrapper : ScriptableObject
     }
 }
 
-public enum ZonePhaseEnum { NO_BOSS = 0, BOSS = 1 }
+public enum ZonePhaseEnum { NO_BOSS = 0, BOSS = 1, BOSS_RAGE = 2 }

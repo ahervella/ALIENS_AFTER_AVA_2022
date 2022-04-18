@@ -10,11 +10,15 @@ public class TerrNodeFadeEffect : MonoBehaviour
 
     private SpriteRenderer spriteRenderer = null;
 
+    private Color ogColor;
+
 
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-        spriteRenderer.color = new Color(1, 1, 1, 0);
+        ogColor = spriteRenderer.color;
+
+        SetTransparentInvisible();
     }
 
     private void Update()
@@ -104,7 +108,7 @@ public class TerrNodeFadeEffect : MonoBehaviour
 
         float val = yComp * xComp;
 
-        spriteRenderer.color = new Color(val, val, val, aComp);
+        spriteRenderer.color = new Color(val * ogColor.r, val * ogColor.g, val * ogColor.b, aComp);
     }
 
     private void SetInvisible()

@@ -40,8 +40,9 @@ public static class HelperUtil
         //TODO: seems to solve bug, but is this safe to do and can we always expect to get
         //a perfect 0 or 1 float value from the math here?
         origPerc = Mathf.Clamp(origPerc, 0, 1);
-        float theta = origPerc * Mathf.PI / 2f;
-        return Mathf.Sin(theta);
+
+        float theta = (2 * origPerc - 1 ) * Mathf.PI / 2f;
+        return (Mathf.Sin(theta) + 1) / 2f;
     }
 
     /// <summary>
@@ -115,7 +116,21 @@ public static class HelperUtil
         BoxColliderSP hitBox,
         Vector2 objTileDims,
         SO_TerrSettings terrSettings,
-        Vector3PropertySO hitBoxDimEdgePercents)
+        Vector3PropertySO hitBoxDimEdgePercents,
+        bool setHitBoxDefaultLocalPos = true)
+    {
+        SetHitBoxDimensionsAndPos(hitBox.Box(), objTileDims, terrSettings, hitBoxDimEdgePercents, setHitBoxDefaultLocalPos);
+    }
+
+    /// <summary>
+    /// Set the hit box dimensions using the terr settings
+    /// </summary>
+    public static void SetHitBoxDimensionsAndPos(
+        BoxCollider hitBox,
+        Vector2 objTileDims,
+        SO_TerrSettings terrSettings,
+        Vector3PropertySO hitBoxDimEdgePercents,
+        bool setHitBoxDefaultLocalPos = true)
     {
         Vector3 hitBoxDimensions = new Vector3(
             objTileDims.x * terrSettings.TileDims.x,
@@ -127,8 +142,12 @@ public static class HelperUtil
             terrSettings.FloorHeight * (1 - hitBoxDimEdgePercents.Value.y),
             terrSettings.TileDims.y * (1 - hitBoxDimEdgePercents.Value.z));
 
-        hitBox.Box().size = hitBoxDimensions;
-        hitBox.Box().center = new Vector3(0, hitBoxDimensions.y / 2f, 0);
+        hitBox.size = hitBoxDimensions;
+        hitBox.center = new Vector3(0, hitBoxDimensions.y / 2f, 0);
+        if (setHitBoxDefaultLocalPos)
+        {
+            hitBox.transform.localPosition = Vector3.zero;
+        }
     }
 
 

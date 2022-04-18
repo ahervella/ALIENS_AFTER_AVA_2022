@@ -8,16 +8,16 @@ using PowerTools;
 /// will have an enum (and a property SO) dictating their action.
 /// Planning to use for player and bosses.
 /// </summary>
-/// <typeparam name="T"></typeparam>
+/// <typeparam name="STATE"></typeparam>
 [RequireComponent(typeof(SpriteAnim))]
-[RequireComponent(typeof(Animator))]
-public abstract class BaseAnimation<T> : MonoBehaviour
+[RequireComponent(typeof(AnimationEventExtender))]
+public abstract class BaseAnimation<STATE, ANIM_SETTINGS> : MonoBehaviour where ANIM_SETTINGS : SO_AnimationSettings<STATE>
 {
     [SerializeField]
-    protected PropertySO<T> currAction = null;
+    protected PropertySO<STATE> currAction = null;
 
     [SerializeField]
-    protected SO_AnimationSettings<T> settings = null;
+    protected ANIM_SETTINGS settings = null;
 
     protected SpriteAnim spriteAnimator;
     protected Animator animator;
@@ -28,13 +28,16 @@ public abstract class BaseAnimation<T> : MonoBehaviour
         spriteAnimator = GetComponent<SpriteAnim>();
         //included component if SpriteAnim is also included
         animator = GetComponent<Animator>();
+        OnAwake();
     }
 
-    protected abstract void OnActionChange(T prevAction, T newAction);
+    protected abstract void OnAwake();
+
+    protected abstract void OnActionChange(STATE prevAction, STATE newAction);
 
     public void AE_OnAnimFinished()
     {
-        AnimationWrapper<T> aw = settings.GetAnimationWrapper(currAction.Value);
+        AnimationWrapper<STATE> aw = settings.GetAnimationWrapper(currAction.Value);
         if (aw != null)
         {
             currAction.ModifyValue(aw.ActionOnFinished);

@@ -1,9 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using PowerTools;
 using UnityEngine;
 using static HelperUtil;
 
-[RequireComponent(typeof(BoxCollider))]
 [RequireComponent(typeof(SafeAudioWrapperSource))]
 public class Projectile : MonoBehaviour
 {
@@ -11,7 +11,22 @@ public class Projectile : MonoBehaviour
     private SO_TerrSettings terrSettings = null;
 
     [SerializeField]
+    private Vector3PropertySO hitBoxDimEdgePerc = null;
+
+    [SerializeField]
+    private BoxCollider hitBox = null;
+
+    [SerializeField]
+    private SpriteAnim spriteAnim = null;
+
+    [SerializeField]
     private WeaponEnum weaponType;
+
+    [SerializeField]
+    private PlayerActionEnum requiredAvoidAction = PlayerActionEnum.NONE;
+
+    [SerializeField]
+    private float spriteYPosPercFloorHeight = 0.5f;
 
     [SerializeField]
     private GameObject OnImpactPrefab = null;
@@ -49,15 +64,23 @@ public class Projectile : MonoBehaviour
             0,
             Mathf.Cos(Mathf.Deg2Rad * angleOffset));
 
-        transform.position += posOffset;
+        audioSource = GetComponent<AudioWrapperSource>();
+        travelAudio?.PlayAudioWrapper(audioSource);
 
         //TODO: is this too jank or can I just resort to using on collision or on trigger and return
         //depending on the isAlienProjectile flag?
-        BoxCollider hitBox = GetComponent<BoxCollider>();
         hitBox.isTrigger = !isAlienProjectile;
+        SetHitBoxDimensionsAndPos(
+            hitBox,
+            new Vector2(1, 1),
+            terrSettings,
+            hitBoxDimEdgePerc);
 
-        audioSource = GetComponent<AudioWrapperSource>();
-        travelAudio?.PlayAudioWrapper(audioSource);
+        //TODO make part of instantiation change what floor its on
+        float  yPos = terrSettings.FloorHeight * spriteYPosPercFloorHeight;
+        spriteAnim.transform.localPosition = new Vector3(transform.localPosition.x, yPos, transform.localPosition.z);
+
+        transform.position += posOffset;
     }
 
     private void Update()
@@ -81,9 +104,15 @@ public class Projectile : MonoBehaviour
     {
         if (isAlienProjectile) { return; }
 
-
         SafeDestroy(hazard.gameObject);
+        MadeImpact();
+    }
 
+    public void OnEnteredBoss(AAlienBossBase boss)
+    {
+        if (isAlienProjectile) { return; }
+
+        boss.TakeDamage(1);
         MadeImpact();
     }
 
@@ -94,7 +123,7 @@ public class Projectile : MonoBehaviour
         {
             //We give the player the audio so its from their source,
             //and so we don't prematurely delete this source object
-            player.OnEnterProjectile(weaponType, /*impactAudio, */out bool dodged);
+            player.OnEnterProjectile(weaponType, requiredAvoidAction, /*impactAudio, */out bool dodged);
 
             if (dodged) { MadeImpact(); }
             return;

@@ -5,7 +5,7 @@ using System;
 using PowerTools;
 using System.Linq;
 
-public class PlayerAnimation : BaseAnimation<PlayerActionEnum>
+public class PlayerAnimation : BaseAnimation<PlayerActionEnum, SO_PlayerAnimationSettings>
 {
     [SerializeField]
     private PSO_TargetCameraAngle targetCameraAngle = null;
@@ -58,5 +58,9 @@ public class PlayerAnimation : BaseAnimation<PlayerActionEnum>
     public void AE_PauseTreadmill(float transitionTime)
     {
         treadmillToggleDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(0, transitionTime));
+    }
+
+    protected override void OnAwake()
+    {
     }
 }

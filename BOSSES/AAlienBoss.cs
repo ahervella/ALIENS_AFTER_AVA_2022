@@ -16,10 +16,19 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     protected PropertySO<BOSS_STATE> currState = null;
 
     [SerializeField]
+    protected IntPropertySO currZone = null;
+
+    [SerializeField]
     private Vector3PropertySO hitBoxDimEdgePerc = null;
 
     [SerializeField]
     private BoxColliderSP hitBox = null;
+
+    [SerializeField]
+    private AnimationEventExtender removeBossAEExtender = null;
+
+    [SerializeField]
+    private PSO_CurrentZonePhase currZonePhase = null;
 
     protected bool Rage { get; private set; } = false;
 
@@ -59,16 +68,37 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
             new Vector2(settings.HitBoxTileWidth, 1),
             terrSettings,
             hitBoxDimEdgePerc);
+        hitBox.SetOnTriggerEnterMethod(OnTriggerEnterDamageHitBox);
+
+        removeBossAEExtender.AssignAnimationEvent(AE_OnRemoveBoss, 0);
 
         SetStartingPosition();
+
         OnBossAwake();
+    }
+
+    private void OnTriggerEnterDamageHitBox(Collider other)
+    {
+        Projectile projectile = other.gameObject.GetComponent<Projectile>();
+        if (projectile != null)
+        {
+            projectile.OnEnteredBoss(this);
+        }
+    }
+
+
+    private void AE_OnRemoveBoss()
+    {
+        //TODO: Do elimination sequence for one sprite has fallen?
+        //currZone.ModifyValue(1);
+        SafeDestroy(gameObject);
     }
 
     protected abstract void SetStartingPosition();
 
     protected abstract void OnBossAwake();
 
-    protected void TakeDamage(int damage)
+    public override void TakeDamage(int damage)
     {
         health -= damage;
         if (health <= 0)
@@ -80,6 +110,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         {
             Debug.Log($"Activated Rage mode for boss {name}");
             Rage = true;
+            currZonePhase.ModifyValue(ZonePhaseEnum.BOSS_RAGE);
             InitRage();
         }
     }
