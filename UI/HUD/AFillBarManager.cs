@@ -89,14 +89,14 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : MonoB
 
     private void Start()
     {
-        SetStartingEnergy();
+        SetStartingQuant();
         StartSpawnAnimations();
         AfterStart();
     }
 
-    private void SetStartingEnergy()
+    private void SetStartingQuant()
     {
-        currQuant.ModifyValue(settings.StartingQuant);
+        currQuant.ModifyValue(settings.StartingQuant - currQuant.Value);
         currTweenPerc = 1;
     }
 
@@ -215,6 +215,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : MonoB
 
     private void RechargeTick()
     {
+        if (autoDeltaRatePerSec == 0) { return; }
         //If there is no tween, then set it directly here
         if (currTweenPerc >= 1)
         {

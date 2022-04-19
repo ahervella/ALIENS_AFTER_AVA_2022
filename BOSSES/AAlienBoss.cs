@@ -105,7 +105,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     private void OnTriggerEnterDamageHitBox(Collider other)
     {
-        Projectile projectile = other.gameObject.GetComponent<Projectile>();
+        Projectile projectile = other.transform.parent.gameObject.GetComponent<Projectile>();
         if (projectile != null)
         {
             projectile.OnEnteredBoss(this);
