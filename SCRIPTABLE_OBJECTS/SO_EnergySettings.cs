@@ -5,16 +5,8 @@ using System;
 using static HelperUtil;
 
 [CreateAssetMenu(fileName = "SO_EnergySettings", menuName = "ScriptableObjects/StaticData/SO_EnergySettings")]
-public class SO_EnergySettings : ScriptableObject
+public class SO_EnergySettings : SO_AFillBarSettings
 {
-    [SerializeField]
-    private int maxEnergy = default;
-    public int MaxEnergy => maxEnergy;
-
-    [SerializeField]
-    private int startingEnergy;
-    public int StartingEnergy => startingEnergy;
-
     [SerializeField]
     private float runRechargeRatePerSec = default;
     public float RunRechargeRatePerSec => runRechargeRatePerSec;

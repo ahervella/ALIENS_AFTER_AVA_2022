@@ -74,7 +74,15 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
         SetStartingPosition();
 
+        StartCoroutine(HealthBarSpawnCR());
+
         OnBossAwake();
+    }
+
+    private IEnumerator HealthBarSpawnCR()
+    {
+        yield return new WaitForSeconds(settings.HealthBarSpawnDelay);
+        Instantiate(settings.HealthBarPrefab);
     }
 
     private void OnTriggerEnterDamageHitBox(Collider other)

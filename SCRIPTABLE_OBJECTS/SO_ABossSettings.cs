@@ -26,6 +26,14 @@ public abstract class SO_ABossSettings : ScriptableObject
     private BossSpawnEnum spawnType = BossSpawnEnum.INDEPENDENT;
     public BossSpawnEnum SpawnType => spawnType;
 
+    [SerializeField]
+    private GameObject healthBarPrefab = null;
+    public GameObject HealthBarPrefab => healthBarPrefab;
+
+    [SerializeField]
+    private float healthBarSpawnDelay = 2f;
+    public float HealthBarSpawnDelay => healthBarSpawnDelay;
+
     [Serializable]
     protected class RageValue<T>
     {
@@ -37,30 +45,6 @@ public abstract class SO_ABossSettings : ScriptableObject
 
         public T GetVal(bool rage) => rage ? rageVal : prerageVal;
     }
-    /*
-    [SerializeField]
-    private List<BossAnimationWrapper<BOSS_STATE>> animWrappers = new List<BossAnimationWrapper<BOSS_STATE>>();
-
-    public AnimationClip GetBossAnim(BOSS_STATE state)
-    {
-        BossAnimationWrapper<BOSS_STATE> wrapper = GetWrapperFromFunc(
-            animWrappers, baw => baw.State, state, LogEnum.ERROR, null);
-
-        return wrapper.Anim;
-    }
-
-    [Serializable]
-    private class BossAnimationWrapper<T>
-    {
-        [SerializeField]
-        private T state = default;
-        public T State => state;
-
-        [SerializeField]
-        private AnimationClip anim = null;
-        public AnimationClip Anim => anim;
-    }
-    */
 }
 
 public enum BossSpawnEnum { INDEPENDENT = 0, TERR_HORIZ = 1, TERR_VERT = 2 }

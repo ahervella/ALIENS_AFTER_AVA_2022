@@ -157,7 +157,7 @@ public class PlayerRunner : MonoBehaviour
     private void InputManager_Sprint(CallbackContext ctx)
     {
         Debug.Log("Input_Sprint");
-        currAction.TryPerform(PlayerActionEnum.SPRINT);
+        //currAction.TryPerform(PlayerActionEnum.SPRINT);
     }
 
     private void InputManager_Roll(CallbackContext ctx)
@@ -185,7 +185,7 @@ public class PlayerRunner : MonoBehaviour
     private void InputManager_Dev4(CallbackContext ctx)
     {
         //currEnergy.RewardPlayerEnergy(currAction.Value);
-        TryStartSprint();
+        //TryStartSprint();
     }
 
     private bool dev_toggleTreadmill = true;

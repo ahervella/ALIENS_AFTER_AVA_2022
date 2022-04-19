@@ -11,7 +11,7 @@ public class PSO_CurrentEnergy : IntPropertySO
     public override void ModifyValue(int change)
     {
         int min = 0;
-        int max = settings.MaxEnergy;
+        int max = settings.MaxQuant;
 
         SetValue(Mathf.Clamp(Value + change, min, max));
     }
