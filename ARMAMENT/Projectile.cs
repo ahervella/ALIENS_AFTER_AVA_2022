@@ -198,7 +198,7 @@ public class Projectile : MonoBehaviour
 
         if (destroyOnImpact)
         {
-            destructionSpritePrefab?.InstantiateDestruction(transform.parent, transform);
+            destructionSpritePrefab?.InstantiateDestruction(transform.parent, spriteAnim.transform);
             SafeDestroy(gameObject);
         }
     }

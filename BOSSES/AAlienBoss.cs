@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.InputSystem.InputAction;
 using static HelperUtil;
 
 public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase where BOSS_SETTINGS : SO_ABossSettings
@@ -33,6 +34,9 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     [SerializeField]
     protected PSO_CurrentZonePhase currZonePhase = null;
 
+    [SerializeField]
+    private SO_InputManager inputManager = null;
+
     protected bool Rage { get; private set; } = false;
 
     //Do we need this if we're setting it before instantiating
@@ -62,6 +66,9 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     private void Awake()
     {
+        inputManager.RegisterForInput(InputEnum.DEV_9, InputManager_Dev9);
+
+
         currHealth.RegisterForPropertyChanged(OnHealthChanged);
         currHealth.ModifyValue(settings.StartingHealth - currHealth.Value);
 
@@ -81,6 +88,11 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         OnBossAwake();
     }
 
+    private void InputManager_Dev9(CallbackContext ctx)
+    {
+        TakeDamage(1);
+    }
+
     private void OnHealthChanged(int oldHealth, int newHealth)
     {
         if (newHealth <= 0)
@@ -88,7 +100,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
             InitDeath();
         }
 
-        if (newHealth <= settings.RageHealthThreshold)
+        if (newHealth <= settings.RageHealthThreshold && !Rage)
         {
             Debug.Log($"Activated Rage mode for boss {name}");
             Rage = true;

@@ -27,6 +27,9 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
     protected override void InitRage()
     {
         //TODO: Do rage animation or camera stuff
+        //TODO: move up to seem out of range and not take damage for a sec
+        //so player can't take advantage of rage anim?
+        currState.ModifyValue(Boss1State.RAGE);
     }
 
     protected override void SetStartingPosition()

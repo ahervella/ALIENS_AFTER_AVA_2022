@@ -51,5 +51,13 @@ public class SO_Boss1Settings : SO_ABossSettings
 
 public enum Boss1State
 {
-    START = 0, SHOOT = 1, SHOOT_END = 7, IDLE = 2, LEFT = 3, RIGHT = 4, DEATH = 5, NONE = 6
+    START = 0,
+    SHOOT = 1,
+    SHOOT_END = 7,
+    IDLE = 2,
+    LEFT = 3,
+    RIGHT = 4,
+    DEATH = 5,
+    RAGE = 8,
+    NONE = 6
 }

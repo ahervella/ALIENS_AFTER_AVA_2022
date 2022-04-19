@@ -113,7 +113,6 @@ public class PlayerRunner : MonoBehaviour
         inputManager.RegisterForInput(InputEnum.DEV_6, InputManager_Dev6);
         inputManager.RegisterForInput(InputEnum.DEV_7, InputManager_Dev7);
         inputManager.RegisterForInput(InputEnum.DEV_8, InputManager_Dev8);
-        inputManager.RegisterForInput(InputEnum.DEV_9, InputManager_Dev9);
     }
 
     private void UnregisterFromInputs()
@@ -133,7 +132,6 @@ public class PlayerRunner : MonoBehaviour
         inputManager.UnregisterFromInput(InputEnum.DEV_6, InputManager_Dev6);
         inputManager.UnregisterFromInput(InputEnum.DEV_7, InputManager_Dev7);
         inputManager.UnregisterFromInput(InputEnum.DEV_8, InputManager_Dev8);
-        inputManager.UnregisterFromInput(InputEnum.DEV_9, InputManager_Dev9);
     }
 
     //TODO: take out dev testing for health and energy bar from here eventually!
@@ -216,10 +214,6 @@ public class PlayerRunner : MonoBehaviour
     }
 
     private void InputManager_Dev8(CallbackContext ctx)
-    {
-    }
-
-    private void InputManager_Dev9(CallbackContext ctx)
     {
     }
 
