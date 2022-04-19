@@ -42,8 +42,8 @@ public class SO_ShooterSettings : ScriptableObject
     private class ShooterWeaponZoneWrapper
     {
         [SerializeField]
-        private GameObject weaponPrefab;
-        public GameObject WeaponPrefab => weaponPrefab;
+        private WeaponFire weaponFirePrefab;
+        public WeaponFire WeaponFirePrefab => weaponFirePrefab;
 
         [SerializeField]
         private int randWeight = 1;
@@ -57,7 +57,7 @@ public class SO_ShooterSettings : ScriptableObject
             ShooterZoneWrapper wrapper = GetWrapperFromFunc(shooterWrappers, szw => szw.Zone, currZone.Value, LogEnum.ERROR, null,
                 "Something went wrong with the shooter zone wrapper :(");
 
-            return wrapper == null ? null : new ShooterWrapper(weaponPrefab, wrapper.DelayTime);
+            return wrapper == null ? null : new ShooterWrapper(weaponFirePrefab, wrapper.DelayTime);
         }
     }
 
@@ -78,14 +78,14 @@ public class SO_ShooterSettings : ScriptableObject
 
 public class ShooterWrapper
 {
-    public ShooterWrapper(GameObject weaponPrefab, float delayTime)
+    public ShooterWrapper(WeaponFire weaponFirePrefab, float delayTime)
     {
-        this.weaponPrefab = weaponPrefab;
+        this.weaponFirePrefab = weaponFirePrefab;
         this.delayTime = delayTime;
     }
 
-    private GameObject weaponPrefab;
-    public GameObject WeaponPrefab => weaponPrefab;
+    private WeaponFire weaponFirePrefab;
+    public WeaponFire WeaponFirePrefab => weaponFirePrefab;
 
     private float delayTime = 2f;
     public float DelayTime => delayTime;

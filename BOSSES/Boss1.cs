@@ -8,6 +8,9 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
     [SerializeField]
     private DSO_LaneChange laneChangeDelegate = null;
 
+    [SerializeField]
+    private List<Transform> muzzleFlashSpawnRefs = new List<Transform>();
+
     private List<Shooter> spawnedBulletShooters = new List<Shooter>();
 
     private Coroutine idleFloatCR = null;
@@ -100,14 +103,26 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
     private void StartFiringBullets(ShooterWrapper sw)
     {
         int totalBullets = settings.BulletsPerShot(Rage);
+        List<Transform> randList = new List<Transform>(muzzleFlashSpawnRefs);
 
         for (int i = 0; i < totalBullets; i++)
         {
-            float spawnLaneOffset = (i - totalBullets / 2) * terrSettings.TileDims.x;
-            Vector3 globalSpawnPos = new Vector3(spawnLaneOffset + transform.position.x, 0, transform.position.z);
+            int laneIndex = (i - totalBullets / 2);
+
+            Transform muzzleFlashPosRef = randList[Random.Range(0, randList.Count)];
+            randList.Remove(muzzleFlashPosRef);
+
+            Vector3 projectilePos = new Vector3(
+                GetLaneXPosition(laneIndex, terrSettings),
+                0,
+                muzzleFlashPosRef.position.z);
 
             //spawn on horiz terrain transform so lane changing works with fired bullets
-            Shooter instance = Shooter.InstantiateShooterObject(transform, globalSpawnPos, terrainNode.HorizTransform, settings.ShootSettings(Rage));
+            Shooter instance = Shooter.InstantiateShooterObject(
+                terrainNode.HorizTransform,
+                muzzleFlashPosRef.position,
+                projectilePos,
+                settings.ShootSettings(Rage));
             
             spawnedBulletShooters.Add(instance);
         }

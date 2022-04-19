@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using static UnityEngine.InputSystem.InputAction;
+using static HelperUtil;
 
 [RequireComponent(typeof(BoxCollider))]
 public class PlayerRunner : MonoBehaviour
@@ -89,7 +90,7 @@ public class PlayerRunner : MonoBehaviour
 
     private void SetPlayerStartPosition()
     {
-        float x = terrSettings.LaneCount / 2f * terrSettings.TileDims.x;
+        float x = GetLaneXPosition(0, terrSettings);
         float z = settings.StartRowsFromEnd * terrSettings.TileDims.y;
         transform.position = new Vector3(x, 0, z) + settings.StartPosOffset;
         fadeSettings.InitFadeSettings(transform.position);

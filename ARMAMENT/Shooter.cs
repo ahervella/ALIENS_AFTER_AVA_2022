@@ -1,14 +1,23 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static HelperUtil;
 
 public class Shooter : MonoBehaviour
 {
     [SerializeField]
+    private SO_TerrSettings terrSettings = null;
+
+    [SerializeField]
     private SO_ShooterSettings settings = null;
 
     [SerializeField]
-    private Transform spawnRef = null;
+    private Transform muzzleFlashSpawnPosRef = null;
+    private Vector3 muzzleFlashSpawnPos;
+
+    [SerializeField]
+    private Transform projectileSpawnPosRef = null;
+    private Vector3 projectileSpawnPos;
 
     [SerializeField]
     private AnimationEventExtender aeExtender = null;
@@ -17,13 +26,13 @@ public class Shooter : MonoBehaviour
 
     private ShooterWrapper cachedShooterWrapper;
 
-    public static Shooter InstantiateShooterObject(Transform shooterParentRef, Vector3 shooterPos, Transform bulletSpawnRef, SO_ShooterSettings settings)
+    public static Shooter InstantiateShooterObject(Transform shooterParentRef, Vector3 muzzleFlashPos, Vector3 projectilePos, SO_ShooterSettings settings)
     {
         Shooter instance = new GameObject("INSTANCED_SHOOTER").AddComponent<Shooter>();
         instance.transform.transform.parent = shooterParentRef;
-        instance.transform.position = shooterPos;
 
-        instance.spawnRef = bulletSpawnRef;
+        instance.muzzleFlashSpawnPos = muzzleFlashPos;
+        instance.projectileSpawnPos = projectilePos;
         instance.settings = settings;
         instance.AE_StartFiring();
         return instance;
@@ -44,8 +53,11 @@ public class Shooter : MonoBehaviour
     {
         while (true)
         {
-            GameObject weaponPrefab = Instantiate(cachedShooterWrapper.WeaponPrefab, spawnRef);
-            weaponPrefab.transform.position = transform.position;
+            WeaponFire.InstantiateWithCustomPositions(
+                cachedShooterWrapper.WeaponFirePrefab,
+                transform,
+                muzzleFlashSpawnPosRef?.position?? muzzleFlashSpawnPos,
+                projectileSpawnPosRef?.position?? projectileSpawnPos);
             yield return new WaitForSeconds(cachedShooterWrapper.DelayTime);
         }
     }

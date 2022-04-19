@@ -28,11 +28,12 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     private AnimationEventExtender removeBossAEExtender = null;
 
     [SerializeField]
+    protected IntPropertySO currHealth = null;
+
+    [SerializeField]
     protected PSO_CurrentZonePhase currZonePhase = null;
 
     protected bool Rage { get; private set; } = false;
-
-    protected int health;
 
     //Do we need this if we're setting it before instantiating
     //the prefab?
@@ -61,7 +62,8 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     private void Awake()
     {
-        health = settings.StartingHealth;
+        currHealth.RegisterForPropertyChanged(OnHealthChanged);
+        currHealth.ModifyValue(settings.StartingHealth - currHealth.Value);
 
         SetHitBoxDimensions(
             hitBox,
@@ -77,6 +79,22 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         StartCoroutine(HealthBarSpawnCR());
 
         OnBossAwake();
+    }
+
+    private void OnHealthChanged(int oldHealth, int newHealth)
+    {
+        if (newHealth <= 0)
+        {
+            InitDeath();
+        }
+
+        if (newHealth <= settings.RageHealthThreshold)
+        {
+            Debug.Log($"Activated Rage mode for boss {name}");
+            Rage = true;
+            currZonePhase.ModifyValue(ZonePhaseEnum.BOSS_RAGE);
+            InitRage();
+        }
     }
 
     private IEnumerator HealthBarSpawnCR()
@@ -108,19 +126,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     public override void TakeDamage(int damage)
     {
-        health -= damage;
-        if (health <= 0)
-        {
-            InitDeath();
-        }
-
-        if (health <= settings.RageHealthThreshold)
-        {
-            Debug.Log($"Activated Rage mode for boss {name}");
-            Rage = true;
-            currZonePhase.ModifyValue(ZonePhaseEnum.BOSS_RAGE);
-            InitRage();
-        }
+        currHealth.ModifyValue(-damage);
     }
 
     protected abstract void InitDeath();

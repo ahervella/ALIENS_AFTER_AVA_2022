@@ -41,6 +41,9 @@ public class Projectile : MonoBehaviour
     private float speedPerSec = 10;
 
     [SerializeField]
+    private bool autoAlignToNearestLane = false;
+
+    [SerializeField]
     private bool destroyOnImpact = true;
 
     [SerializeField]
@@ -67,6 +70,18 @@ public class Projectile : MonoBehaviour
         audioSource = GetComponent<AudioWrapperSource>();
         travelAudio?.PlayAudioWrapper(audioSource);
 
+    }
+
+    //In Start so we don't have these positions overwritten if we
+    //had use HelperUtil.InstantiateAndSetPosition
+    private void Start()
+    {
+        ConfigHitBox();
+        SetSpawnPosition();
+    }
+
+    private void ConfigHitBox()
+    {
         //TODO: is this too jank or can I just resort to using on collision or on trigger and return
         //depending on the isAlienProjectile flag?
         hitBox.isTrigger = !isAlienProjectile;
@@ -75,12 +90,24 @@ public class Projectile : MonoBehaviour
             new Vector2(1, 1),
             terrSettings,
             hitBoxDimEdgePerc);
+    }
 
-        //TODO make part of instantiation change what floor its on
-        float  yPos = terrSettings.FloorHeight * spriteYPosPercFloorHeight;
-        spriteAnim.transform.localPosition = new Vector3(transform.localPosition.x, yPos, transform.localPosition.z);
+    private void SetSpawnPosition()
+    {
+        float xPos = autoAlignToNearestLane ?
+            GetLaneXPosition(GetLaneIndexFromPosition(transform.position.x, terrSettings), terrSettings)
+            : transform.position.x;
+        float yPos = 0;// GetFloorYPosition(FloorIndex, terrSettings);
+        float spriteYPos = terrSettings.FloorHeight * spriteYPosPercFloorHeight + yPos;
 
-        transform.position += posOffset;
+        transform.position = new Vector3(xPos, yPos, transform.position.z);
+
+        spriteAnim.transform.position = new Vector3(spriteAnim.transform.position.x, spriteYPos, spriteAnim.transform.position.z);
+
+        if (!autoAlignToNearestLane)
+        {
+            transform.position += posOffset;
+        }
     }
 
     private void Update()

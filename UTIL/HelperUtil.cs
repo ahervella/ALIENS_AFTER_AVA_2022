@@ -178,4 +178,32 @@ public static class HelperUtil
             mbRef.StopCoroutine(cr);
         }
     }
+
+    public static T InstantiateAndSetPosition<T>(T prefab, Transform prefabParent, Vector3 prefabPos) where T : MonoBehaviour
+    {
+        T instance = GameObject.Instantiate(prefab, prefabParent);
+        instance.transform.position = prefabPos;
+        return instance;
+    }
+
+    public static int GetLaneIndexFromPosition(float xPos, SO_TerrSettings terrSettings)
+    {
+        int laneIndexFromLeft = (int)Mathf.Floor(xPos / terrSettings.TileDims.x);
+        return laneIndexFromLeft - terrSettings.LaneCount / 2;
+    }
+
+    public static int GetFloorIndexFromPosition(float yPos, SO_TerrSettings terrSettings)
+    {
+        return (int)Mathf.Floor(yPos / terrSettings.FloorHeight);
+    }
+
+    public static float GetLaneXPosition(int laneIndexFromCenter, SO_TerrSettings terrSettings)
+    {
+        return (terrSettings.LaneCount / 2 + laneIndexFromCenter + 0.5f) * terrSettings.TileDims.x;
+    }
+
+    public static float GetFloorYPosition(int floorIndex, SO_TerrSettings terrSettings)
+    {
+        return floorIndex * terrSettings.FloorHeight;
+    }
 }

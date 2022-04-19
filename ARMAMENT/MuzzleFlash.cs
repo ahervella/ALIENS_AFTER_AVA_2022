@@ -1,17 +1,21 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 using static HelperUtil;
 
 public class MuzzleFlash : MonoBehaviour
 {
-    [SerializeField]
-    private Projectile projectile = null;
-   
+    private Action projectileMethod;
+
+    public void SetProjectileFireMethod(Action projectileMethod)
+    {
+        this.projectileMethod = projectileMethod;
+    }
+
     public void AE_FireProjectile()
     {
-        Projectile instance = Instantiate(projectile, transform.parent);
-        instance.transform.localPosition = transform.localPosition;
+        projectileMethod?.Invoke();
     }
 
     public void AE_OnAnimationFinished()
