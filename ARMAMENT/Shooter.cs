@@ -13,7 +13,6 @@ public class Shooter : MonoBehaviour
 
     [SerializeField]
     private Transform muzzleFlashSpawnPosRef = null;
-    private Vector3 muzzleFlashSpawnPos;
 
     [SerializeField]
     private Transform projectileSpawnPosRef = null;
@@ -26,12 +25,12 @@ public class Shooter : MonoBehaviour
 
     private ShooterWrapper cachedShooterWrapper;
 
-    public static Shooter InstantiateShooterObject(Transform shooterParentRef, Vector3 muzzleFlashPos, Vector3 projectilePos, SO_ShooterSettings settings)
+    public static Shooter InstantiateShooterObject(Transform shooterParentRef, Transform muzzleFlashPosRef, Vector3 projectilePos, SO_ShooterSettings settings)
     {
         Shooter instance = new GameObject("INSTANCED_SHOOTER").AddComponent<Shooter>();
-        instance.transform.transform.parent = shooterParentRef;
+        instance.transform.parent = shooterParentRef;
 
-        instance.muzzleFlashSpawnPos = muzzleFlashPos;
+        instance.muzzleFlashSpawnPosRef = muzzleFlashPosRef;
         instance.projectileSpawnPos = projectilePos;
         instance.settings = settings;
         instance.AE_StartFiring();
@@ -56,7 +55,7 @@ public class Shooter : MonoBehaviour
             WeaponFire.InstantiateWithCustomPositions(
                 cachedShooterWrapper.WeaponFirePrefab,
                 transform,
-                muzzleFlashSpawnPosRef?.position?? muzzleFlashSpawnPos,
+                muzzleFlashSpawnPosRef,
                 projectileSpawnPosRef?.position?? projectileSpawnPos);
             yield return new WaitForSeconds(cachedShooterWrapper.DelayTime);
         }

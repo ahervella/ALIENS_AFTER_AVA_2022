@@ -8,8 +8,9 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
     [SerializeField]
     private DSO_LaneChange laneChangeDelegate = null;
 
+    //ordered from left to right
     [SerializeField]
-    private List<Transform> muzzleFlashSpawnRefs = new List<Transform>();
+    private List<Transform> orderedMuzzleFlashSpawnRefs = new List<Transform>();
 
     private List<Shooter> spawnedBulletShooters = new List<Shooter>();
 
@@ -103,24 +104,33 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
     private void StartFiringBullets(ShooterWrapper sw)
     {
         int totalBullets = settings.BulletsPerShot(Rage);
-        List<Transform> randList = new List<Transform>(muzzleFlashSpawnRefs);
+
+        //make our rand list only have the amount of bullets we will shoot
+        List<Transform> randList = new List<Transform>(orderedMuzzleFlashSpawnRefs);
+        for (int i = 0; i < orderedMuzzleFlashSpawnRefs.Count - totalBullets; i++)
+        {
+            randList.Remove(randList[Random.Range(0, randList.Count)]);
+        }
 
         for (int i = 0; i < totalBullets; i++)
         {
             int laneIndex = (i - totalBullets / 2);
 
-            Transform muzzleFlashPosRef = randList[Random.Range(0, randList.Count)];
-            randList.Remove(muzzleFlashPosRef);
+            Transform muzzleFlashPosRef = randList[i];
 
             Vector3 projectilePos = new Vector3(
                 GetLaneXPosition(laneIndex, terrSettings),
                 0,
                 muzzleFlashPosRef.position.z);
 
+            //TODO: is there any way to siplify the logic flow
+            //of having to place the projectile in a relative location
+            //so that it can auto align to the lane?
+
             //spawn on horiz terrain transform so lane changing works with fired bullets
             Shooter instance = Shooter.InstantiateShooterObject(
                 terrainNode.HorizTransform,
-                muzzleFlashPosRef.position,
+                muzzleFlashPosRef,
                 projectilePos,
                 settings.ShootSettings(Rage));
             

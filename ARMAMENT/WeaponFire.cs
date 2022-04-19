@@ -13,31 +13,39 @@ public class WeaponFire : MonoBehaviour
     private Projectile projectile = null;
 
     private Transform prefabParent;
-    private Vector3 muzzleFlashPos;
     private MuzzleFlash muzzleFlashInstance;
 
     private void Awake()
     {
         prefabParent = transform.parent;
-        muzzleFlashPos = transform.position;
 
-        muzzleFlashInstance = InstantiateAndSetPosition(muzzleFlash, prefabParent, muzzleFlashPos);
+        muzzleFlashInstance = Instantiate(muzzleFlash, prefabParent);
 
-        CustomizePositions(prefabParent, transform.position, transform.position);
+        CustomizePositions(prefabParent, prefabParent, transform.position);
         StartCoroutine(DestroyAtEndOfFrame());
     }
 
-    private void CustomizePositions(Transform prefabParent, Vector3 muzzleFlashPos, Vector3 projectilePos)
+    private void CustomizePositions(Transform prefabParent, Transform muzzleFlashPosRef, Vector3 projectilePos)
     {
-        muzzleFlashInstance.transform.parent = prefabParent;
-        muzzleFlashInstance.transform.position = muzzleFlashPos;
-        muzzleFlashInstance.SetProjectileFireMethod(() => InstantiateAndSetPosition(projectile, prefabParent, projectilePos));
+        muzzleFlashInstance.transform.parent = muzzleFlashPosRef;
+        muzzleFlashInstance.transform.localPosition = Vector3.zero;
+        muzzleFlashInstance.SetProjectileFireMethod(() => InstantiateProjectile(
+            projectile,
+            prefabParent,
+            projectilePos,
+            muzzleFlashPosRef));
     }
 
-    public static void InstantiateWithCustomPositions(WeaponFire weaponFirePrefab, Transform prefabParent, Vector3 muzzleFlashPos, Vector3 projectilePos)
+    private static void InstantiateProjectile(Projectile projectile, Transform prefabParent, Vector3 projectilePos, Transform muzzleFlashTransform)
+    {
+        Projectile instance = InstantiateAndSetPosition(projectile, prefabParent, projectilePos);
+        instance.SetMuzzleFlashTranform(muzzleFlashTransform);
+    }
+
+    public static void InstantiateWithCustomPositions(WeaponFire weaponFirePrefab, Transform prefabParent, Transform muzzleFlashPosRef, Vector3 projectilePos)
     {
         WeaponFire instance = GameObject.Instantiate(weaponFirePrefab, prefabParent);
-        instance.CustomizePositions(prefabParent, muzzleFlashPos, projectilePos);
+        instance.CustomizePositions(prefabParent, muzzleFlashPosRef, projectilePos);
     }
 
     private IEnumerator DestroyAtEndOfFrame()

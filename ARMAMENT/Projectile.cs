@@ -41,7 +41,10 @@ public class Projectile : MonoBehaviour
     private float speedPerSec = 10;
 
     [SerializeField]
-    private bool autoAlignToNearestLane = false;
+    private bool autoAlignToNearestLane = true;
+
+    [SerializeField]
+    private float timeSprite2Align2NearestLane = 0.5f;
 
     [SerializeField]
     private bool destroyOnImpact = true;
@@ -60,6 +63,8 @@ public class Projectile : MonoBehaviour
 
     private AudioWrapperSource audioSource;
 
+    private Transform mzTrans;
+
     private void Awake()
     {
         slope = (isAlienProjectile ? -1 : 1) * speedPerSec * new Vector3(
@@ -70,6 +75,12 @@ public class Projectile : MonoBehaviour
         audioSource = GetComponent<AudioWrapperSource>();
         travelAudio?.PlayAudioWrapper(audioSource);
 
+        SetMuzzleFlashTranform(transform);
+    }
+
+    public void SetMuzzleFlashTranform(Transform mzTrans)
+    {
+        this.mzTrans = mzTrans;
     }
 
     //In Start so we don't have these positions overwritten if we
@@ -97,16 +108,34 @@ public class Projectile : MonoBehaviour
         float xPos = autoAlignToNearestLane ?
             GetLaneXPosition(GetLaneIndexFromPosition(transform.position.x, terrSettings), terrSettings)
             : transform.position.x;
-        float yPos = 0;// GetFloorYPosition(FloorIndex, terrSettings);
-        float spriteYPos = terrSettings.FloorHeight * spriteYPosPercFloorHeight + yPos;
 
+        float yPos = 0;// GetFloorYPosition(FloorIndex, terrSettings);
+
+        
         transform.position = new Vector3(xPos, yPos, transform.position.z);
 
-        spriteAnim.transform.position = new Vector3(spriteAnim.transform.position.x, spriteYPos, spriteAnim.transform.position.z);
+        Vector3 originalSpriteLocalPos = mzTrans.position - transform.position;
+
+        float spriteFinalYLocalPos = terrSettings.FloorHeight * spriteYPosPercFloorHeight;// + yPos;
+        Vector3 finalLocalPos = new Vector3(0, spriteFinalYLocalPos, 0);
+
+        StartCoroutine(SpritePosTween(originalSpriteLocalPos, finalLocalPos));
 
         if (!autoAlignToNearestLane)
         {
             transform.position += posOffset;
+        }
+    }
+
+    private IEnumerator SpritePosTween(Vector3 originalSpriteLocalPos, Vector3 finalLocalPos)
+    {
+        float perc = 0;
+        while (perc < 1)
+        {
+            perc += Time.deltaTime;
+            Vector3 currLocalPos = Vector3.Lerp(originalSpriteLocalPos, finalLocalPos, EasedPercent(perc));
+            spriteAnim.transform.localPosition = currLocalPos;
+            yield return null;
         }
     }
 
