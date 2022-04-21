@@ -16,6 +16,9 @@ public class EnvTreadmill : MonoBehaviour
     private SO_TerrSettings settings = null;
 
     [SerializeField]
+    private SO_DeveloperToolsSettings devTools = null;
+
+    [SerializeField]
     private Transform terrNodesTransform = null;
 
     //TODO: find a way around not having to expose these transforms?
@@ -110,6 +113,7 @@ public class EnvTreadmill : MonoBehaviour
 
         targetLaneChange = null;
 
+        if (devTools.SpawnBossOnStart) { SpawnZoneBoss(); }
     }
 
     private void OnZoneWrapperChange(int oldValue, int newValue)

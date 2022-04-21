@@ -17,9 +17,6 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     protected PropertySO<BOSS_STATE> currState = null;
 
     [SerializeField]
-    protected IntPropertySO currZone = null;
-
-    [SerializeField]
     private Vector3PropertySO hitBoxDimEdgePerc = null;
 
     [SerializeField]
@@ -36,6 +33,8 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     [SerializeField]
     private SO_InputManager inputManager = null;
+
+    private AFillBarManagerBase healthBarPrefab;
 
     protected bool Rage { get; private set; } = false;
 
@@ -90,7 +89,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     private void InputManager_Dev9(CallbackContext ctx)
     {
-        TakeDamage(1);
+        InitDeath();
     }
 
     private void OnHealthChanged(int oldHealth, int newHealth)
@@ -112,7 +111,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     private IEnumerator HealthBarSpawnCR()
     {
         yield return new WaitForSeconds(settings.HealthBarSpawnDelay);
-        Instantiate(settings.HealthBarPrefab);
+        healthBarPrefab = Instantiate(settings.HealthBarPrefab);
     }
 
     private void OnTriggerEnterDamageHitBox(Collider other)
@@ -128,7 +127,9 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     private void AE_OnRemoveBoss()
     {
         //TODO: Do elimination sequence for one sprite has fallen?
-        //currZone.ModifyValue(1);
+        healthBarPrefab.TearDown(settings.TearDownDelayPostDeath);
+
+        currZonePhase.ModifyValue(ZonePhaseEnum.NO_BOSS);
         SafeDestroy(gameObject);
     }
 

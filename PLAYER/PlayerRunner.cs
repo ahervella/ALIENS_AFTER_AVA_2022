@@ -64,13 +64,13 @@ public class PlayerRunner : MonoBehaviour
     private BoolDelegateSO tussleInitDelegate = null;
 
     [SerializeField]
+    private BoolPropertySO currEndOfDemo = null;
+
+    [SerializeField]
     private SO_DeveloperToolsSettings developerSettings = null;
 
     [SerializeField]
     private SO_EnergySettings energySettings = null;
-
-    [SerializeField]
-    private IntPropertySO bossSpawnRowsAway = null;
 
     private Coroutine sprintCR = null;
 
@@ -80,6 +80,7 @@ public class PlayerRunner : MonoBehaviour
         currAction.RegisterForPropertyChanged(OnActionChange);
         shieldOnFlag.RegisterForPropertyChanged(OnShieldChange);
         currGameMode.RegisterForPropertyChanged(OnGameModeChange);
+        currEndOfDemo.RegisterForPropertyChanged(OnDemoEnd);
     }
 
     private void Start()
@@ -132,6 +133,12 @@ public class PlayerRunner : MonoBehaviour
         inputManager.UnregisterFromInput(InputEnum.DEV_6, InputManager_Dev6);
         inputManager.UnregisterFromInput(InputEnum.DEV_7, InputManager_Dev7);
         inputManager.UnregisterFromInput(InputEnum.DEV_8, InputManager_Dev8);
+    }
+
+    private void OnDemoEnd(bool prevVal, bool newVal)
+    {
+        if (!newVal) { return; }
+        UnregisterFromInputs();
     }
 
     //TODO: take out dev testing for health and energy bar from here eventually!
@@ -336,7 +343,7 @@ public class PlayerRunner : MonoBehaviour
                 PlayerActionEnum.TAKE_DAMAGE_AIR : PlayerActionEnum.TAKE_DAMAGE_GROUND;
         }
         */
-        if (developerSettings.Invincibility) { return; }
+        if (developerSettings.Invincibility || currEndOfDemo.Value) { return; }
 
         //TODO: seperate sounds of player getting hurt due to hurt action,
         //and impact of specific objects

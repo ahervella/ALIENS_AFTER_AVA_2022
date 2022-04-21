@@ -29,5 +29,13 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     private bool spawnNoTerrAddons = false;
     public bool SpawnNoTerrAddons => spawnNoTerrAddons;
 
+    [SerializeField]
+    private bool spawnBossOnStart = false;
+    public bool SpawnBossOnStart => spawnBossOnStart;
+
+    [SerializeField]
+    private bool demoMode = false;
+    public bool DemoMode => demoMode;
+
     //TODO: mute just music, infinite energy bar, no delay for changing moves, no timer delays, etc.
 }

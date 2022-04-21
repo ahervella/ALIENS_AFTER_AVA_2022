@@ -5,10 +5,17 @@ using UnityEngine.UI;
 using static HelperUtil;
 
 [RequireComponent(typeof(RectTransform))]
-public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : MonoBehaviour where PSO_CURR_QUANT : IntPropertySO where FILL_BAR_SETTINGS : SO_AFillBarSettings
+public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFillBarManagerBase where PSO_CURR_QUANT : IntPropertySO where FILL_BAR_SETTINGS : SO_AFillBarSettings
 {
+    //TODO move non generic based args to base class  and set in base prefab
     [SerializeField]
     protected FILL_BAR_SETTINGS settings = null;
+
+    [SerializeField]
+    private IntPropertySO currZone = null;
+
+    [SerializeField]
+    private bool advanceZoneOnTearDown = false;
 
     [SerializeField]
     private Image maskImg = null;
@@ -118,25 +125,31 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : MonoB
         }
     }
 
-    private IEnumerator SpawnFadeIn()
+    private IEnumerator SpawnFadeIn(bool reverse = false)
     {
         Color ogColor = maskImg.color;
-        maskFillImg.color = new Color(ogColor.r, ogColor.g, ogColor.b, 0);
-        frameImg.color = new Color(ogColor.r, ogColor.g, ogColor.b, 0);
+        float startingAlpha = reverse ? 1 : 0;
+        maskFillImg.color = new Color(ogColor.r, ogColor.g, ogColor.b, startingAlpha);
+        frameImg.color = new Color(ogColor.r, ogColor.g, ogColor.b, startingAlpha);
 
-        yield return new WaitForSeconds(settings.FadeInDelay);
+        float delay = reverse ?
+            0//settings.SpawnFromTopTime - settings.FadeInDelay
+            : settings.FadeInDelay;
+        yield return new WaitForSeconds(delay);
 
-        float perc = 0;
-        while (perc < 1)
+        float perc = reverse ? 1 : 0;
+        float dir = reverse ? -1 : 1;
+
+        while (perc <= 1 && perc >= 0)
         {
-            perc += Time.deltaTime / settings.FadeInTime;
+            perc += Time.deltaTime / settings.FadeInTime * dir;
             maskFillImg.color = new Color(ogColor.r, ogColor.g, ogColor.b, EasedPercent(perc));
             frameImg.color = new Color(ogColor.r, ogColor.g, ogColor.b, EasedPercent(perc));
             yield return null;
         }
     }
 
-    private IEnumerator MoveBarToFinalSpawnPos()
+    private IEnumerator MoveBarToFinalSpawnPos(bool reverse = false)
     {
         finalSpawnPos = barDisplayContainer.transform.position;
         float barHeight = barDisplayContainer.rect.height;
@@ -145,10 +158,12 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : MonoB
         //assuming anchor is top center
         float tweenStartYPos = barHeight / 2f + screenHeight;
 
-        float perc = 0;
-        while (perc < 1)
+        float dir = reverse ? -1 : 1;
+
+        float perc = reverse ? 1 : 0;
+        while (perc <= 1 && perc >= 0)
         {
-            perc += Time.deltaTime / settings.SpawnFromTopTime;
+            perc += Time.deltaTime / settings.SpawnFromTopTime * dir;
 
             float yPos = Mathf.Lerp(tweenStartYPos, finalSpawnPos.y, EasedPercent(perc));
 
@@ -160,7 +175,16 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : MonoB
             yield return null;
         }
 
-        transform.position = finalSpawnPos;
+        barDisplayContainer.transform.position = reverse ? barDisplayContainer.position = new Vector3(
+                barDisplayContainer.position.x,
+                tweenStartYPos,
+                barDisplayContainer.position.z)
+            : finalSpawnPos;
+
+        if (reverse)
+        {
+            SafeDestroy(gameObject);
+        }
     }
 
     private IEnumerator AnimateBarFill()
@@ -178,7 +202,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : MonoB
         {
             perc += Time.deltaTime / settings.BarFillOnSpawnTime;
             maskImg.fillAmount = EasedPercent(perc) * targetFillAmount;
-            Debug.Log("maskImg fillamount: " + maskImg.fillAmount);
+            //Debug.Log("maskImg fillamount: " + maskImg.fillAmount);
             yield return null;
         }
 
@@ -235,6 +259,23 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : MonoB
             blockPerc -= delta;
             blockFractionPerc = blockPerc / settings.MaxQuant;
             currQuant.ModifyValue(delta);
+        }
+    }
+
+    public override void TearDown(float delay)
+    {
+        StartCoroutine(TearDownDelayCR(delay));
+    }
+
+    public IEnumerator TearDownDelayCR(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        StartCoroutine(MoveBarToFinalSpawnPos(reverse: true));
+        StartCoroutine(SpawnFadeIn(reverse: true));
+
+        if (advanceZoneOnTearDown)
+        {
+            currZone.ModifyValue(1);
         }
     }
 }

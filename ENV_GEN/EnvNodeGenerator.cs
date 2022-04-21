@@ -27,6 +27,10 @@ public class EnvNodeGenerator : MonoBehaviour
 
     private void Awake()
     {
+        if (devTools.SpawnBossOnStart)
+        {
+            currZonePhase.ModifyValue(ZonePhaseEnum.BOSS_SPAWN);
+        }
         currZone.RegisterForPropertyChanged(OnZoneChange);
         currZonePhase.RegisterForPropertyChanged(OnZonePhaseChange);
     }

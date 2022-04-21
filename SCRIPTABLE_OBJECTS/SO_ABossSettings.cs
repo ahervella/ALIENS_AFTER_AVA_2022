@@ -27,12 +27,16 @@ public abstract class SO_ABossSettings : ScriptableObject
     public BossSpawnEnum SpawnType => spawnType;
 
     [SerializeField]
-    private GameObject healthBarPrefab = null;
-    public GameObject HealthBarPrefab => healthBarPrefab;
+    private AFillBarManagerBase healthBarPrefab = null;
+    public AFillBarManagerBase HealthBarPrefab => healthBarPrefab;
 
     [SerializeField]
     private float healthBarSpawnDelay = 2f;
     public float HealthBarSpawnDelay => healthBarSpawnDelay;
+
+    [SerializeField]
+    private float tearDownDelayPostDeath = 1f;
+    public float TearDownDelayPostDeath => tearDownDelayPostDeath;
 
     [Serializable]
     protected class RageValue<T>
