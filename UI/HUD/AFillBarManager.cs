@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using static HelperUtil;
 
+//TODO: make the PSO quants modify every frame instead of faking it, and use the new ModifyNoInvoke to only trigger
+//when we want to?
 [RequireComponent(typeof(RectTransform))]
 public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFillBarManagerBase where PSO_CURR_QUANT : IntPropertySO where FILL_BAR_SETTINGS : SO_AFillBarSettings
 {
@@ -30,7 +32,16 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     protected PSO_CURR_QUANT currQuant = null;
 
     [SerializeField]
+    protected IntPropertySO optionalPSOMaxBarQuant = null;
+
+    [SerializeField]
     private RectTransform barDisplayContainer = null;
+
+    [SerializeField]
+    private bool NoTransitionOnDecrease = false;
+
+    [SerializeField]
+    private bool NoTransitionOnIncrease = false;
 
 
     /// <summary>
@@ -65,6 +76,8 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
     private bool spawnBarFillAnimInProgress = false;
 
+    private int cachedMaxQuant = -1;
+
     private void Awake()
     {
         //energyBarDisplayDelegate.RegisterForDelegateInvoked(SetVisibility);
@@ -79,8 +92,17 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
     private void OnCurrQuantChanged(int oldQuant, int newQuant)
     {
+        //Multiple bars share the energy PSO, so this is necessary for now
+        MakeSureMaxQuantityCached();
 
-        targetFillAmount = currQuant.Value / (float)settings.MaxQuant;
+        targetFillAmount = currQuant.Value / (float)cachedMaxQuant;
+
+        if ((NoTransitionOnDecrease && oldQuant > newQuant)
+            || (NoTransitionOnIncrease && newQuant > oldQuant))
+        {
+            ImmediatelySetBarQuant();
+            return;
+        }
 
         //minus fractionFillPerc so that it's not part of the interpolated amount
         //also need to use targeFill for when doing the spaw anim so we
@@ -92,10 +114,34 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
         AfterModifyCurrQuant(oldQuant, newQuant);
     }
 
+    private void MakeSureMaxQuantityCached()
+    {
+        if (cachedMaxQuant == -1)
+        {
+            cachedMaxQuant = optionalPSOMaxBarQuant?.Value ?? settings.MaxQuant;
+        }
+    }
+
+    private void ImmediatelySetBarQuant()
+    {
+        currTweenPerc = 1;
+        SetFillAmount();
+    }
+
+    private void SetFillAmount()
+    {
+        maskImg.fillAmount =
+               blockFractionPerc
+               + prevFillAmount
+               + (targetFillAmount - prevFillAmount)
+               * EasedPercent(currTweenPerc);
+    }
+
     protected abstract void AfterModifyCurrQuant(int oldQuant, int newQuant);
 
     private void Start()
     {
+        MakeSureMaxQuantityCached();
         SetStartingQuant();
         StartSpawnAnimations();
         AfterStart();
@@ -104,8 +150,9 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     private void SetStartingQuant()
     {
         currQuant.ModifyValue(settings.StartingQuant - currQuant.Value);
-        currTweenPerc = 1;
+        ImmediatelySetBarQuant();
     }
+
 
     private void StartSpawnAnimations()
     {
@@ -230,11 +277,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
         currTweenPerc += Time.deltaTime;
 
-        maskImg.fillAmount =
-            blockFractionPerc
-            + prevFillAmount
-            + (targetFillAmount - prevFillAmount)
-            * EasedPercent(currTweenPerc);
+        SetFillAmount();
     }
 
     private void RechargeTick()
@@ -243,21 +286,21 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
         //If there is no tween, then set it directly here
         if (currTweenPerc >= 1)
         {
-            maskImg.fillAmount = targetFillAmount + blockFractionPerc;
+            SetFillAmount();
         }
 
-        blockFractionPerc += autoDeltaRatePerSec * Time.deltaTime / settings.MaxQuant;
+        blockFractionPerc += autoDeltaRatePerSec * Time.deltaTime / cachedMaxQuant;
 
 
         //Once we've passed the integer threshold, trigger the curr quant change
-        float blockPerc = blockFractionPerc * settings.MaxQuant;
+        float blockPerc = blockFractionPerc * cachedMaxQuant;
 
         if (blockPerc >= 1f || blockPerc <= 0f)
         {
             //in case a single auto delta step was more than 1 block
             int delta = (int)Mathf.Floor(blockPerc);
             blockPerc -= delta;
-            blockFractionPerc = blockPerc / settings.MaxQuant;
+            blockFractionPerc = blockPerc / cachedMaxQuant;
             currQuant.ModifyValue(delta);
         }
     }

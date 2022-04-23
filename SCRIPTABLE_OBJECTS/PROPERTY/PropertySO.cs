@@ -12,7 +12,13 @@ public abstract class PropertySO<T> : PropertySO
     private bool triggerChangeWithStartVal = true;
 
     [NonSerialized]
-    private T currentValue;
+    protected T currentValue;
+
+    [ReadOnly, SerializeField]
+    private T inpsectorCurrValue;
+
+    [NonSerialized]
+    private bool invokeFlag = true;
 
     //This one shot is used so we don't have to rely
     //on the ScriptableObject OnEnable which has had mixed results in the past
@@ -25,16 +31,22 @@ public abstract class PropertySO<T> : PropertySO
 
     private PropertyChanged OnGameModeSceneUnloadedPersistance;
 
-    public T Value => currentValue;
+    public T Value => ValueGetter();
 
     private void OnEnable()
     {
         currentValue = startingValue;
+        inpsectorCurrValue = startingValue;
 
         if (triggerChangeWithStartVal)
         {
             OnPropertyChanged?.Invoke(currentValue, currentValue);
         }
+    }
+
+    protected virtual T ValueGetter()
+    {
+        return currentValue;
     }
 
     public T RegisterForPropertyChanged(PropertyChanged method, bool persistent = false)
@@ -87,14 +99,33 @@ public abstract class PropertySO<T> : PropertySO
         OnGameModeSceneUnloadedPersistance -= method;
     }
 
+    //TODO: set up a lasInvokedValue in case we want the last value that was invoked as
+    //the oldValue?
     protected void SetValue(T newValue)
     {
-        T oldValue = currentValue;
-        currentValue = newValue;
-        OnPropertyChanged?.Invoke(oldValue, newValue);
+        if (invokeFlag)
+        {
+            T oldValue = currentValue;
+            currentValue = newValue;
+            inpsectorCurrValue = newValue;
+            OnPropertyChanged?.Invoke(oldValue, newValue);
+        }
+        else
+        {
+            currentValue = newValue;
+            inpsectorCurrValue = newValue;
+        }
+        
     }
 
     public abstract void ModifyValue(T mod);
+
+    public void ModifyValueNoInvoke(T mod)
+    {
+        invokeFlag = false;
+        ModifyValue(mod);
+        invokeFlag = true;
+    }
 
     public void ResetToStart()
     {
