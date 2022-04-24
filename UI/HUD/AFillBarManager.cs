@@ -38,6 +38,9 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     private RectTransform barDisplayContainer = null;
 
     [SerializeField]
+    private RectTransform spawnFromRef = null;
+
+    [SerializeField]
     private bool NoTransitionOnDecrease = false;
 
     [SerializeField]
@@ -149,6 +152,8 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
     private void SetStartingQuant()
     {
+        if (!settings.SetStartingQuant) { return; }
+
         currQuant.ModifyValue(settings.StartingQuant - currQuant.Value);
         ImmediatelySetBarQuant();
     }
@@ -163,7 +168,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
         if (settings.SpawnFromTop)
         {
-            StartCoroutine(MoveBarToFinalSpawnPos());
+            StartCoroutine(SpawnPositionTween());
         }
 
         if (settings.AnimateBarFillOnSpawn)
@@ -228,6 +233,24 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
                 barDisplayContainer.position.z)
             : finalSpawnPos;
 
+        
+    }
+
+    private IEnumerator SpawnPositionTween(bool reverse = false)
+    {
+        Vector3 finalPos = barDisplayContainer.position;
+        float dir = reverse ? -1 : 1;
+
+        float perc = reverse ? 1 : 0;
+        while (perc <= 1 && perc >= 0)
+        {
+            perc += Time.deltaTime / settings.SpawnFromTopTime * dir;
+
+            barDisplayContainer.position = Vector3.Lerp(spawnFromRef.position, finalPos, EasedPercent(perc));
+            yield return null;
+        }
+
+        //TODO: find a better way to do this that doesn't require more coroutine refs?
         if (reverse)
         {
             SafeDestroy(gameObject);
@@ -313,7 +336,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     public IEnumerator TearDownDelayCR(float delay)
     {
         yield return new WaitForSeconds(delay);
-        StartCoroutine(MoveBarToFinalSpawnPos(reverse: true));
+        StartCoroutine(SpawnPositionTween(reverse: true));
         StartCoroutine(SpawnFadeIn(reverse: true));
 
         if (advanceZoneOnTearDown)

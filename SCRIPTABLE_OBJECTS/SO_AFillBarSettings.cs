@@ -41,6 +41,10 @@ public abstract class SO_AFillBarSettings : ScriptableObject
     public int MaxQuant => maxQuant;
 
     [SerializeField]
+    private bool setStartingQuant = false;
+    public bool SetStartingQuant => setStartingQuant;
+
+    [SerializeField]
     private int startingQuant = default;
     public int StartingQuant => startingQuant;
 }

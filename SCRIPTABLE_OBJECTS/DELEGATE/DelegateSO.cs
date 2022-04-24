@@ -19,20 +19,20 @@ public abstract class DelegateSO<PARAM_TYPE, RETURN_TYPE> : ScriptableObject
     {
         if (!registeredWithGameModeManager)
         {
-            S_GameModeManager.Current.RegisterForGameModeSceneUnloaded(S_GameModeManager_OnGameModeReplaced);
+            S_GameModeManager.Current.RegisterForGameModeSceneUnloaded(S_GameModeManager_OnGameModeSceneUnloaded);
             registeredWithGameModeManager = true;
         }
 
         OnDelegateInvoked -= method;
         OnDelegateInvoked += method;
 
-        if (!persistant)
+        if (persistant)
         {
             RegisterForGameModeSceneUnloaded(method);
         }
     }
 
-    private void S_GameModeManager_OnGameModeReplaced()
+    private void S_GameModeManager_OnGameModeSceneUnloaded()
     {
         OnDelegateInvoked = null;
         if (OnGameModeSceneUnloadedPersistence != null)
