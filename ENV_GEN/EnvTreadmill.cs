@@ -399,6 +399,11 @@ public class EnvTreadmill : MonoBehaviour
             LocalPositionChange(child.transform, 0, 0, posVert);
         });
 
+        if (spawnOnlyFoleyPSO.Value && totalZoneDistTraveled >= settings.StartHazardFreeRowsFromPlayer - settings.TileRows)
+        {
+            spawnOnlyFoleyPSO.ModifyValue(false);
+        }
+
         if (bossSpawned) { return; }
 
         //need to trigger the envrionment change sooner so the right

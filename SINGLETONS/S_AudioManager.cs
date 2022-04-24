@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -25,7 +26,9 @@ public class S_AudioManager : Singleton<S_AudioManager>
 
     [SerializeField]
     private PSO_CurrentGameMode currGameMode = null;
-    public PSO_CurrentGameMode CurrGameMode => currGameMode;
+
+    [SerializeField]
+    private PSO_CurrentZonePhase currZonePhase = null;
 
     //getters for the zone PSO and the pause delegate so that audio wrappers can access them
     //and so we don't have to waste a ton of time setting those if we know
@@ -44,12 +47,16 @@ public class S_AudioManager : Singleton<S_AudioManager>
 
     private int randUniqueInt = 0;
 
-    private Dictionary<GameModeEnum, GameObject> loopedAudioDict = new Dictionary<GameModeEnum, GameObject>();
+    private Dictionary<Tuple<GameModeEnum, ZonePhaseEnum, int>, GameObject> loopedAudioDict = new Dictionary<Tuple<GameModeEnum, ZonePhaseEnum, int>, GameObject>();
+
+    private LoopAudioWrapper currLoopAudioWrapper = null;
 
     protected override void OnAwake()
     {
         currLives.RegisterForPropertyChanged(OnCurrLivesChange, persistent);
         currGameMode.RegisterForPropertyChanged(OnGameModeChanged, persistent);
+        currZonePhase.RegisterForPropertyChanged(OnZonePhaseChange, persistent);
+        currZone.RegisterForPropertyChanged(OnZoneChange, persistent);
 
         CachedAudioDist = terrSettings.TileDims.y * maxAudioTileDist;
 
@@ -105,44 +112,71 @@ public class S_AudioManager : Singleton<S_AudioManager>
             mixerSettings.SetMixerEffectSnapshot(MixerEffectEnum.DEFAULT_LIFE);
         }
 
-        PlayGameModeAudioLoop(newMode);
+        UpdateAndPlayAudioLoop();
     }
 
-    private void PlayGameModeAudioLoop(GameModeEnum newMode)
+    private void OnZonePhaseChange(ZonePhaseEnum _, ZonePhaseEnum __)
     {
+        UpdateAndPlayAudioLoop();
+    }
+
+    private void OnZoneChange(int _, int __)
+    {
+        UpdateAndPlayAudioLoop();
+    }
+
+    private void UpdateAndPlayAudioLoop()
+    {
+        GameModeEnum mode = currGameMode.Value;
+        ZonePhaseEnum phase = currZonePhase.Value;
+        int zone = currZone.Value;
+
+        LoopAudioWrapper loopAW = loopSettings.GetAudioLoopWrapper(mode, phase, zone);
+
+        if (loopAW == null || currLoopAudioWrapper == loopAW) { return; }
+
         StopAllDelayedSounds(soundCRs);
         StopAllDelayedSounds(unstoppableSoundCRs);
         soundCRs.Clear();
         unstoppableSoundCRs.Clear();
 
-        //loopSettings.GetAudioWrapperAndMixer(newMode, out AAudioWrapperV2 aaw, out AudioMixerGroup mix);
+        mode = loopAW.GameMode;
+        phase = loopAW.ZonePhase;
+        zone = loopAW.Zone;
 
-        LoopAudioWrapper loopAW = loopSettings.GetAudioLoopWrapper(newMode);
+        Tuple<GameModeEnum, ZonePhaseEnum, int> dictKey
+            = new Tuple<GameModeEnum, ZonePhaseEnum, int>(mode, phase, zone);
 
-        if (loopAW == null) { return; }
-
-        if (!loopedAudioDict.ContainsKey(newMode))
+        
+        if (!loopedAudioDict.ContainsKey(dictKey))
         {
-            GameObject newObj = new GameObject($"LOOPED_AUDIO-{newMode}");
+            GameObject newObj = new GameObject($"LOOPED_AUDIO-{mode}");
             newObj.transform.parent = transform;
             AudioWrapperSource aws = newObj.AddComponent<AudioWrapperSource>();
             aws.SetMixerGroup(loopAW.MixerGroup);
 
-            loopedAudioDict.Add(newMode, newObj);
+            loopedAudioDict.Add(dictKey, newObj);
         }
 
-        foreach(KeyValuePair<GameModeEnum, GameObject> kvp in loopedAudioDict)
+        foreach(KeyValuePair<Tuple<GameModeEnum, ZonePhaseEnum, int>, GameObject> kvp in loopedAudioDict)
         {
             AudioWrapperSource aws = kvp.Value.GetComponent<AudioWrapperSource>();
 
-            if (kvp.Key == newMode)
+            if (kvp.Key.Equals(dictKey))
             {
-                StartCoroutine(FadeAudioCR(loopAW.AudioWrapper, aws, true, loopAW.FadeAudioInTime));
+                currLoopAudioWrapper = loopAW;
+                if (!currLoopAudioWrapper.SilenceForThisConfig)
+                {
+                    StartCoroutine(FadeAudioCR(loopAW.AudioWrapper, aws, true, loopAW.FadeAudioInTime));
+                }
                 continue;
             }
 
-            LoopAudioWrapper otherLoopAW = loopSettings.GetAudioLoopWrapper(kvp.Key);
-            StartCoroutine(FadeAudioCR(otherLoopAW.AudioWrapper, aws, false, otherLoopAW.FadeAudioOutTime));
+            LoopAudioWrapper otherLoopAW = loopSettings.GetAudioLoopWrapper(kvp.Key.Item1, kvp.Key.Item2, kvp.Key.Item3);
+            if (!otherLoopAW.SilenceForThisConfig)
+            {
+                StartCoroutine(FadeAudioCR(otherLoopAW.AudioWrapper, aws, false, otherLoopAW.FadeAudioOutTime));
+            }
         }
     }
 

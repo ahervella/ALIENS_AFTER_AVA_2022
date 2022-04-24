@@ -9,34 +9,30 @@ using static HelperUtil;
 public class SO_LoopAudioSettings : ScriptableObject
 {
     [SerializeField]
-    private List<LoopAudioWrapper> loopedWrappers = new List<LoopAudioWrapper>();
+    private List<LoopAudioWrapper> audioLoopWrappers = new List<LoopAudioWrapper>();
 
-    /*
-    public void SpawnAndPlayNewLoopObjectSource(GameModeEnum gameMode)
+
+    public LoopAudioWrapper GetAudioLoopWrapper(GameModeEnum gameMode, ZonePhaseEnum zonePhase, int zone)
     {
-        LoopAudioWrapper law = GetLAWrapper(gameMode);
-        if (law == null) { return; }
+        List<LoopAudioWrapper> matchGameMode = audioLoopWrappers.FindAll(law => law.GameMode == gameMode);
+        if (matchGameMode.Count == 0) { return null; }
 
-        GameObject obj = new GameObject($"LoopedAudio-{gameMode}");
-        AudioWrapperSource awSource = obj.AddComponent<AudioWrapperSource>();
-        awSource.SetMixerGroup(law.MixerGroup);
-        //Instantiate(obj);
-        law.AudioWrapper.PlayAudioWrapper(awSource);
-    }*/
+        LoopAudioWrapper soleZonePhaseWrapper = matchGameMode.Find(law => law.ZonePhase == ZonePhaseEnum.NONE);
+        if (soleZonePhaseWrapper != null)
+        {
+            return soleZonePhaseWrapper;
+        }
 
-    public LoopAudioWrapper GetAudioLoopWrapper(GameModeEnum gameMode)//, out AAudioWrapperV2 aaw, out AudioMixerGroup mix)
-    {
-        return GetWrapperFromFunc(
-            loopedWrappers,
-            law => law.GameMode,
-            gameMode,
-            LogEnum.NONE, null);
+        List<LoopAudioWrapper> zonePhaseWrappers = matchGameMode.FindAll(law => law.ZonePhase == zonePhase);
 
-        //aaw = wrapper.AudioWrapper;
-        //mix = wrapper.MixerGroup;
+        LoopAudioWrapper soleZoneWrapper = zonePhaseWrappers.Find(law => !law.ZoneDependant);
+        if (soleZoneWrapper != null)
+        {
+            return soleZoneWrapper;
+        }
+
+        return zonePhaseWrappers.Find(law => law.Zone == zone);
     }
-
-    
 }
 
 [Serializable]
@@ -45,6 +41,22 @@ public class LoopAudioWrapper
     [SerializeField]
     private GameModeEnum gameMode = GameModeEnum.PLAY;
     public GameModeEnum GameMode => gameMode;
+
+    [SerializeField]
+    private ZonePhaseEnum zonePhase = default;
+    public ZonePhaseEnum ZonePhase => zonePhase;
+
+    [SerializeField]
+    private bool zoneDependant = false;
+    public bool ZoneDependant => zoneDependant;
+
+    [SerializeField]
+    private int zone = default;
+    public int Zone => zoneDependant ? zone : -1;
+
+    [SerializeField]
+    private bool silenceForThisConfig = false;
+    public bool SilenceForThisConfig => silenceForThisConfig;
 
     [SerializeField]
     private AAudioWrapperV2 audioWrapper = null;

@@ -167,4 +167,4 @@ public class SO_TerrZoneWrapper : ScriptableObject
     }
 }
 
-public enum ZonePhaseEnum { NO_BOSS = 0, BOSS_SPAWN = 3, BOSS = 1, BOSS_RAGE = 2 }
+public enum ZonePhaseEnum { NO_BOSS = 0, BOSS_SPAWN = 3, BOSS = 1, BOSS_RAGE = 2, NONE = 4 }
