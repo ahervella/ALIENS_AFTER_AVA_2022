@@ -16,7 +16,7 @@ public static class AudioUtil
     public static void AssignSourceProperties(AudioSource source, float volDb, float pitchCents, AudioClip clip)
     {
         AudioWrapperSource aws = source.gameObject.GetComponent<AudioWrapperSource>();
-        AssignSourceProperties(source, aws.MixerGroup, aws.SpatialBlend, aws.MaxDist, volDb, pitchCents, clip);
+        AssignSourceProperties(source, aws.MixerGroup, aws.SpatialBlend, /*aws.MaxDist,*/ volDb, pitchCents, clip);
     }
 
 
@@ -30,11 +30,11 @@ public static class AudioUtil
     /// <param name="volDb">Volume to be assigned in decibels</param>
     /// <param name="pitchCents">Pitch to be assigned in cents</param>
     /// <param name="clip">AudioClip to be assigned</param>
-    public static void AssignSourceProperties(AudioSource source, AudioMixerGroup mixerGroup, float spatialBlend, float maxDist, float volDb, float pitchCents, AudioClip clip)
+    public static void AssignSourceProperties(AudioSource source, AudioMixerGroup mixerGroup, float spatialBlend, /*float maxDist,*/ float volDb, float pitchCents, AudioClip clip)
     {
         source.outputAudioMixerGroup = mixerGroup;
         source.spatialBlend = spatialBlend;
-        source.maxDistance = maxDist;
+        source.maxDistance = S_AudioManager.Current.CachedAudioDist;//maxDist;
         source.volume = Mathf.Pow(10, volDb / 20);
         source.pitch = Mathf.Pow(2, pitchCents / 1200);
         source.rolloffMode = AudioRolloffMode.Custom;

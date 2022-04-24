@@ -38,6 +38,18 @@ public abstract class SO_ABossSettings : ScriptableObject
     private float tearDownDelayPostDeath = 1f;
     public float TearDownDelayPostDeath => tearDownDelayPostDeath;
 
+    [SerializeField]
+    private AAudioWrapperV2 spawnAudioWrapper = null;
+    public AAudioWrapperV2 SpawnAudioWrapper => spawnAudioWrapper;
+
+    [SerializeField]
+    private float spawnAudioDelay = 1f;
+    public float SpawnAudioDelay => spawnAudioDelay;
+
+    [SerializeField]
+    private AAudioWrapperV2 hurtAudioWrapper = null;
+    public AAudioWrapperV2 HurtAudioWrapper => hurtAudioWrapper;
+
     [Serializable]
     protected class RageValue<T>
     {

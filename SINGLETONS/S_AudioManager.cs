@@ -13,7 +13,15 @@ public class S_AudioManager : Singleton<S_AudioManager>
     private SO_LoopAudioSettings loopSettings = null;
 
     [SerializeField]
+    private SO_TerrSettings terrSettings = null;
+
+    [SerializeField]
     private IntPropertySO currLives = null;
+
+    [SerializeField]
+    private float maxAudioTileDist = 20;
+
+    public float CachedAudioDist { get; private set; }
 
     [SerializeField]
     private PSO_CurrentGameMode currGameMode = null;
@@ -42,6 +50,8 @@ public class S_AudioManager : Singleton<S_AudioManager>
     {
         currLives.RegisterForPropertyChanged(OnCurrLivesChange, persistent);
         currGameMode.RegisterForPropertyChanged(OnGameModeChanged, persistent);
+
+        CachedAudioDist = terrSettings.TileDims.y * maxAudioTileDist;
 
         //Can't use start because would trigger it every time we change scene
         StartCoroutine(StartCR());

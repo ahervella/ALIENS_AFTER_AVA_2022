@@ -194,19 +194,8 @@ public class PlayerRunner : MonoBehaviour
         //TryStartSprint();
     }
 
-    private bool dev_toggleTreadmill = true;
-
     private void InputManager_Dev5(CallbackContext ctx)
     {
-        if (dev_toggleTreadmill)
-        {
-            playerAnimmator.AE_PauseTreadmill(1f);
-            return;
-        }
-
-        playerAnimmator.AE_ResumeTreadmill(1f);
-
-        dev_toggleTreadmill = !dev_toggleTreadmill;
     }
 
 

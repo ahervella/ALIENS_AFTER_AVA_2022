@@ -34,6 +34,9 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     [SerializeField]
     private SO_InputManager inputManager = null;
 
+    [SerializeField]
+    private AudioWrapperSource audioSource = null;
+
     private AFillBarManagerBase healthBarPrefab;
 
     protected bool Rage { get; private set; } = false;
@@ -84,6 +87,8 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
         StartCoroutine(HealthBarSpawnCR());
 
+        StartCoroutine(PlaySpawnAudioCR());
+
         OnBossAwake();
     }
 
@@ -106,12 +111,22 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
             currZonePhase.ModifyValue(ZonePhaseEnum.BOSS_RAGE);
             InitRage();
         }
+        else
+        {
+            settings.HurtAudioWrapper.PlayAudioWrapper(audioSource);
+        }
     }
 
     private IEnumerator HealthBarSpawnCR()
     {
         yield return new WaitForSeconds(settings.HealthBarSpawnDelay);
         healthBarPrefab = Instantiate(settings.HealthBarPrefab);
+    }
+
+    private IEnumerator PlaySpawnAudioCR()
+    {
+        yield return new WaitForSeconds(settings.SpawnAudioDelay);
+        settings.SpawnAudioWrapper.PlayAudioWrapper(audioSource);
     }
 
     private void OnTriggerEnterDamageHitBox(Collider other)

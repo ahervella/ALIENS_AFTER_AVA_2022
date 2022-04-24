@@ -16,10 +16,12 @@ public class AudioWrapperSource : MonoBehaviour
     private float spatialBlend = 0;
     public float SpatialBlend => spatialBlend;
 
+    //TODO: do we want / ever need a custom max distance?
+    /*
     [SerializeField]
     [Range(0f, 100f)]
     private float maxDist = 100;
-    public float MaxDist => maxDist;
+    public float MaxDist => maxDist;*/
 
     [SerializeField]
     private AnimationEventExtender<AAudioWrapperV2> optionalAEExtender = null;
