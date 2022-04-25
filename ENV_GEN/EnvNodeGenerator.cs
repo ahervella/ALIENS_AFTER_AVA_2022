@@ -33,12 +33,22 @@ public class EnvNodeGenerator : MonoBehaviour
 
     private void Awake()
     {
-        if (devTools.SpawnBossOnStart)
-        {
-            currZonePhase.ModifyValue(ZonePhaseEnum.BOSS_SPAWN);
-        }
         currZone.RegisterForPropertyChanged(OnZoneChange);
         currZonePhase.RegisterForPropertyChanged(OnZonePhaseChange);
+    }
+
+    private void Start()
+    {
+        if (devTools.SpawnBossOnStart)
+        {
+            OnZoneChange(currZone.Value, currZone.Value);
+            currZonePhase.ModifyValue(ZonePhaseEnum.BOSS_SPAWN);
+            
+            terrainChangeDelegate.InvokeDelegateMethod(
+                queuedTerrainChangeWrapper);
+
+            queuedTerrainChangeWrapper = null;
+        }
     }
 
     private void OnZoneChange(int prevZone, int newZone)

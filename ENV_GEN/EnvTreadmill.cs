@@ -113,7 +113,11 @@ public class EnvTreadmill : MonoBehaviour
 
         targetLaneChange = null;
 
-        if (devTools.SpawnBossOnStart) { SpawnZoneBoss(); }
+        if (devTools.SpawnBossOnStart)
+        {
+            currZonePhase.ModifyValue(ZonePhaseEnum.BOSS_SPAWN);
+            SpawnZoneBoss();
+        }
     }
 
     private void OnZoneWrapperChange(int oldValue, int newValue)

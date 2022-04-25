@@ -48,6 +48,12 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private PSO_CurrentLoadout currLoadout = null;
 
+    [SerializeField]
+    private PSO_CurrentZonePhase currZonePhase = null;
+
+    [SerializeField]
+    private DSO_TerrainChange terrainChangeDelegate = null;
+
     //[SerializeField]
     //private PSO_CurrentInventory currentInventory = null;
 
@@ -74,6 +80,8 @@ public class PlayerRunner : MonoBehaviour
 
     private Coroutine sprintCR = null;
 
+    private bool pausedControls = false;
+
     private void Awake()
     {
         SetPlayerStartPosition();
@@ -81,6 +89,7 @@ public class PlayerRunner : MonoBehaviour
         shieldOnFlag.RegisterForPropertyChanged(OnShieldChange);
         currGameMode.RegisterForPropertyChanged(OnGameModeChange);
         currEndOfDemo.RegisterForPropertyChanged(OnDemoEnd);
+        currZonePhase.RegisterForPropertyChanged(OnZonePhaseChange);
     }
 
     private void Start()
@@ -141,35 +150,38 @@ public class PlayerRunner : MonoBehaviour
         UnregisterFromInputs();
     }
 
+    private void TryPerformAction(PlayerActionEnum action)
+    {
+        Debug.Log("InputAttempt " + action.ToString());
+        if (pausedControls) { return; }
+        currAction.TryPerform(action);
+    }
+
     //TODO: take out dev testing for health and energy bar from here eventually!
     private void InputManager_DodgeLeft(CallbackContext ctx)
     {
-        Debug.Log("Input_DodgeLeft");
-        currAction.TryPerform(PlayerActionEnum.DODGE_L);
+
+        TryPerformAction(PlayerActionEnum.DODGE_L);
     }
 
     private void InputManager_DodgeRight(CallbackContext ctx)
     {
-        Debug.Log("Input_DodgeRight");
-        currAction.TryPerform(PlayerActionEnum.DODGE_R);
+        TryPerformAction(PlayerActionEnum.DODGE_R);
     }
 
     private void InputManager_Jump(CallbackContext ctx)
     {
-        Debug.Log("Input_Jump");
-        currAction.TryPerform(PlayerActionEnum.JUMP);
+        TryPerformAction(PlayerActionEnum.JUMP);
     }
 
     private void InputManager_Sprint(CallbackContext ctx)
     {
-        Debug.Log("Input_Sprint");
-        //currAction.TryPerform(PlayerActionEnum.SPRINT);
+        //TryPerformAction(PlayerActionEnum.SPRINT);
     }
 
     private void InputManager_Roll(CallbackContext ctx)
     {
-        Debug.Log("Input_Roll");
-        currAction.TryPerform(PlayerActionEnum.ROLL);
+        TryPerformAction(PlayerActionEnum.ROLL);
     }
 
     private void InputManager_Dev1(CallbackContext ctx)
@@ -344,6 +356,7 @@ public class PlayerRunner : MonoBehaviour
 
     private bool TryUseArmament(bool isWeapon, int loadoutIndex)
     {
+        if (pausedControls) { return false; }
         if (currAction.IsPlayingHurtAnim()) { return false; }
 
         if (isWeapon)
@@ -356,6 +369,26 @@ public class PlayerRunner : MonoBehaviour
         }
 
         return true;
+    }
+
+    private void OnZonePhaseChange(ZonePhaseEnum _, ZonePhaseEnum newPhase)
+    {
+        if (newPhase == ZonePhaseEnum.BOSS_SPAWN)
+        {
+            terrainChangeDelegate.RegisterForDelegateInvoked(OnTerrainChangeDelegate);
+        }
+
+        if (newPhase == ZonePhaseEnum.BOSS)
+        {
+            pausedControls = false;
+        }
+    }
+
+    private int OnTerrainChangeDelegate(TerrainChangeWrapper tcw)
+    {
+        terrainChangeDelegate.DeRegisterFromDelegateInvoked(OnTerrainChangeDelegate);
+        pausedControls = true;
+        return 0;
     }
 }
 
