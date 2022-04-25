@@ -37,11 +37,20 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     [SerializeField]
     private AudioWrapperSource audioSource = null;
 
+    [SerializeField]
+    private AlienBossDamageFlash damageFlash = null;
+
     private AFillBarManagerBase healthBarPrefab;
 
     protected bool Rage { get; private set; } = false;
 
-    //Do we need this if we're setting it before instantiating
+    //Assuming all bosses will start with BOSS_SPAWN, and after their spawn
+    //sequence will make themselves not invincible
+    protected bool invincible = true;
+
+    
+
+    //TODO: Do we need this if we're setting it before instantiating
     //the prefab?
     [NonSerialized]
     protected EnvTreadmill terrainNode = null;
@@ -74,6 +83,8 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         currHealth.RegisterForPropertyChanged(OnHealthChanged);
         currHealth.ModifyValue(settings.StartingHealth - currHealth.Value);
 
+        currZonePhase.RegisterForPropertyChanged(OnZonePhaseChange);
+
         SetHitBoxDimensions(
             hitBox,
             new Vector2(settings.HitBoxTileWidth, 1),
@@ -102,7 +113,14 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         if (newHealth <= 0)
         {
             InitDeath();
+            currHealth.DeRegisterForPropertyChanged(OnHealthChanged);
+            return;
         }
+
+        //in case boss gains health
+        if (newHealth > oldHealth) { return; }
+
+        damageFlash.FlashWhiteDamage();
 
         if (newHealth <= settings.RageHealthThreshold && !Rage)
         {
@@ -114,6 +132,17 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         else
         {
             settings.HurtAudioWrapper.PlayAudioWrapper(audioSource);
+        }
+    }
+
+
+    
+
+    private void OnZonePhaseChange(ZonePhaseEnum oldPhase, ZonePhaseEnum newPhase)
+    {
+        if (newPhase == ZonePhaseEnum.BOSS)
+        {
+            invincible = false;
         }
     }
 
@@ -141,6 +170,9 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     private void AE_OnRemoveBoss()
     {
+        currHealth.DeRegisterForPropertyChanged(OnHealthChanged);
+        currZonePhase.DeRegisterForPropertyChanged(OnZonePhaseChange);
+
         //TODO: Do elimination sequence for one sprite has fallen?
         healthBarPrefab.TearDown(settings.TearDownDelayPostDeath);
 
@@ -154,6 +186,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     public override void TakeDamage(int damage)
     {
+        if (invincible) { return; }
         currHealth.ModifyValue(-damage);
     }
 

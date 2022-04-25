@@ -30,6 +30,13 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
         //TODO: move up to seem out of range and not take damage for a sec
         //so player can't take advantage of rage anim?
         currState.ModifyValue(Boss1State.RAGE);
+        StopShooting();
+        StopIdleFloatLoop();
+    }
+
+    private void StopIdleFloatLoop()
+    {
+        SafeStopCoroutine(ref idleFloatCR, this);
     }
 
     protected override void SetStartingPosition()
