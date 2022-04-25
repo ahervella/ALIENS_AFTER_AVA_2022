@@ -82,17 +82,21 @@ public class SO_TerrZoneWrapper : ScriptableObject
     [NonSerialized]
     private float[] TerrFoleyAddonCachedPercents;
 
-    public void InitAndCacheTerrAddonData()
+    public void InitAndCacheTerrAddonData(ZonePhaseEnum? phaseOverride = null)
     {
-        CacheTerrAddonWeightWrapper();
+        CacheTerrAddonWeightWrapper(phaseOverride);
         CacheWeightPercents();
         CacheTerrSpawnViolations();
     }
 
-    private void CacheTerrAddonWeightWrapper()
+    private void CacheTerrAddonWeightWrapper(ZonePhaseEnum? phaseOverride)
     {
+        if (phaseOverride == null)
+        {
+            phaseOverride = currZonePhase.Value;
+        }
         cachedTerrAddons = GetWrapperFromFunc(
-            terrAddonPhaseWrappers, pw => pw.Phase, currZonePhase.Value, LogEnum.ERROR, null).TerrAddonWeightWrappers;
+            terrAddonPhaseWrappers, pw => pw.Phase, phaseOverride, LogEnum.ERROR, null).TerrAddonWeightWrappers;
     }
 
     private void CacheWeightPercents()

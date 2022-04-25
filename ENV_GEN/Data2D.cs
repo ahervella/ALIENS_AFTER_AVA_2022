@@ -172,6 +172,50 @@ public class Data2D<T>
         }
     }
 
+    //TODO: mark up and use this if we decide to get fancy
+    //with keeping track of how much is visible with a PSO
+    //and making terrain generation changes appear sooner
+    //if we are later going to deal with terrain that is
+    //longer...
+    public void ReplaceRows(int rowsFromStart)
+    {
+        if (rowsFromStart < 1) { return; }
+
+        //destroy replaced row(s)
+        if (destructionCall != null)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                for (int r = 0; r < rowsFromStart; r++)
+                {
+                    destructionCall(data[c, r]);
+                }
+            }
+        }
+
+        //reset the replaced row(s)
+        for (int c = 0; c < cols; c++)
+        {
+            for (int r = 0; r < rowsFromStart; r++)
+            {
+                data[c, r] = defaultResetVal(c);
+            }
+        }
+
+
+        //initialize the replaced row(s)
+        if (defaultNewVal != null)
+        {
+            for (int r = rowsFromStart - 1; r >= 0; r--)
+            {
+                for (int c = 0; c < cols; c++)
+                {
+                    data[c, r] = defaultNewVal(c);
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// Resets the element at the given location using the
     /// destroy and default valie methods

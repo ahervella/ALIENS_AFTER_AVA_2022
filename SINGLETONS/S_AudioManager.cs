@@ -22,6 +22,10 @@ public class S_AudioManager : Singleton<S_AudioManager>
     [SerializeField]
     private float maxAudioTileDist = 20;
 
+    [SerializeField]
+    private DSO_TerrainChange terrainChangeDelegate = null;
+
+
     public float CachedAudioDist { get; private set; }
 
     [SerializeField]
@@ -115,9 +119,25 @@ public class S_AudioManager : Singleton<S_AudioManager>
         UpdateAndPlayAudioLoop();
     }
 
-    private void OnZonePhaseChange(ZonePhaseEnum _, ZonePhaseEnum __)
+    private void OnZonePhaseChange(ZonePhaseEnum _, ZonePhaseEnum newPhase)
     {
+        //let the terrain change delegate trigger when we change music
+        //on boss spawn
+        if (newPhase == ZonePhaseEnum.BOSS_SPAWN)
+        {
+            terrainChangeDelegate.RegisterForDelegateInvoked(
+                OnTerrainChangeDelegate, persistent);
+            return;
+        }
         UpdateAndPlayAudioLoop();
+    }
+
+    private int OnTerrainChangeDelegate(TerrainChangeWrapper tcw)
+    {
+        terrainChangeDelegate.DeRegisterFromDelegateInvoked(
+                OnTerrainChangeDelegate);
+        UpdateAndPlayAudioLoop();
+        return 0;
     }
 
     private void OnZoneChange(int _, int __)
@@ -190,6 +210,8 @@ public class S_AudioManager : Singleton<S_AudioManager>
             }
         }
     }
+
+    
 
     /// <summary>
     /// Returns whether there are still unstoppable audio sources to be played

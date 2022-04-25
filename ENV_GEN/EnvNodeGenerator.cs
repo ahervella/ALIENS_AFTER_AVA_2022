@@ -18,12 +18,18 @@ public class EnvNodeGenerator : MonoBehaviour
     private PSO_CurrentZonePhase currZonePhase = null;
 
     [SerializeField]
+    private DSO_TerrainChange terrainChangeDelegate = null;
+
+    [SerializeField]
     private BoolPropertySO spawnOnlyFoleyPSO = null;
 
     [SerializeField]
     private List<SO_TerrZoneWrapper> zoneWrappers = null;
 
     private SO_TerrZoneWrapper cachedZoneWrapper;
+
+    private TerrainChangeWrapper queuedTerrainChangeWrapper = null;
+    private float terrainChangeDistTraveled;
 
     private void Awake()
     {
@@ -37,13 +43,39 @@ public class EnvNodeGenerator : MonoBehaviour
 
     private void OnZoneChange(int prevZone, int newZone)
     {
+        QueueTerrainChangeDelegate(new TerrainChangeWrapper(true));
         cachedZoneWrapper = GetWrapperFromFunc(zoneWrappers, zw => zw.Zone, newZone, LogEnum.ERROR, null);
         cachedZoneWrapper.InitAndCacheTerrAddonData();
     }
 
     private void OnZonePhaseChange(ZonePhaseEnum oldPhase, ZonePhaseEnum newPhase)
     {
+        QueueTerrainChangeDelegate(new TerrainChangeWrapper(false));
         cachedZoneWrapper.InitAndCacheTerrAddonData();
+    }
+
+    private void QueueTerrainChangeDelegate(TerrainChangeWrapper tcw)
+    {
+        queuedTerrainChangeWrapper = tcw;
+        terrainChangeDistTraveled = 0;
+    }
+
+    public void TerrainChangeDelegateTick(float posVertDelta)
+    {
+        if (queuedTerrainChangeWrapper == null) { return; }
+        if (terrainChangeDistTraveled < settings.TileRows * settings.TileDims.y)
+        {
+            terrainChangeDistTraveled += -posVertDelta;
+            return;
+        }
+
+        terrainChangeDelegate.InvokeDelegateMethod(queuedTerrainChangeWrapper);
+        queuedTerrainChangeWrapper = null;
+    }
+
+    public void TriggerEarlyBossSpawnTerrain()
+    {
+        cachedZoneWrapper.InitAndCacheTerrAddonData(ZonePhaseEnum.BOSS_SPAWN);
     }
 
     public TerrAddon GetNewAddon(int colIndex, int rowIndex, Data2D<TerrAddon> currAddons)

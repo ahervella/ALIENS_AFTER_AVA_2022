@@ -384,6 +384,8 @@ public class EnvTreadmill : MonoBehaviour
     {
         float posVert = currSpeed * Time.deltaTime;
 
+        generator.TerrainChangeDelegateTick(posVert);
+
         totalZoneDistTraveled += Mathf.Abs(posVert);
 
         if (posVert + terrNodesTransform.localPosition.z <= -newRowThreshold)
