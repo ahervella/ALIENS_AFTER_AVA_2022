@@ -8,6 +8,9 @@ public class TerrNodeFadeEffect : MonoBehaviour
     [SerializeField]
     private SO_TerrNodeFadeSettings settings = null;
 
+    [SerializeField]
+    private bool fadeOnlyIntoDistance = false;
+
     private SpriteRenderer spriteRenderer = null;
 
     private Color ogColor;
@@ -62,6 +65,7 @@ public class TerrNodeFadeEffect : MonoBehaviour
         {
             yComp = 1;
         }
+        else if (fadeOnlyIntoDistance) { return; }
         else if (pos.y > settings.CachedFadeZPosBehindPlayer)
         {
             float totalFadeDist = settings.CachedPlayerZPos - settings.CachedFadeZPosBehindPlayer;
