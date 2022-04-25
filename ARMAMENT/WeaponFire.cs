@@ -12,16 +12,13 @@ public class WeaponFire : MonoBehaviour
     [SerializeField]
     private Projectile projectile = null;
 
-    private Transform prefabParent;
     private MuzzleFlash muzzleFlashInstance;
 
     private void Awake()
     {
-        prefabParent = transform.parent;
+        muzzleFlashInstance = Instantiate(muzzleFlash, transform.parent);
 
-        muzzleFlashInstance = Instantiate(muzzleFlash, prefabParent);
-
-        CustomizePositions(prefabParent, prefabParent, transform.position);
+        CustomizePositions(transform.parent, transform.parent, transform.position);
         StartCoroutine(DestroyAtEndOfFrame());
     }
 

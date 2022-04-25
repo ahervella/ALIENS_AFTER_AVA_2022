@@ -19,6 +19,9 @@ public class EnvTreadmill : MonoBehaviour
     private SO_DeveloperToolsSettings devTools = null;
 
     [SerializeField]
+    private PSO_TerrainTreadmillNodes terrTreadmillNodesPSO = null;
+
+    [SerializeField]
     private Transform terrNodesTransform = null;
 
     //TODO: find a way around not having to expose these transforms?
@@ -101,6 +104,8 @@ public class EnvTreadmill : MonoBehaviour
         currZone.RegisterForPropertyChanged(OnZoneWrapperChange);
         laneChangeDelegate.RegisterForDelegateInvoked(OnLaneChange);
         treadmillToggleDelegate.RegisterForDelegateInvoked(OnTreadmillSpeedChange);
+        terrTreadmillNodesPSO.ModifyValue(
+            new TerrainTreadmillNodesWrapper(horizTransform, vertTransform));
 
         InitData2D();
 

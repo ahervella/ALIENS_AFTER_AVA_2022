@@ -14,6 +14,12 @@ public class Projectile : MonoBehaviour
     private Vector3PropertySO hitBoxDimEdgePerc = null;
 
     [SerializeField]
+    private PSO_TerrainTreadmillNodes terrTreadmillNodesPSO = null;
+
+    [SerializeField]
+    private bool spawnAttachedToTreadmillHorizontal = true;
+
+    [SerializeField]
     private BoxColliderSP hitBox = null;
 
     [SerializeField]
@@ -108,6 +114,11 @@ public class Projectile : MonoBehaviour
 
     private void SetSpawnPosition()
     {
+        if (spawnAttachedToTreadmillHorizontal)
+        {
+            transform.parent = terrTreadmillNodesPSO.Value.HorizontalNode;
+        }
+
         float xPos = autoAlignToNearestLane ?
             GetLaneXPosition(GetLaneIndexFromPosition(transform.position.x, terrSettings), terrSettings)
             : transform.position.x;
