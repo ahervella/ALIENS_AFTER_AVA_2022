@@ -322,7 +322,7 @@ public class PlayerRunner : MonoBehaviour
     public void OnEnterProjectile(WeaponEnum weaponType, PlayerActionEnum avoidAction, out bool dodged)
     {
         //TODO: do we need tyhe projectile (weapon) type in the end?
-        OnEnterHazard(PlayerActionEnum.ROLL, avoidAction, TerrAddonEnum.PROJECTILE, out dodged);
+        OnEnterHazard(avoidAction, PlayerActionEnum.NONE, TerrAddonEnum.PROJECTILE, out dodged);
     }
 
     private void StartTussle(bool advantage)

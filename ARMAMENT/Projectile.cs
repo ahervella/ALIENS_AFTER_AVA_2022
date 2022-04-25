@@ -14,7 +14,7 @@ public class Projectile : MonoBehaviour
     private Vector3PropertySO hitBoxDimEdgePerc = null;
 
     [SerializeField]
-    private BoxCollider hitBox = null;
+    private BoxColliderSP hitBox = null;
 
     [SerializeField]
     private SpriteAnim spriteAnim = null;
@@ -95,12 +95,15 @@ public class Projectile : MonoBehaviour
     {
         //TODO: is this too jank or can I just resort to using on collision or on trigger and return
         //depending on the isAlienProjectile flag?
-        hitBox.isTrigger = !isAlienProjectile;
+        hitBox.Box().isTrigger = !isAlienProjectile;
         SetHitBoxDimensionsAndPos(
-            hitBox,
+            hitBox.Box(),
             new Vector2(1, 1),
             terrSettings,
             hitBoxDimEdgePerc);
+
+
+        hitBox.SetOnTriggerEnterMethod(OnTriggerEnter);
     }
 
     private void SetSpawnPosition()
@@ -174,6 +177,8 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (!isAlienProjectile) { return; }
+
         PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
         if (player != null)
         {
@@ -181,7 +186,7 @@ public class Projectile : MonoBehaviour
             //and so we don't prematurely delete this source object
             player.OnEnterProjectile(weaponType, requiredAvoidAction, /*impactAudio, */out bool dodged);
 
-            if (dodged) { MadeImpact(); }
+            if (!dodged) { MadeImpact(); }
             return;
         }
     }

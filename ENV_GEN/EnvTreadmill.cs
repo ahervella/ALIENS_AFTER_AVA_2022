@@ -115,7 +115,6 @@ public class EnvTreadmill : MonoBehaviour
 
         if (devTools.SpawnBossOnStart)
         {
-            currZonePhase.ModifyValue(ZonePhaseEnum.BOSS_SPAWN);
             SpawnZoneBoss();
         }
     }
