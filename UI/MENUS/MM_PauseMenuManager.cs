@@ -51,6 +51,10 @@ public class MM_PauseMenuManager : A_MenuManager<PauseMenuButtonEnum>
         currGameMode.ModifyValue(GameModeEnum.MAINMENU);
         Time.timeScale = 1;
     }
+
+    protected override void OnMenuStart()
+    {
+    }
 }
 
 public enum PauseMenuButtonEnum

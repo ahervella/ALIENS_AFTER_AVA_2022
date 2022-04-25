@@ -4,9 +4,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using static HelperUtil;
-using static UnityEngine.InputSystem.InputAction;
 
-public class EndOfDemoManager : MonoBehaviour
+public class MM_DemoMenuManager : A_MenuManager<DemoMenuEnum>
 {
     [SerializeField]
     private SO_EndOfDemoSettings settings = null;
@@ -16,9 +15,6 @@ public class EndOfDemoManager : MonoBehaviour
 
     [SerializeField]
     private IntPropertySO currZone = null;
-
-    [SerializeField]
-    private SO_InputManager inputManager = null;
 
     [SerializeField]
     private SO_DeveloperToolsSettings devToolsSettings = null;
@@ -33,12 +29,10 @@ public class EndOfDemoManager : MonoBehaviour
     private Image fade2BlackImg = null;
 
     [SerializeField]
-    private TextMeshProUGUI endOfDemoText = null;
+    private List<TextMeshProUGUI> texts = new List<TextMeshProUGUI>();
 
-    [SerializeField]
-    private TextMeshProUGUI pressAnyInputText = null;
 
-    private void Awake()
+    protected override void OnMenuAwake()
     {
         endOfDemoContainer.gameObject.SetActive(false);
 
@@ -46,18 +40,20 @@ public class EndOfDemoManager : MonoBehaviour
 
         fade2BlackImg.color = new Color(0, 0, 0, 0);
 
-        Color clr = endOfDemoText.color;
-        endOfDemoText.color = new Color(clr.r, clr.g, clr.b, 0);
+        foreach (TextMeshProUGUI t in texts)
+        {
+            Color clr = t.color;
+            t.color = new Color(clr.r, clr.g, clr.b, 0);
+        }
 
-        clr = pressAnyInputText.color;
-        pressAnyInputText.color = new Color(clr.r, clr.g, clr.b, 0);
-
-        endOfDemoText.text = settings.EndOfDemoText;
-        pressAnyInputText.text = settings.PressAnyInputText;
         currZone.RegisterForPropertyChanged(OnZoneChange);
+
+        AssignButtonMethods();
+
+        MenuEnabled = false;
     }
 
-    private void Start()
+    protected override void OnMenuStart()
     {
         currEndOfDemo.ModifyValue(false);
     }
@@ -85,40 +81,64 @@ public class EndOfDemoManager : MonoBehaviour
 
         yield return new WaitForSeconds(settings.TextDelay);
 
-        yield return SetTextColor(dir : 1);
-
-        inputManager.RegisterForAnyInput(OnAnyInput);
+        yield return SetTextColorCR(dir: 1);
     }
 
-    private IEnumerator SetTextColor (float dir)
+    private IEnumerator SetTextColorCR(float dir)
     {
-        Color demoClr = endOfDemoText.color;
-        Color inputClr = pressAnyInputText.color;
+        List<Color> clrs = new List<Color>();
+
+        foreach (TextMeshProUGUI t in texts)
+        {
+            clrs.Add(t.color);
+        }
 
         float perc = dir > 0 ? 0 : 1;
         while (perc >= 0 && perc <= 1)
         {
             perc += Time.deltaTime / settings.TextFadeInTime * dir;
 
-            endOfDemoText.color = new Color(
-                demoClr.r, demoClr.g, demoClr.b, EasedPercent(perc));
-
-            pressAnyInputText.color = new Color(
-                inputClr.r, inputClr.g, inputClr.b, EasedPercent(perc));
+            for (int i = 0; i < clrs.Count; i++)
+            {
+                texts[i].color = new Color(
+                    clrs[i].r, clrs[i].g, clrs[i].b, EasedPercent(perc));
+            }
 
             yield return null;
         }
+
+        if (dir > 0)
+        {
+            MenuEnabled = true;
+        }
     }
 
-    private void OnAnyInput(CallbackContext ctx)
+    
+    private void AssignButtonMethods()
     {
-        inputManager.UnregisterFromAnyInput(OnAnyInput);
+        AssignOnButtonPressedMethod(DemoMenuEnum.DEMO_LINK, GoToDemoLink);
+        AssignOnButtonPressedMethod(DemoMenuEnum.MAINMENU, GoToMainMenu);
+    }
+
+    private void GoToDemoLink()
+    {
+        Application.OpenURL(settings.URL);
+    }
+
+    private void GoToMainMenu()
+    {
+        ExitEndOfDemo();
+        MenuEnabled = false;
+    }
+
+    public void ExitEndOfDemo()
+    {
         StartCoroutine(ExitEndOfDemoCR());
     }
 
     private IEnumerator ExitEndOfDemoCR()
     {
-        yield return SetTextColor(dir : -1);
+        yield return SetTextColorCR(dir: -1);
 
         yield return new WaitForSeconds(settings.Transition2MainMenuDelay);
 
@@ -128,3 +148,5 @@ public class EndOfDemoManager : MonoBehaviour
         currGameMode.ModifyValue(GameModeEnum.MAINMENU);
     }
 }
+
+public enum DemoMenuEnum { DEMO_LINK = 0, MAINMENU = 1}

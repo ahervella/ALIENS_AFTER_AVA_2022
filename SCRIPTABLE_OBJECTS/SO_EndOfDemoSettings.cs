@@ -9,14 +9,10 @@ public class SO_EndOfDemoSettings : ScriptableObject
     private float fade2BlackTime = 1f;
     public float Fade2BlackTime => fade2BlackTime;
 
+    [TextArea(2, 2)]
     [SerializeField]
-    [TextArea(5, 5)]
-    private string endOfDemoText = string.Empty;
-    public string EndOfDemoText => endOfDemoText;
-
-    [SerializeField]
-    private string pressAnyInputText = string.Empty;
-    public string PressAnyInputText => pressAnyInputText;
+    private string url = string.Empty;
+    public string URL => url;
 
     [SerializeField]
     private float textDelay = 1f;
@@ -33,4 +29,5 @@ public class SO_EndOfDemoSettings : ScriptableObject
     [SerializeField]
     private float transition2MainMenuDelay = 1f;
     public float Transition2MainMenuDelay => transition2MainMenuDelay;
+
 }

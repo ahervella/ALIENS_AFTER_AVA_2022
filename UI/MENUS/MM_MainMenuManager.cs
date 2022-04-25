@@ -48,6 +48,8 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
         StartMainMenuSequence();
     }
 
+    protected override void OnMenuStart() { }
+
     private void AssignButtonMethods()
     {
         AssignOnButtonPressedMethod(MainMenuButtonEnum.RUN, PlayGame);

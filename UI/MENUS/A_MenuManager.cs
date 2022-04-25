@@ -28,6 +28,7 @@ public abstract class A_MenuManager<T> : MonoBehaviour
         SelectButton(selectedStartButton);
 
         OnMenuAwake();
+        //TODO: make AssignMenuButtons an abstract class and move in here
     }
 
     protected abstract void OnMenuAwake();
@@ -36,7 +37,11 @@ public abstract class A_MenuManager<T> : MonoBehaviour
     {
         inputManager.RegisterForInput(InputEnum.NAV_DIR, InputManager_OnNavDirPressed);
         inputManager.RegisterForInput(InputEnum.NAV_SELECT, InputManager_OnNavSelect);
+
+        OnMenuStart();
     }
+
+    protected abstract void OnMenuStart();
 
     private void OnMouseSelectButtonChanged(MenuButton button, bool selectedVsDeselected)
     {
