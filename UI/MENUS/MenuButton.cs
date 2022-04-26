@@ -23,6 +23,31 @@ public class MenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     [SerializeField]
     private Color selectColor = default;
 
+    [SerializeField]
+    private Color disabledColor = default;
+
+    private bool buttonEnabled = true;
+    public bool ButtonEnabled
+    {
+        get => buttonEnabled;
+        set
+        {
+            Color clr = text.color;
+            if (!value)
+            {
+                OnDeselect();
+                text.color = new Color(
+                    disabledColor.r, disabledColor.g, disabledColor.b, clr.a);
+            }
+            else
+            {
+                text.color = new Color(
+                    idleColor.r, idleColor.g, idleColor.b, clr.a);
+            }
+            buttonEnabled = value;
+        }
+    }
+
     //The action paramaters are this button (MenuButton)
     //and whether the mouse entered or exited (bool)
     private Action<MenuButton, bool> OnMouseSelectButtonChangedMethod = null;
@@ -32,7 +57,13 @@ public class MenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     public MenuButton GetAdjacentButton(ButtonNavEnum dir)
     {
-        return adjacentButtons.GetButton(dir);
+        MenuButton button = adjacentButtons.GetButton(dir);
+        if (button != null && !button.ButtonEnabled)
+        {
+            return null;
+        }
+
+        return button;
     }
 
     public void SetOnMouseSelectMethod(Action<MenuButton, bool> selectMethod)
@@ -52,33 +83,39 @@ public class MenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        //if (!ButtonEnabled) { return; }
         OnMouseSelectButtonChangedMethod(this, true);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        //if (!ButtonEnabled) { return; }
         OnMouseSelectButtonChangedMethod(this, false);
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        //if (!ButtonEnabled) { return; }
         OnMousePressButtonMethod();
     }
 
     public void OnSelect()
     {
+        if (!ButtonEnabled) { return; }
         text.color = selectColor;
         text.fontStyle = FontStyles.Underline | FontStyles.Bold;
     }
 
     public void OnDeselect()
     {
+        if (!ButtonEnabled) { return; }
         text.color = idleColor;
         text.fontStyle = FontStyles.Bold;
     }
 
     public void OnPress()
     {
+        if (!ButtonEnabled) { return; }
         Debug.Log("pressed " + name);
         OnPressMethod?.Invoke();
     }
@@ -87,6 +124,21 @@ public class MenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     {
         //Debug.Log("alpha set to " + a);
         text.color = new Color(text.color.r, text.color.g, text.color.b, a);
+    }
+
+    public float GetAlpha()
+    {
+        return text.color.a;
+    }
+
+    public void SetText(string buttonText)
+    {
+        text.text = buttonText;
+    }
+
+    public string GetText()
+    {
+        return text.text;
     }
 }
 

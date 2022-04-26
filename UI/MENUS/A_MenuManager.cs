@@ -122,4 +122,9 @@ public abstract class A_MenuManager<T> : MonoBehaviour
     {
         buttonGroup.GetButton(enumVal).SetPressMethod(pressMethod);
     }
+
+    protected void ClearOnButtonPressedMethod(T enumVal)
+    {
+        buttonGroup.GetButton(enumVal).SetPressMethod(null);
+    }
 }
