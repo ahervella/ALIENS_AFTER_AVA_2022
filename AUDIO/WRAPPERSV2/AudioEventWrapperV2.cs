@@ -17,7 +17,7 @@ public class AudioEventWrapperV2 : AAudioWrapperV2
         private AAudioWrapperV2 aAudioWrapper = null;
         public AAudioWrapperV2 AAudioWrapper => aAudioWrapper;
 
-        [SerializeField, Range(0f, 2f)]
+        [SerializeField, Range(0f, 5f)]
         private float delSeconds = 0;
         public float DelSeconds => delSeconds;
 
