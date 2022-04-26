@@ -31,7 +31,7 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
     private SO_DeveloperToolsSettings devToolsS = null;
 
     [SerializeField]
-    private BoolPropertySO tutorialShownPSO = null;
+    private BoolPropertySO firstTimePlayingPSO = null;
 
     private Coroutine loopVideoFadeCR = null;
     private Coroutine titleFadeCR = null;
@@ -62,9 +62,9 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
 
     private void PlayGame()
     {
-        if (!tutorialShownPSO.Value)
+        if (firstTimePlayingPSO.Value)
         {
-            tutorialShownPSO.ModifyValue(false);
+            firstTimePlayingPSO.ModifyValue(false);
             currGameMode.ModifyValue(GameModeEnum.TUTORIAL);
             return;
         }

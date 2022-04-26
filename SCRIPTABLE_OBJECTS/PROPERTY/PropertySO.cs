@@ -11,6 +11,9 @@ public abstract class PropertySO<T> : PropertySO
     [SerializeField]
     private bool triggerChangeWithStartVal = true;
 
+    //[SerializeField]
+    //private bool setStartingValOnFirstGet = false;
+
     [NonSerialized]
     protected T currentValue;
 
@@ -25,6 +28,9 @@ public abstract class PropertySO<T> : PropertySO
     [NonSerialized]
     private bool registeredWithGameModeManager = false;
 
+    //[NonSerialized]
+    //private bool startingValSet = false;
+
     public delegate void PropertyChanged(T oldValue, T newValue);
 
     private PropertyChanged OnPropertyChanged;
@@ -33,19 +39,25 @@ public abstract class PropertySO<T> : PropertySO
 
     public T Value => ValueGetter();
 
+    //TODO: test if this is wokring in build before
+    //reverting to setStartingValOnFirstGet
     private void OnEnable()
     {
-        currentValue = startingValue;
-        inpsectorCurrValue = startingValue;
-
         if (triggerChangeWithStartVal)
         {
+            currentValue = startingValue;
+            inpsectorCurrValue = startingValue;
+            //startingValSet = true;
             OnPropertyChanged?.Invoke(currentValue, currentValue);
         }
     }
 
     protected virtual T ValueGetter()
     {
+        //if (setStartingValOnFirstGet && !startingValSet)
+        //{
+        //    currentValue = startingValue;
+        //}
         return currentValue;
     }
 

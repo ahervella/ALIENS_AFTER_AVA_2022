@@ -14,13 +14,9 @@ public class SplashScreenManager : MonoBehaviour
     [SerializeField]
     private Image splashImg = null;
 
-    [SerializeField]
-    private BoolPropertySO tutorialShownPSO = null;
-
     private void Awake()
     {
         StartCoroutine(SplashScreenSequenceCR());
-        tutorialShownPSO.ModifyValue(false);
     }
 
     private IEnumerator SplashScreenSequenceCR()

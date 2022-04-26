@@ -37,5 +37,9 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     private bool demoMode = false;
     public bool DemoMode => demoMode;
 
+    [SerializeField]
+    private Loadout firstLoadout = null;
+    public Loadout FirstLoadout => firstLoadout;
+
     //TODO: mute just music, infinite energy bar, no delay for changing moves, no timer delays, etc.
 }
