@@ -11,6 +11,9 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
     [SerializeField]
     private List<AudioClip> randomAudioClipPool = new List<AudioClip>();
 
+    [NonSerialized]
+    private List<AudioClip> randAudioClipPoolCopy;
+
     [SerializeField, Range(-1200, 1200)]
     private int pitchCents = 0;
 
@@ -24,8 +27,11 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
     [SerializeField]
     private bool loop = false;
 
+    [SerializeField]
+    private bool pauseAudioOnGamePause = true;
+
     [NonSerialized]
-    AudioClip cachedAudioClip = null;
+    private AudioClip lastClipPlayed = null;
 
     public void SetToLoop()
     {
@@ -45,10 +51,11 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
     /// <returns>Returns the AudioClip which was played</returns>
     private AudioSource PlayAudioClipWrapperV2(AudioWrapperSource soundObject)
     {
-        S_AudioManager.Current.PauseToggleAllAudioClipWrapperV2s -= TogglePause;
-        S_AudioManager.Current.PauseToggleAllAudioClipWrapperV2s += TogglePause;
-
-        cachedSource = GetAudioSource(soundObject);
+        if (pauseAudioOnGamePause)
+        {
+            S_AudioManager.Current.PauseToggleAllAudioClipWrapperV2s -= TogglePause;
+            S_AudioManager.Current.PauseToggleAllAudioClipWrapperV2s += TogglePause;
+        }
 
         AudioWrapperSource awSource = soundObject.GetComponent<AudioWrapperSource>();
 
@@ -57,19 +64,29 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
             Debug.LogError("No SourceProperties Component on the gameobject: " + soundObject.name);
         }
 
-        AudioClip clip = randomAudioClipPool[0];
+        if (randomAudioClipPool.Count > 3 && lastClipPlayed != null)
+        {
+            randAudioClipPoolCopy = new List<AudioClip>(randomAudioClipPool);
+            randAudioClipPoolCopy.Remove(lastClipPlayed);
+            lastClipPlayed = randAudioClipPoolCopy[Random.Range(0, randAudioClipPoolCopy.Count)];
+        }
+        else
+        {
+            lastClipPlayed = randomAudioClipPool[Random.Range(0, randomAudioClipPool.Count)];
+        }
+
 
         if (randomAudioClipPool.Capacity > 1)
         {
-            clip = randomAudioClipPool[Random.Range(0, randomAudioClipPool.Count - 1)];
-            randomAudioClipPool.Remove(clip);
-            randomAudioClipPool.Add(clip);
+            lastClipPlayed = randomAudioClipPool[Random.Range(0, randomAudioClipPool.Count)];
+            randomAudioClipPool.Remove(lastClipPlayed);
+            randomAudioClipPool.Add(lastClipPlayed);
         }
 
         float volDb = currLevelOffsetDb + Random.Range(-volVrtnDb, volVrtnDb);
         float randPitchCents = pitchCents + Random.Range(-pitchVrtnCents, pitchVrtnCents);
 
-        AssignSourceProperties(cachedSource, volDb, randPitchCents, clip);
+        cachedSource = AssignWrapperSourceProperties(soundObject, volDb, randPitchCents, lastClipPlayed);
         cachedSource.loop = loop;
         cachedSource.Play();
         return cachedSource;
@@ -77,7 +94,7 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
 
     private void TogglePause(bool pause)
     {
-        if (!Pausable())
+        if (!IsCorrectAudio())
         {
             S_AudioManager.Current.PauseToggleAllAudioClipWrapperV2s -= TogglePause;
             return;
@@ -95,20 +112,20 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
 
     private void PauseAudio()
     {
-        if (Pausable())
+        if (IsCorrectAudio() && cachedSource.isPlaying)
         {
             cachedSource.Pause();
         }
     }
 
-    private bool Pausable()
+    private bool IsCorrectAudio()
     {
-        return cachedSource != null && cachedSource.clip == cachedAudioClip && cachedSource.isPlaying;
+        return cachedSource != null && cachedSource.clip == lastClipPlayed;
     }
 
     private void ResumeAudio()
     {
-        if (Pausable())
+        if (IsCorrectAudio() && !cachedSource.isPlaying)
         {
             cachedSource.UnPause();
         }

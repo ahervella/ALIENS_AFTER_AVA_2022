@@ -8,7 +8,11 @@ using UnityEngine.Audio;
 public class SO_MixerEffectSettings : ScriptableObject
 {
     [SerializeField]
-    List<MixerEffectWrapper> mixerWrappers = new List<MixerEffectWrapper>();
+    private float masterVolumeDeltaOnPause = 2f;
+    public float MasterVolumeDeltaOnPause => masterVolumeDeltaOnPause;
+
+    [SerializeField]
+    private List<MixerEffectWrapper> mixerWrappers = new List<MixerEffectWrapper>();
 
     /// <summary>
     /// Gets the MixerEffectsSettings that matches the mixer type

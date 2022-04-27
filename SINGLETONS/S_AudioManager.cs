@@ -11,6 +11,9 @@ public class S_AudioManager : Singleton<S_AudioManager>
     private SO_MixerEffectSettings mixerSettings = null;
 
     [SerializeField]
+    private AudioMixerGroup masterAudio = null;
+
+    [SerializeField]
     private SO_LoopAudioSettings loopSettings = null;
 
     [SerializeField]
@@ -98,14 +101,12 @@ public class S_AudioManager : Singleton<S_AudioManager>
         //TODO: test pausing is working correctly
         if (newMode == GameModeEnum.PAUSE)
         {
-            PauseToggleAllAudioClipWrapperV2s(true);
-            cachedPausedToggle = true;
+            OnGamePauseChange(true);
             return;
         }
         else if (prevMode == GameModeEnum.PAUSE)
         {
-            PauseToggleAllAudioClipWrapperV2s(false);
-            cachedPausedToggle = false;
+            OnGamePauseChange(false);
 
             //if unpaused, and still running, dont reset audio in PlayGameModeAudioLoop
             if (newMode == GameModeEnum.PLAY) { return; }
@@ -117,6 +118,24 @@ public class S_AudioManager : Singleton<S_AudioManager>
         }
 
         UpdateAndPlayAudioLoop();
+    }
+
+    private void OnGamePauseChange(bool paused)
+    {
+        if (paused)
+        {
+            PauseToggleAllAudioClipWrapperV2s(true);
+            cachedPausedToggle = true;
+            masterAudio.audioMixer.GetFloat("MasterVolume", out float currMasterVol);
+            masterAudio.audioMixer.SetFloat("MasterVolume", currMasterVol - mixerSettings.MasterVolumeDeltaOnPause);
+        }
+        else
+        {
+            PauseToggleAllAudioClipWrapperV2s(false);
+            cachedPausedToggle = false;
+            masterAudio.audioMixer.GetFloat("MasterVolume", out float currMasterVol);
+            masterAudio.audioMixer.SetFloat("MasterVolume", currMasterVol + mixerSettings.MasterVolumeDeltaOnPause);
+        }
     }
 
     private void OnZonePhaseChange(ZonePhaseEnum _, ZonePhaseEnum newPhase)
@@ -187,7 +206,9 @@ public class S_AudioManager : Singleton<S_AudioManager>
                 currLoopAudioWrapper = loopAW;
                 if (!currLoopAudioWrapper.SilenceForThisConfig)
                 {
-                    StartCoroutine(FadeAudioCR(loopAW.AudioWrapper, aws, true, loopAW.FadeAudioInTime));
+                    loopAW.AudioWrapper.PlayAudioWrapper(aws);
+                    FadeAudio(loopAW.AudioWrapper, aws, true, loopAW.FadeAudioInTime);
+                    //StartCoroutine(FadeAudioCR(loopAW.AudioWrapper, aws, true, loopAW.FadeAudioInTime));
                 }
                 continue;
             }
@@ -195,7 +216,8 @@ public class S_AudioManager : Singleton<S_AudioManager>
             LoopAudioWrapper otherLoopAW = loopSettings.GetAudioLoopWrapper(kvp.Key.Item1, kvp.Key.Item2, kvp.Key.Item3);
             if (!otherLoopAW.SilenceForThisConfig)
             {
-                StartCoroutine(FadeAudioCR(otherLoopAW.AudioWrapper, aws, false, otherLoopAW.FadeAudioOutTime));
+                FadeAudio(otherLoopAW.AudioWrapper, aws, false, otherLoopAW.FadeAudioOutTime);
+                //StartCoroutine(FadeAudioCR(otherLoopAW.AudioWrapper, aws, false, otherLoopAW.FadeAudioOutTime));
             }
         }
     }

@@ -9,6 +9,9 @@ public class S_GameModeManager : Singleton<S_GameModeManager>
     [SerializeField]
     private SO_GameModeSettings settings = null;
 
+    [SerializeField]
+    private PSO_CurrentGameMode currGameMode = null;
+
     private Coroutine loadingCR = null;
     //private Coroutine loadingAddedCR = null;
 
@@ -31,6 +34,25 @@ public class S_GameModeManager : Singleton<S_GameModeManager>
 
         AsyncLoadGameMode(gameMode, true, onFinishLoading);
     }*/
+
+    protected override void OnAwake()
+    {
+        //need to do this in awake because start runs every scene change,
+        //we only need this once
+        //Helpful to have this so we don't have to manually switch the GameMode PSO
+        //we're working with in the editor
+        StartCoroutine(StartCR());
+    }
+    
+    private IEnumerator StartCR()
+    {
+        yield return null;
+        currentSceneName = SceneManager.GetActiveScene().name;
+        if (settings.GetSceneName(currGameMode.Value) != currentSceneName)
+        {
+            currGameMode.ModifyValue(settings.GetEnum(currentSceneName));
+        }
+    }
 
     //TODO: should this be private and subscribe to the gamemode change (and/or do we want to make sure
     //all things get that change before changing scenes?)

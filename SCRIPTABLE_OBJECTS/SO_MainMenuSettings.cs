@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Random = UnityEngine.Random;
 
 [CreateAssetMenu(fileName = "SO_MainMenuSettings", menuName = "ScriptableObjects/StaticData/SO_MainMenuSettings")]
 public class SO_MainMenuSettings : ScriptableObject
@@ -26,6 +27,21 @@ public class SO_MainMenuSettings : ScriptableObject
             return onLoadFromBoot;
         }
         return onLoadFromRun;
+    }
+
+    [SerializeField]
+    private AAudioWrapperV2 mainMenuVox = null;
+    public AAudioWrapperV2 MainMenuVox => mainMenuVox;
+
+    [SerializeField]
+    private float minVoxDelay = default;
+
+    [SerializeField]
+    private float maxVoxDelay = default;
+
+    public float GetRandVoxDelay()
+    {
+        return Random.Range(minVoxDelay, maxVoxDelay);
     }
 }
 

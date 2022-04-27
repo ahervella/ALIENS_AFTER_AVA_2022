@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
+//TODO: move all audio util stuff to just live in AudioWrapperSource
+//The reason for making a util was a legacy concept
 public static class AudioUtil
 {
     /// <summary>
@@ -13,10 +15,12 @@ public static class AudioUtil
     /// <param name="volDb">Volume to be assigned in decibels</param>
     /// <param name="pitchCents">Pitch to be assigned in cents</param>
     /// <param name="clip">AudioClip to be assigned</param>
-    public static void AssignSourceProperties(AudioSource source, float volDb, float pitchCents, AudioClip clip)
+    public static AudioSource AssignWrapperSourceProperties(AudioWrapperSource aws, float volDb, float pitchCents, AudioClip clip)
     {
-        AudioWrapperSource aws = source.gameObject.GetComponent<AudioWrapperSource>();
+        AudioSource source = GetNewAudioSource(aws);
         AssignSourceProperties(source, aws.MixerGroup, aws.SpatialBlend, /*aws.MaxDist,*/ volDb, pitchCents, clip);
+        aws.AddNewAudioToFadeVolumeDict(source, source.volume);
+        return source;
     }
 
 
@@ -30,7 +34,7 @@ public static class AudioUtil
     /// <param name="volDb">Volume to be assigned in decibels</param>
     /// <param name="pitchCents">Pitch to be assigned in cents</param>
     /// <param name="clip">AudioClip to be assigned</param>
-    public static void AssignSourceProperties(AudioSource source, AudioMixerGroup mixerGroup, float spatialBlend, /*float maxDist,*/ float volDb, float pitchCents, AudioClip clip)
+    private static void AssignSourceProperties(AudioSource source, AudioMixerGroup mixerGroup, float spatialBlend, /*float maxDist,*/ float volDb, float pitchCents, AudioClip clip)
     {
         source.outputAudioMixerGroup = mixerGroup;
         source.spatialBlend = spatialBlend;
@@ -47,7 +51,7 @@ public static class AudioUtil
     /// </summary>
     /// <param name="source">GameObject to get and AudioSource From</param>
     /// <returns>An available or new AudioSource</returns>
-    public static AudioSource GetAudioSource(AudioWrapperSource source)
+    private static AudioSource GetNewAudioSource(AudioWrapperSource source)
     {
         AudioSource[] audioSources = source.GetComponents<AudioSource>();
 
@@ -104,38 +108,46 @@ public static class AudioUtil
         }
     }
 
-    public static IEnumerator FadeAudioCR(AAudioWrapperV2 aw, AudioWrapperSource aws, bool fadeInVsOut, float fadeTime)
+    public static void FadeAudio(AAudioWrapperV2 aw, AudioWrapperSource aws, bool fadeInVsOut, float fadeTime)
     {
-        fadeTime = Mathf.Max(fadeTime, 0.0001f);
+        aws.StartCoroutine(FadeAudioCR(aw, aws, fadeInVsOut, fadeTime));
+    }
 
-        if (fadeInVsOut)
-        {
-            aw.PlayAudioWrapper(aws);
-            StopAllAudioSourceSounds(aws);
-            yield return null;
-        }
-        
+    private static IEnumerator FadeAudioCR(AAudioWrapperV2 aw, AudioWrapperSource aws, bool fadeInVsOut, float fadeTime)
+    {
+        //if (fadeInVsOut)
+        //{
+        //    aw.PlayAudioWrapper(aws);
+        //}
+
+        /*
         AudioSource[] sources = aws.GetComponents<AudioSource>();
         Dictionary<AudioSource, float> originalVol = new Dictionary<AudioSource, float>();
-        foreach(AudioSource source in sources)
+        foreach (AudioSource source in sources)
         {
             originalVol.Add(source, source.volume);
 
             if (fadeInVsOut)
             {
-                source.Play();
+                source.volume = 0;
             }
-        }
+        }*/
+
 
         float currFadeTime = 0;
 
         while (currFadeTime < fadeTime)
         {
             currFadeTime += Time.deltaTime;
+            Debug.Log("Curr Fade Time" + currFadeTime);
+
+
+            AudioSource[] sources = aws.GetCachedVolumeSources();
 
             foreach (AudioSource source in sources)
             {
-                float targetVol = fadeInVsOut ? originalVol[source] : 0;
+                float ogVol = aws.GetOGVolume(source);
+                float targetVol = fadeInVsOut ? ogVol : 0;
                 if (currFadeTime >= fadeTime)
                 {
                     source.volume = targetVol;
@@ -146,10 +158,11 @@ public static class AudioUtil
                     continue;
                 }
 
-                float startDB = fadeInVsOut ? 0 : originalVol[source];
+                float startDB = fadeInVsOut ? 0 : ogVol;
                 source.volume = Mathf.Lerp(startDB, targetVol, currFadeTime / fadeTime);
-                yield return null;
             }
+
+            yield return null;
         }
     }
 }

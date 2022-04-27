@@ -118,6 +118,17 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
     {
         menuButtonsFadeCR = null;
         MenuEnabled = true;
+        StartCoroutine(MainMenuVoxLoop());
+    }
+
+    private IEnumerator MainMenuVoxLoop()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(settings.GetRandVoxDelay());
+            settings.MainMenuVox.PlayAudioWrapper(audioSource);
+            Debug.Log("Played Mainmenu Vox");
+        }
     }
 
     private IEnumerator FadeCoroutine(float delay, float fadeTime, Action<float> setAlpha, Action finishCR)

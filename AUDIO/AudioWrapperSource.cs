@@ -29,7 +29,9 @@ public class AudioWrapperSource : MonoBehaviour
     [SerializeField]
     private int aeMethodIndex = 0;
 
-    
+    private Dictionary<AudioSource, float> ogVolDict = new Dictionary<AudioSource, float>();
+
+
     private void Awake()
     {
         if (optionalAEExtender != null)
@@ -47,6 +49,39 @@ public class AudioWrapperSource : MonoBehaviour
                 source.rolloffMode = AudioRolloffMode.Custom;
             }*/
     }
+
+    //TODO: if later we find the need to fade different playing sounds from the same source
+    //or if we want to make sure that any delayed sounds that have a longer delay than
+    //the time it takes to fade out are still left at zero once they are played
+    //THEN, we need have a system in here that in which calling PlayAudioWrapperAndFade
+    //in AAudioWrapperV2 passes around the root AAudioWrapperV2 from which is used in a
+    //Dictionary<AAudioWrapperV2, Dictionary<AudioSource, float>> here for fading
+    //...
+    //That's gonna eat up a lot of time right now and don't think we need it /
+    //will run into that problem right now sooo tis a todo!
+
+    public void AddNewAudioToFadeVolumeDict(AudioSource audioSource, float ogVolume)
+    {
+        if (!ogVolDict.ContainsKey(audioSource))
+        {
+            ogVolDict.Add(audioSource, ogVolume);
+            return;
+        }
+        ogVolDict[audioSource] = ogVolume;
+    }
+
+    public float GetOGVolume(AudioSource audioSource)
+    {
+        return ogVolDict[audioSource];
+    }
+
+    public AudioSource[] GetCachedVolumeSources()
+    {
+        AudioSource[] sources = new AudioSource[ogVolDict.Count];
+        ogVolDict.Keys.CopyTo(sources, 0);
+        return sources;
+    }
+
 
     /// <summary>
     /// Public method to be called by this object's animation events

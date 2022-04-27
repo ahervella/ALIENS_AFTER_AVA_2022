@@ -34,4 +34,16 @@ public class SO_GameModeSettings : ScriptableObject
 
         return string.Empty;
     }
+
+    public GameModeEnum GetEnum(string sceneName)
+    {
+        GameModeWrapper wrapper = GetWrapperFromFunc(wrappers, gmw => gmw.SceneName, sceneName, LogEnum.WARNING, null);
+
+        if (wrapper != null)
+        {
+            return wrapper.GameMode;
+        }
+
+        return GameModeEnum.NONE;
+    }
 }
