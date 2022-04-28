@@ -288,6 +288,12 @@ public class PlayerRunner : MonoBehaviour
     {
         dodged = false;
 
+        if (currAction.IsPlayingHurtAnim())
+        {
+            dodged = true;
+            return;
+        }
+
         //TODO: since grappling puts alien in stun, do we need the first check?
         //Is it safe to leave it in case there is an alien infront of the one we grappled??
         //Even though that shouldn't ever be possible (unless an alien pops out in front?)
