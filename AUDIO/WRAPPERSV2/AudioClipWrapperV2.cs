@@ -30,8 +30,14 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
     [SerializeField]
     private bool pauseAudioOnGamePause = true;
 
+    [SerializeField]
+    private bool randAvoidLastTwoPlayed = true;
+
     [NonSerialized]
     private AudioClip lastClipPlayed = null;
+
+    [NonSerialized]
+    private AudioClip secondLastClipPlayed = null;
 
     public void SetToLoop()
     {
@@ -68,19 +74,16 @@ public class AudioClipWrapperV2 : AAudioWrapperV2
         {
             randAudioClipPoolCopy = new List<AudioClip>(randomAudioClipPool);
             randAudioClipPoolCopy.Remove(lastClipPlayed);
+            if (randAvoidLastTwoPlayed && randomAudioClipPool.Count > 4)
+            {
+                randAudioClipPoolCopy.Remove(secondLastClipPlayed);
+            }
+            secondLastClipPlayed = lastClipPlayed;
             lastClipPlayed = randAudioClipPoolCopy[Random.Range(0, randAudioClipPoolCopy.Count)];
         }
         else
         {
             lastClipPlayed = randomAudioClipPool[Random.Range(0, randomAudioClipPool.Count)];
-        }
-
-
-        if (randomAudioClipPool.Capacity > 1)
-        {
-            lastClipPlayed = randomAudioClipPool[Random.Range(0, randomAudioClipPool.Count)];
-            randomAudioClipPool.Remove(lastClipPlayed);
-            randomAudioClipPool.Add(lastClipPlayed);
         }
 
         float volDb = currLevelOffsetDb + Random.Range(-volVrtnDb, volVrtnDb);

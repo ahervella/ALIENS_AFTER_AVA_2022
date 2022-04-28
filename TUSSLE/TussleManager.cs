@@ -134,6 +134,8 @@ public class TussleManager : MonoBehaviour
 
         yield return WaitForVideoToLoad(queuedPlayer);
 
+        queuedWrapper.AudioWrapper?.PlayAudioWrapper(audioSource);
+
         currVideoPlayer.clip = null;
         currVideoPlayer = queuedPlayer;
     }
