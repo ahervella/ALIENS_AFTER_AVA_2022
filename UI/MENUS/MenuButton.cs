@@ -15,6 +15,9 @@ public class MenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     private MenuButtonGroup<ButtonNavEnum> adjacentButtons = null;
 
     [SerializeField]
+    private bool disableButton = false;
+
+    [SerializeField]
     private TextMeshProUGUI text = null;
 
     [SerializeField]
@@ -48,6 +51,14 @@ public class MenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         }
     }
 
+    private void Awake()
+    {
+        if (disableButton)
+        {
+            ButtonEnabled = false;
+        }
+    }
+
     //The action paramaters are this button (MenuButton)
     //and whether the mouse entered or exited (bool)
     private Action<MenuButton, bool> OnMouseSelectButtonChangedMethod = null;
@@ -60,7 +71,8 @@ public class MenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         MenuButton button = adjacentButtons.GetButton(dir);
         if (button != null && !button.ButtonEnabled)
         {
-            return null;
+            MenuButton nextButton = button.GetAdjacentButton(dir);
+            return nextButton != this ? nextButton : null;
         }
 
         return button;
