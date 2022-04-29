@@ -9,6 +9,9 @@ using static HelperUtil;
 public class SO_TerrZoneWrapper : ScriptableObject
 {
     [SerializeField]
+    private SO_DeveloperToolsSettings devTools = null;
+
+    [SerializeField]
     private int zone;
     public int Zone => zone;
 
@@ -17,7 +20,8 @@ public class SO_TerrZoneWrapper : ScriptableObject
 
     [SerializeField]
     private float startSpeed = default;
-    public float StartSpeed => startSpeed;
+    public float StartSpeed => startSpeed
+        + (float)devTools.GetModVale(devTools.CurrTerrMods?.SpeedStartDelta, 0);
 
     //[SerializeField]
     //private float speedIncPerMin = default;
@@ -61,8 +65,20 @@ public class SO_TerrZoneWrapper : ScriptableObject
     private class ZonePhaseWrapper
     {
         [SerializeField]
-        private ZonePhaseEnum phase = ZonePhaseEnum.NO_BOSS;
+        private bool infiniteTileDist = false;
+
+        [SerializeField]
+        private float tileDistanceOfPhase = 0;
+        public float? TileDistanceOfPhase => infiniteTileDist?
+            null : (float?)tileDistanceOfPhase;
+
+        [SerializeField]
+        private ZonePhaseEnum phase = ZonePhaseEnum.NONE;
         public ZonePhaseEnum Phase => phase;
+
+        [SerializeField]
+        private ZonePhaseEnum nextPhase = ZonePhaseEnum.NONE;
+        public ZonePhaseEnum NextPhase => nextPhase;
 
         [SerializeField]
         private TerrAddonWeightWrapper[] terrAddonWeightWrappers = null;
@@ -82,21 +98,42 @@ public class SO_TerrZoneWrapper : ScriptableObject
     [NonSerialized]
     private float[] TerrFoleyAddonCachedPercents;
 
-    public void InitAndCacheTerrAddonData(ZonePhaseEnum? phaseOverride = null)
+
+
+    private ZonePhaseWrapper GetZonePhaseWrapper(ZonePhaseEnum phase)
+    {
+        return GetWrapperFromFunc(
+            terrAddonPhaseWrappers, pw => pw.Phase, phase, LogEnum.ERROR, null);
+    }
+
+    public ZonePhaseEnum GetNextZonePhase(ZonePhaseEnum currPhase)
+    {
+        return GetZonePhaseWrapper(currPhase).NextPhase;
+    }
+
+
+    public float? TryGetZonePhaseTileDist(ZonePhaseEnum phase )
+    {
+        float? devToolsMultiplyer = devTools.GetModVale(
+            devTools.CurrTerrMods?.ZonePhaseTileDistMultiplyer, 1f);
+
+        return GetZonePhaseWrapper(phase).TileDistanceOfPhase * devToolsMultiplyer ?? null;
+    }
+
+    public void InitAndCacheTerrAddonData(ZonePhaseEnum phaseOverride = ZonePhaseEnum.NONE)
     {
         CacheTerrAddonWeightWrapper(phaseOverride);
         CacheWeightPercents();
         CacheTerrSpawnViolations();
     }
 
-    private void CacheTerrAddonWeightWrapper(ZonePhaseEnum? phaseOverride)
+    private void CacheTerrAddonWeightWrapper(ZonePhaseEnum phaseOverride)
     {
-        if (phaseOverride == null)
+        if (phaseOverride == ZonePhaseEnum.NONE)
         {
             phaseOverride = currZonePhase.Value;
         }
-        cachedTerrAddons = GetWrapperFromFunc(
-            terrAddonPhaseWrappers, pw => pw.Phase, phaseOverride, LogEnum.ERROR, null).TerrAddonWeightWrappers;
+        cachedTerrAddons = GetZonePhaseWrapper(phaseOverride).TerrAddonWeightWrappers;
     }
 
     private void CacheWeightPercents()

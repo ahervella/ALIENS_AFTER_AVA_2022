@@ -5,10 +5,13 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "SO_TerrSettings", menuName = "ScriptableObjects/StaticData/SO_TerrSettings")]
 public class SO_TerrSettings : ScriptableObject
 {
+    [SerializeField]
+    private SO_DeveloperToolsSettings devTools = null;
 
     [SerializeField]
     private Vector2 tileDims;
-    public Vector2 TileDims => tileDims;
+    public Vector2 TileDims => tileDims + (Vector2)devTools.GetModVale(
+        devTools.CurrTerrMods?.ZoneTileDimDelta, new Vector2(0, 0));
 
     [SerializeField]
     private float floorHeight;

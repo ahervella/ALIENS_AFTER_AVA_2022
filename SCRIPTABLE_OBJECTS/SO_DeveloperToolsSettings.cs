@@ -50,11 +50,14 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     [SerializeField]
     private List<DEV_TerrMods> terrMods = new List<DEV_TerrMods>();
 
-    public DEV_TerrMods currTerrMods = null;
+    [NonSerialized]
+    private DEV_TerrMods currTerrMods = null;
+    public DEV_TerrMods CurrTerrMods => currTerrMods;
 
     [SerializeField]
     private List<DEV_Boss1Mods> boss1Mods = new List<DEV_Boss1Mods>();
 
+    [NonSerialized]
     public DEV_Boss1Mods currBoss1Mods = null;
 
     //TODO: make it so we get all the stuff from the folder instead (for when,
@@ -62,6 +65,15 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     [SerializeField]
     private List<PropertySO> completePSOList = new List<PropertySO>();
     public List<PropertySO> CompletePSOList => completePSOList;
+
+    public T GetModVale<T>(T modVal, T defaultVal)
+    {
+        if (demoMode)
+        {
+            return modVal == null? defaultVal : modVal;
+        }
+        return defaultVal;
+    }
 
     public void SetMod(DevMenuButtonEnum menuButtonType)
     {
@@ -92,23 +104,28 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     //TODO: mute just music, infinite energy bar, no delay for changing moves, no timer delays, etc.
 }
 
-
+[Serializable]
 public class DEV_TerrMods : DEV_BuildMods<DEV_TerrMods>
 {
     [SerializeField]
     private float speedStartDelta = 0f;
     public float SpeedStartDelta => speedStartDelta;
 
-    [SerializeField]
-    private float speedAccelDelta = 0f;
-    public float SpeedAccelDelta => speedAccelDelta;
+    //TODO: still need to implement slow acceleration if want it
+    //[SerializeField]
+    //private float speedAccelDelta = 0f;
+    //public float SpeedAccelDelta => speedAccelDelta;
 
     [SerializeField]
-    private float zonePhaseTilDistMultiplyer = 1f;
-    public float ZonePhaseTilDistMultiplyer => zonePhaseTilDistMultiplyer;
+    private Vector2 zoneTileDimDelta = new Vector2(0, 0);
+    public Vector2 ZoneTileDimDelta => zoneTileDimDelta;
+
+    [SerializeField]
+    private float zonePhaseTileDistMultiplyer = 1f;
+    public float ZonePhaseTileDistMultiplyer => zonePhaseTileDistMultiplyer;
 }
 
-
+[Serializable]
 public class DEV_Boss1Mods : DEV_BuildMods<DEV_Boss1Mods>
 {
     [SerializeField]
