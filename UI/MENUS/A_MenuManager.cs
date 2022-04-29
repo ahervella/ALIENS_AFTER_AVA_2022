@@ -10,6 +10,9 @@ public abstract class A_MenuManager<T> : MonoBehaviour
     private MenuButton selectedStartButton = null;
 
     [SerializeField]
+    public bool disableKeyInputs = false;
+
+    [SerializeField]
     protected SO_InputManager inputManager = null;
 
     [SerializeField]
@@ -25,7 +28,10 @@ public abstract class A_MenuManager<T> : MonoBehaviour
         buttonGroup.ForEachButton(mb => mb.SetOnMouseSelectMethod(OnMouseSelectButtonChanged));
         buttonGroup.ForEachButton(mb => mb.SetOnMousePressMethod(OnMouseButtonPress));
 
-        SelectButton(selectedStartButton);
+        if (!disableKeyInputs)
+        {
+            SelectButton(selectedStartButton);
+        }
 
         OnMenuAwake();
         //TODO: make AssignMenuButtons an abstract class and move in here
@@ -35,8 +41,11 @@ public abstract class A_MenuManager<T> : MonoBehaviour
 
     private void Start()
     {
-        inputManager.RegisterForInput(InputEnum.NAV_DIR, InputManager_OnNavDirPressed);
-        inputManager.RegisterForInput(InputEnum.NAV_SELECT, InputManager_OnNavSelect);
+        if (!disableKeyInputs)
+        {
+            inputManager.RegisterForInput(InputEnum.NAV_DIR, InputManager_OnNavDirPressed);
+            inputManager.RegisterForInput(InputEnum.NAV_SELECT, InputManager_OnNavSelect);
+        }
 
         OnMenuStart();
     }
@@ -120,7 +129,8 @@ public abstract class A_MenuManager<T> : MonoBehaviour
 
     protected void AssignOnButtonPressedMethod(T enumVal, Action pressMethod)
     {
-        buttonGroup.GetButton(enumVal).SetPressMethod(pressMethod);
+        MenuButton bttn = buttonGroup.GetButton(enumVal);
+        bttn.SetPressMethod(pressMethod);
     }
 
     protected void ClearOnButtonPressedMethod(T enumVal)

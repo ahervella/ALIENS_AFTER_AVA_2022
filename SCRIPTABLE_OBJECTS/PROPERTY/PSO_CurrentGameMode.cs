@@ -13,7 +13,17 @@ public class PSO_CurrentGameMode : PropertySO<GameModeEnum>
 
     public override void ModifyValue(GameModeEnum mod)
     {
-        if (Value != mod)
+        ChangeGameMode(mod, false);
+    }
+
+    public void ForceChangeGameMode(GameModeEnum mod)
+    {
+        ChangeGameMode(mod, true);
+    }
+
+    private void ChangeGameMode(GameModeEnum mod, bool forceChange)
+    {
+        if (Value != mod || forceChange)
         {
             prevVal = Value;
             Debug.Log("Changing game mode to " + mod.ToString());

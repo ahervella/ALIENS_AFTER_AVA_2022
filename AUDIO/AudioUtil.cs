@@ -139,8 +139,6 @@ public static class AudioUtil
         while (currFadeTime < fadeTime)
         {
             currFadeTime += Time.deltaTime;
-            Debug.Log("Curr Fade Time" + currFadeTime);
-
 
             AudioSource[] sources = aws.GetCachedVolumeSources();
 

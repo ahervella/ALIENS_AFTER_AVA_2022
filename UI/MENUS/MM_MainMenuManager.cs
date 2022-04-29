@@ -53,6 +53,7 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
 
     protected override void OnMenuStart() { }
 
+    //TODO: make this part of awake, make sure all menus account for this change
     private void AssignButtonMethods()
     {
         AssignOnButtonPressedMethod(MainMenuButtonEnum.RUN, PlayGame);
@@ -127,7 +128,6 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
         {
             yield return new WaitForSeconds(settings.GetRandVoxDelay());
             settings.MainMenuVox.PlayAudioWrapper(audioSource);
-            Debug.Log("Played Mainmenu Vox");
         }
     }
 

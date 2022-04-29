@@ -18,6 +18,7 @@
     GAME_EQUIPMENT_1 = 14,
     GAME_EQUIPMENT_2 = 15,
     GAME_PAUSE = 16,
+    DEV_MENU = 666,
     DEV_1 = 100,
     DEV_2 = 101,
     DEV_3 = 102,

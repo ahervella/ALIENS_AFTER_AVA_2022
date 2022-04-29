@@ -52,6 +52,11 @@ public abstract class PropertySO<T> : PropertySO
         }
     }
 
+    public override string ValueToString()
+    {
+        return Value?.ToString();
+    }
+
     protected virtual T ValueGetter()
     {
         //if (setStartingValOnFirstGet && !startingValSet)
@@ -127,7 +132,8 @@ public abstract class PropertySO<T> : PropertySO
             currentValue = newValue;
             inpsectorCurrValue = newValue;
         }
-        
+
+        TriggerDevMenuUpdate();
     }
 
     public abstract void ModifyValue(T mod);
@@ -148,11 +154,18 @@ public abstract class PropertySO<T> : PropertySO
 
 public abstract class PropertySO : ScriptableObject
 {
-    [SerializeField]
-    public string Name = null;
-    [SerializeField]
-    protected string Description = null;
+    private event System.Action DevMenu_PSOUpdated = delegate { };
 
-    [SerializeField]
-    public Sprite icon = null;
+    public abstract string ValueToString();
+
+    public void DevMenu_SubscribeToPSO(Action devToolMethod)
+    {
+        DevMenu_PSOUpdated -= devToolMethod;
+        DevMenu_PSOUpdated += devToolMethod;
+    }
+
+    protected void TriggerDevMenuUpdate()
+    {
+        DevMenu_PSOUpdated?.Invoke();
+    }
 }

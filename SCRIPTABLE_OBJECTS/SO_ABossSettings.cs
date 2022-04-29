@@ -49,18 +49,18 @@ public abstract class SO_ABossSettings : ScriptableObject
     [SerializeField]
     private AAudioWrapperV2 hurtAudioWrapper = null;
     public AAudioWrapperV2 HurtAudioWrapper => hurtAudioWrapper;
+}
 
-    [Serializable]
-    protected class RageValue<T>
-    {
-        [SerializeField]
-        private T prerageVal = default;
+[Serializable]
+public class RageValue<T>
+{
+    [SerializeField]
+    private T prerageVal = default;
 
-        [SerializeField]
-        private T rageVal = default;
+    [SerializeField]
+    private T rageVal = default;
 
-        public T GetVal(bool rage) => rage ? rageVal : prerageVal;
-    }
+    public T GetVal(bool rage) => rage ? rageVal : prerageVal;
 }
 
 public enum BossSpawnEnum { INDEPENDENT = 0, TERR_HORIZ = 1, TERR_VERT = 2 }
