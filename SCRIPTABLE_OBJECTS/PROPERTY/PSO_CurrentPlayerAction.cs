@@ -13,8 +13,15 @@ public class PSO_CurrentPlayerAction : PropertySO<PlayerActionEnum>
         }
     }
 
-    public bool TryPerform(PlayerActionEnum action)
+    public bool TryPerform(PlayerActionEnum action, bool permissionOverride)
     {
+        if (permissionOverride)
+        {
+            SetValue(action);
+            return true;
+        }
+
+        //TODO: just make it so we only need the permission here?
         switch (action)
         {
             case PlayerActionEnum.DODGE_L:

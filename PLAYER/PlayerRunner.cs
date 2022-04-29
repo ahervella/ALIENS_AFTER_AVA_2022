@@ -154,7 +154,7 @@ public class PlayerRunner : MonoBehaviour
     {
         Debug.Log("InputAttempt " + action.ToString());
         if (pausedControls) { return; }
-        currAction.TryPerform(action);
+        currAction.TryPerform(action, playerAnimmator.PrematureActionChangeAllowed);
     }
 
     //TODO: take out dev testing for health and energy bar from here eventually!
@@ -260,7 +260,7 @@ public class PlayerRunner : MonoBehaviour
     private bool TryStartSprint()
     {
         //Will stop any current sprint cr cause of OnActionChange
-        if (!currAction.TryPerform(PlayerActionEnum.SPRINT)) { return false; }
+        if (!currAction.TryPerform(PlayerActionEnum.SPRINT, playerAnimmator.PrematureActionChangeAllowed)) { return false; }
         sprintCR = StartCoroutine(SprintCoroutine());
         return true;
     }

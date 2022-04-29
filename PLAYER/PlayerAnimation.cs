@@ -25,10 +25,19 @@ public class PlayerAnimation : BaseAnimation<PlayerActionEnum, SO_PlayerAnimatio
     [SerializeField]
     private SO_PlayerRunnerSettings playerSettings = null;
 
+    public bool PrematureActionChangeAllowed { get; private set; }
+
     protected override void OnActionChange(PlayerActionEnum prevAction, PlayerActionEnum newAction)
     {
         AnimationClip animClip = settings.GetAnimationAndChangeCamAngle(newAction, targetCameraAngle);
         spriteAnimator.Play(animClip);
+        PrematureActionChangeAllowed = false;
+    }
+
+    public void AE_ActionChangedAllowed()
+    {
+        Debug.Log("premature change true");
+        PrematureActionChangeAllowed = true;
     }
 
     public void AE_TriggerActionCameraAngle(SO_CameraAngle ca)
