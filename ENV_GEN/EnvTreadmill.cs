@@ -64,6 +64,9 @@ public class EnvTreadmill : MonoBehaviour
     private DSO_TreadmillSpeedChange treadmillToggleDelegate = null;
 
     [SerializeField]
+    private DSO_TerrainChange terrainChangeDelegate = null;
+
+    [SerializeField]
     private PSO_CurrentZonePhase currZonePhase = null;
 
     private Coroutine treadmillToggleCR = null;
@@ -87,6 +90,9 @@ public class EnvTreadmill : MonoBehaviour
     private float colShiftPerc;
 
     private float totalZoneDistTraveled = 0;
+    private float lastZonePhaseDist = 0;
+    private float? dist2NextZonePhase = 0;
+
     private bool bossSpawned = false;
 
     private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
@@ -122,6 +128,8 @@ public class EnvTreadmill : MonoBehaviour
         {
             SpawnZoneBoss();
         }
+
+        SetCurrZonePhaseDistances();
     }
 
     private void OnZoneWrapperChange(int oldValue, int newValue)
@@ -414,20 +422,42 @@ public class EnvTreadmill : MonoBehaviour
             spawnOnlyFoleyPSO.ModifyValue(false);
         }
 
-        if (bossSpawned) { return; }
 
+        if (dist2NextZonePhase != null
+            && totalZoneDistTraveled - lastZonePhaseDist >= dist2NextZonePhase)
+        {
+            SetNextZonePhase();
+        }
+    }
+
+    private void SetNextZonePhase()
+    {
+        lastZonePhaseDist = dist2NextZonePhase != null ? (float)dist2NextZonePhase : 0;
+
+        currZonePhase.ModifyValue(currZoneWrapper.GetNextZonePhase(currZonePhase.Value));
+        SetCurrZonePhaseDistances();
+    }
+
+    private void SetCurrZonePhaseDistances()
+    {
         //need to trigger the envrionment change sooner so the right
-        //generated terrain appears at the front by the time we spawn the boss
-        if (totalZoneDistTraveled >= (currZoneWrapper.TileDistance2Boss - settings.TileRows) * settings.TileDims.y
-            && currZonePhase.Value == ZonePhaseEnum.NO_BOSS)
-        {
-            currZonePhase.ModifyValue(ZonePhaseEnum.BOSS_SPAWN);
-        }
+        //generated terrain appears at the front by the time we set the phase
+        dist2NextZonePhase =
+           (currZoneWrapper.TryGetZonePhaseTileDist(currZonePhase.Value) - settings.TileRows)
+           * settings.TileDims.y;
 
-        if (totalZoneDistTraveled >= currZoneWrapper.TileDistance2Boss * settings.TileDims.y)
+        //So that we spawn the boss only once the terrain has fully changed
+        if (currZonePhase.Value == ZonePhaseEnum.BOSS_SPAWN)
         {
-            SpawnZoneBoss();
+            terrainChangeDelegate.RegisterForDelegateInvoked(OnTerrainChangeDelegate);
         }
+    }
+
+    private int OnTerrainChangeDelegate(TerrainChangeWrapper tcw)
+    {
+        terrainChangeDelegate.DeRegisterFromDelegateInvoked(OnTerrainChangeDelegate);
+        SpawnZoneBoss();
+        return 0;
     }
 
     private void ShiftTerrainRowsDown()

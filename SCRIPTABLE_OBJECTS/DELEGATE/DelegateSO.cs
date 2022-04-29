@@ -7,6 +7,9 @@ public abstract class DelegateSO<PARAM_TYPE, RETURN_TYPE> : ScriptableObject
 {
     //TODO: base class with property SO
 
+    //TODO: in the base class, add a subscribe to only next change feature
+    //and change for TerrainChange shtuff
+
     [NonSerialized]
     private bool registeredWithGameModeManager = false;
 
