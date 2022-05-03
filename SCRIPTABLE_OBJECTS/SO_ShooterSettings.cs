@@ -61,7 +61,6 @@ public class SO_ShooterSettings : ScriptableObject
         }
     }
 
-
     [Serializable]
     private class ShooterZoneWrapper
     {
@@ -75,7 +74,7 @@ public class SO_ShooterSettings : ScriptableObject
     }
 }
 
-
+[Serializable]
 public class ShooterWrapper
 {
     public ShooterWrapper(WeaponFire weaponFirePrefab, float delayTime)
@@ -84,9 +83,13 @@ public class ShooterWrapper
         this.delayTime = delayTime;
     }
 
+    [SerializeField]
     private WeaponFire weaponFirePrefab;
     public WeaponFire WeaponFirePrefab => weaponFirePrefab;
 
+    [SerializeField]
     private float delayTime = 2f;
     public float DelayTime => delayTime;
 }
+
+

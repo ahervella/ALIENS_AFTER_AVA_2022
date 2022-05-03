@@ -25,14 +25,17 @@ public class Shooter : MonoBehaviour
 
     private ShooterWrapper cachedShooterWrapper;
 
-    public static Shooter InstantiateShooterObject(Transform shooterParentRef, Transform muzzleFlashPosRef, Vector3 projectilePos, SO_ShooterSettings settings)
+    private bool usingCustomShooterWrapper = false;
+
+    public static Shooter InstantiateShooterObject(Transform shooterParentRef, Transform muzzleFlashPosRef, Vector3 projectilePos, ShooterWrapper customShooterWrapper)
     {
         Shooter instance = new GameObject("INSTANCED_SHOOTER").AddComponent<Shooter>();
         instance.transform.parent = shooterParentRef;
 
         instance.muzzleFlashSpawnPosRef = muzzleFlashPosRef;
         instance.projectileSpawnPos = projectilePos;
-        instance.settings = settings;
+        instance.usingCustomShooterWrapper = true;
+        instance.cachedShooterWrapper = customShooterWrapper;
         instance.AE_StartFiring();
         return instance;
     }
@@ -44,7 +47,10 @@ public class Shooter : MonoBehaviour
 
     private void AE_StartFiring()
     {
-        cachedShooterWrapper = settings.GetRandShooterWrapper();
+        if (!usingCustomShooterWrapper)
+        {
+            cachedShooterWrapper = settings.GetRandShooterWrapper();
+        }
         fireCR = StartCoroutine(FireCoroutine());
     }
 

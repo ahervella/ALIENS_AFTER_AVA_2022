@@ -6,6 +6,9 @@ using static HelperUtil;
 public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 {
     [SerializeField]
+    private SO_DeveloperToolsSettings devTools = null;
+
+    [SerializeField]
     private DSO_LaneChange laneChangeDelegate = null;
 
     //ordered from left to right
@@ -16,6 +19,8 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
     private Coroutine idleFloatCR = null;
     private Coroutine shootCR = null;
+
+    private List<Coroutine> randFireDelayCR = new List<Coroutine>();
 
     protected override void InitDeath()
     {
@@ -89,7 +94,7 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
     {
         //TODO: maybe in the future can randomize the guns / types of bullets
         //the boss can shoot with this!
-        ShooterWrapper sw = settings.ShootSettings(Rage).GetRandShooterWrapper();
+        ShooterWrapper sw = settings.ShootWrapper(Rage);
 
         yield return new WaitForSeconds(sw.DelayTime);
 
@@ -109,6 +114,11 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
         }
         spawnedBulletShooters.Clear();
         SafeStopCoroutine(ref shootCR, this);
+
+        foreach(Coroutine c in randFireDelayCR)
+        {
+            StopCoroutine(c);
+        }
     }
 
     private void StartFiringBullets(ShooterWrapper sw)
@@ -122,32 +132,40 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
             randList.Remove(randList[Random.Range(0, randList.Count)]);
         }
 
+        randFireDelayCR.Clear();
+
         for (int i = 0; i < totalBullets; i++)
         {
             int laneIndex = (i - totalBullets / 2);
-
             Transform muzzleFlashPosRef = randList[i];
-
-            Vector3 projectilePos = new Vector3(
-                GetLaneXPosition(laneIndex, terrSettings),
-                0,
-                muzzleFlashPosRef.position.z);
-
-            //TODO: is there any way to siplify the logic flow
-            //of having to place the projectile in a relative location
-            //so that it can auto align to the lane?
-
-            //spawn on horiz terrain transform so lane changing works with fired bullets
-            Shooter instance = Shooter.InstantiateShooterObject(
-                terrainNode.HorizTransform,
-                muzzleFlashPosRef,
-                projectilePos,
-                settings.ShootSettings(Rage));
-            
-            spawnedBulletShooters.Add(instance);
+            randFireDelayCR.Add(StartCoroutine(RandFireDelay(laneIndex, muzzleFlashPosRef)));
         }
 
         Debug.Log("Boss 1 bullets fired!");
+    }
+
+    private IEnumerator RandFireDelay(int laneIndex, Transform muzzleFlashPosRef)
+    {
+        Vector3 projectilePos = new Vector3(
+            GetLaneXPosition(laneIndex, terrSettings),
+            0,
+            muzzleFlashPosRef.position.z);
+
+        //TODO: is there any way to siplify the logic flow
+        //of having to place the projectile in a relative location
+        //so that it can auto align to the lane?
+        float randDelay =  Random.Range(0, settings.GetRandDelayRangeBetweenFires(Rage));
+
+        yield return new WaitForSeconds(randDelay);
+
+        //spawn on horiz terrain transform so lane changing works with fired bullets
+        Shooter instance = Shooter.InstantiateShooterObject(
+            terrainNode.HorizTransform,
+            muzzleFlashPosRef,
+            projectilePos,
+            settings.ShootWrapper(Rage));
+
+        spawnedBulletShooters.Add(instance);
     }
 
     private int OnLaneChange(LaneChange laneChange)
