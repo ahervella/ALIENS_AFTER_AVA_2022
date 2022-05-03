@@ -28,6 +28,9 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
     private PSO_CurrentGameMode currGameMode = null;
 
     [SerializeField]
+    private PSO_CurrentZonePhase currZonePhase = null;
+
+    [SerializeField]
     private SO_DeveloperToolsSettings devToolsS = null;
 
     [SerializeField]
@@ -49,6 +52,8 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
 
         ResetSequence();
         StartMainMenuSequence();
+
+        currZonePhase.ModifyValue(ZonePhaseEnum.NO_BOSS);
     }
 
     protected override void OnMenuStart() { }

@@ -93,8 +93,6 @@ public class EnvTreadmill : MonoBehaviour
     private float lastZonePhaseDist = 0;
     private float? dist2NextZonePhase = 0;
 
-    private bool bossSpawned = false;
-
     private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
 
     //TODO: HACK for now to get the transforms to shift properly
@@ -124,12 +122,13 @@ public class EnvTreadmill : MonoBehaviour
 
         targetLaneChange = null;
 
+        SetCurrZonePhaseDistances();
+
         if (devTools.SpawnBossOnStart)
         {
-            SpawnZoneBoss();
+            //To spawn boss correctly
+            OnTerrainChangeDelegate(null);
         }
-
-        SetCurrZonePhaseDistances();
     }
 
     private void OnZoneWrapperChange(int oldValue, int newValue)
@@ -485,7 +484,6 @@ public class EnvTreadmill : MonoBehaviour
 
     private void SpawnZoneBoss()
     {
-        bossSpawned = true;
         currZoneWrapper.BossPrefab.InstantiateBoss(this);
     }
 

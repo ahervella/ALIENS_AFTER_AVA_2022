@@ -14,7 +14,7 @@ public class GameBootManager : MonoBehaviour
     {
         if (devTools.DemoMode)
         {
-            firstTimePlayingPSO.ModifyValue(false);
+            firstTimePlayingPSO.ModifyValue(true);
         }
     }
 }
