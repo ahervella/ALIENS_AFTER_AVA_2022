@@ -95,19 +95,19 @@ public class MenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        //if (!ButtonEnabled) { return; }
+        if (!ButtonEnabled) { return; }
         OnMouseSelectButtonChangedMethod(this, true);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        //if (!ButtonEnabled) { return; }
+        if (!ButtonEnabled) { return; }
         OnMouseSelectButtonChangedMethod(this, false);
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        //if (!ButtonEnabled) { return; }
+        if (!ButtonEnabled) { return; }
         OnMousePressButtonMethod();
     }
 
