@@ -4,6 +4,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static UnityEngine.InputSystem.InputAction;
+using UnityEngine.InputSystem.Utilities;
+using UnityEngine.InputSystem.Controls;
+using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.Serialization;
+using Unity.Collections.LowLevel.Unsafe;
 
 [CreateAssetMenu(fileName = "SO_InputManager", menuName = "ScriptableObjects/StaticData/SO_InputManager")]
 public class SO_InputManager : ScriptableObject
@@ -29,9 +34,14 @@ public class SO_InputManager : ScriptableObject
     [NonSerialized]
     private bool registeredWithGameModeManager = false;
 
+    //Need the last dictionary party because turns out the InputAction.action.performed has
+    //overriden add and remove Callback functionality that allows to add the same methods with
+    //different targets (aka from different inherited scripts) to the action,
+    //which is inaccessible due to being part of the dll. This is the work around
     [NonSerialized]
-    private Dictionary<InputWrapper, Action<CallbackContext>>
-        unregisterOnGameModeSceneReplaceDict = new Dictionary<InputWrapper, Action<CallbackContext>>();
+    private Dictionary<InputWrapper, Dictionary<object, Action<CallbackContext>>>
+        unregisterOnGameModeSceneReplaceDict
+        = new Dictionary<InputWrapper, Dictionary<object, Action<CallbackContext>>>();
 
     public void RegisterForAnyInput(Action<CallbackContext> method, bool persistant = false)
     {
@@ -122,23 +132,33 @@ public class SO_InputManager : ScriptableObject
         if (!unregisterOnGameModeSceneReplaceDict.ContainsKey(iw))
         {
             if (!registering || persistant) { return; }
-            unregisterOnGameModeSceneReplaceDict.Add(iw, null);
+            unregisterOnGameModeSceneReplaceDict.Add(iw, new Dictionary<object, Action<CallbackContext>>());
         }
 
-        unregisterOnGameModeSceneReplaceDict[iw] -= method;
+        if (!unregisterOnGameModeSceneReplaceDict[iw].ContainsKey(method.Target))
+        {
+            unregisterOnGameModeSceneReplaceDict[iw].Add(method.Target, null);
+        }
+
+        unregisterOnGameModeSceneReplaceDict[iw][method.Target] -= method;
 
         if (!persistant && registering)
         {
-            unregisterOnGameModeSceneReplaceDict[iw] += method;
+            unregisterOnGameModeSceneReplaceDict[iw][method.Target] += method;
         }
     }
 
     private void S_GameModeManager_OnGameModeSceneUnloaded()
     {
-        foreach(KeyValuePair<InputWrapper, Action<CallbackContext>> kvp in unregisterOnGameModeSceneReplaceDict)
+        foreach(KeyValuePair<InputWrapper, Dictionary<object, Action<CallbackContext>>> kvp in unregisterOnGameModeSceneReplaceDict)
         {
-            kvp.Key.InputAction.action.performed -= kvp.Value;
+
+            foreach(KeyValuePair < object, Action<CallbackContext>> method_kvp in unregisterOnGameModeSceneReplaceDict[kvp.Key])
+            {
+                kvp.Key.InputAction.action.performed -= method_kvp.Value;
+            }
         }
+
         unregisterOnGameModeSceneReplaceDict.Clear();
     }
 }
