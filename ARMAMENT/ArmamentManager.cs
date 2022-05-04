@@ -44,12 +44,12 @@ public class ArmamentManager : MonoBehaviour
     {
         foreach (Weapon w in currLoadout.Value.OrderedWeapons)
         {
-            w.CacheArmamentLevelRequirements();
+            w?.CacheArmamentLevelRequirements();
         }
 
         foreach(Equipment e in currLoadout.Value.OrderedEquipments)
         {
-            e.CacheArmamentLevelRequirements();
+            e?.CacheArmamentLevelRequirements();
         }
     }
 
@@ -57,17 +57,21 @@ public class ArmamentManager : MonoBehaviour
     {
         foreach (Weapon w in currLoadout.Value.OrderedWeapons)
         {
+            if (w == null) { continue; }
             coolDownCRDict.Add(w, new Tuple<Coroutine, IntPropertySO>(null, w.ArmamentCoolDownPSO));
         }
 
         foreach (Equipment e in currLoadout.Value.OrderedEquipments)
         {
+            if (e == null) { continue; }
             coolDownCRDict.Add(e, new Tuple<Coroutine, IntPropertySO>(null, e.ArmamentCoolDownPSO));
         }
     }
 
     private bool TryUseArmament(AArmament armament)
     {
+        if (armament == null) { return false; }
+
         if (grappleOnFlag.Value)
         {
             return false;

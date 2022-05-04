@@ -113,7 +113,11 @@ public class PlayerRunner : MonoBehaviour
         inputManager.RegisterForInput(InputEnum.GAME_JUMP, InputManager_Jump);
         inputManager.RegisterForInput(InputEnum.GAME_SPRINT, InputManager_Sprint);
         inputManager.RegisterForInput(InputEnum.GAME_ROLL, InputManager_Roll);
-        //inputManager.RegisterForInput(InputEnum.GAME_PAUSE, InputManager_Pause);
+
+        inputManager.RegisterForInput(InputEnum.GAME_FIRE_WEAPON_1, InputManager_Weapon1);
+        inputManager.RegisterForInput(InputEnum.GAME_FIRE_WEAPON_2, InputManager_Weapon2);
+        inputManager.RegisterForInput(InputEnum.GAME_EQUIPMENT_1, InputManager_Equipment1);
+        inputManager.RegisterForInput(InputEnum.GAME_EQUIPMENT_2, InputManager_Equipment2);
 
         inputManager.RegisterForInput(InputEnum.DEV_1, InputManager_Dev1);
         inputManager.RegisterForInput(InputEnum.DEV_2, InputManager_Dev2);
@@ -132,7 +136,11 @@ public class PlayerRunner : MonoBehaviour
         inputManager.UnregisterFromInput(InputEnum.GAME_JUMP, InputManager_Jump);
         inputManager.UnregisterFromInput(InputEnum.GAME_SPRINT, InputManager_Sprint);
         inputManager.UnregisterFromInput(InputEnum.GAME_ROLL, InputManager_Roll);
-        //inputManager.UnregisterFromInput(InputEnum.GAME_PAUSE, InputManager_Pause);
+
+        inputManager.UnregisterFromInput(InputEnum.GAME_FIRE_WEAPON_1, InputManager_Weapon1);
+        inputManager.UnregisterFromInput(InputEnum.GAME_FIRE_WEAPON_2, InputManager_Weapon2);
+        inputManager.UnregisterFromInput(InputEnum.GAME_EQUIPMENT_1, InputManager_Equipment1);
+        inputManager.UnregisterFromInput(InputEnum.GAME_EQUIPMENT_2, InputManager_Equipment2);
 
         inputManager.UnregisterFromInput(InputEnum.DEV_1, InputManager_Dev1);
         inputManager.UnregisterFromInput(InputEnum.DEV_2, InputManager_Dev2);
@@ -184,26 +192,40 @@ public class PlayerRunner : MonoBehaviour
         TryPerformAction(PlayerActionEnum.ROLL);
     }
 
-    private void InputManager_Dev1(CallbackContext ctx)
-    {
-        //TakeDamage(PlayerActionEnum.DODGE_L);
-        //Debug.Log($"health: {currLives.Value}");
-    }
-
-    private void InputManager_Dev2(CallbackContext ctx)
-    {
-        currLives.ModifyValue(1);
-    }
-
-    private void InputManager_Dev3(CallbackContext ctx)
+    private void InputManager_Weapon1(CallbackContext ctx)
     {
         TryUseArmament(true, 0);
     }
 
+    private void InputManager_Weapon2(CallbackContext ctx)
+    {
+        TryUseArmament(true, 1);
+    }
+
+    private void InputManager_Equipment1(CallbackContext ctx)
+    {
+        TryUseArmament(false, 0);
+    }
+
+    private void InputManager_Equipment2(CallbackContext ctx)
+    {
+        TryUseArmament(false, 1);
+    }
+
+    private void InputManager_Dev1(CallbackContext ctx)
+    {
+    }
+
+    private void InputManager_Dev2(CallbackContext ctx)
+    {
+    }
+
+    private void InputManager_Dev3(CallbackContext ctx)
+    {
+    }
+
     private void InputManager_Dev4(CallbackContext ctx)
     {
-        //currEnergy.RewardPlayerEnergy(currAction.Value);
-        //TryStartSprint();
     }
 
     private void InputManager_Dev5(CallbackContext ctx)
@@ -213,12 +235,11 @@ public class PlayerRunner : MonoBehaviour
 
     private void InputManager_Dev6(CallbackContext ctx)
     {
-        TryUseArmament(false, 0);
     }
 
     private void InputManager_Dev7(CallbackContext ctx)
     {
-        TryUseArmament(false, 1);
+        
     }
 
     private void InputManager_Dev8(CallbackContext ctx)
