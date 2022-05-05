@@ -38,7 +38,7 @@ public abstract class SO_AFillBarSettings : ScriptableObject
 
     [SerializeField]
     private int maxQuant = default;
-    public int MaxQuant => maxQuant;
+    public virtual int MaxQuant => maxQuant;
 
     [SerializeField]
     private bool setStartingQuant = false;
@@ -46,5 +46,5 @@ public abstract class SO_AFillBarSettings : ScriptableObject
 
     [SerializeField]
     private int startingQuant = default;
-    public int StartingQuant => startingQuant;
+    public virtual int StartingQuant => startingQuant;
 }

@@ -34,6 +34,7 @@ public class MM_DevMenuManager : A_MenuManager<DevMenuButtonEnum>
         inputManager.RegisterForInput(InputEnum.DEV_MENU, OnDevMenuToggle, true);
         AssignOnButtonPressedMethod(DevMenuButtonEnum.TOGGLE_FULL_PSO, OnToggleFullPSOList);
         AssignOnButtonPressedMethod(DevMenuButtonEnum.LOAD_RUN, () => OnButtonLoadGameMode(GameModeEnum.PLAY));
+        AssignOnButtonPressedMethod(DevMenuButtonEnum.LOAD_BOSS, () => OnLoadBoss());
         AssignOnButtonPressedMethod(DevMenuButtonEnum.LOAD_MAINMENU, () => OnButtonLoadGameMode(GameModeEnum.MAINMENU));
         AssignOnButtonPressedMethod(DevMenuButtonEnum.LOAD_TUTORIAL, () => OnButtonLoadGameMode(GameModeEnum.TUTORIAL));
         AssignOnButtonPressedMethod(DevMenuButtonEnum.LOAD_BOOT, () => OnButtonLoadGameMode(GameModeEnum.BOOT));
@@ -62,16 +63,17 @@ public class MM_DevMenuManager : A_MenuManager<DevMenuButtonEnum>
             Destroy(psoListSpawnRef.GetChild(i).gameObject);
         }
 
-        foreach(PropertySO pso in settings.CompletePSOList)
+        foreach(PropertySO pso in settings.ExposedPSOs)
         {
             DevMenuPSOText instance = Instantiate(psoTextPrefab, psoListSpawnRef);
             instance.SetPSO(pso);
         }
     }
 
-    private void OnButtonLoadGameMode(GameModeEnum gameMode)
+    private void OnButtonLoadGameMode(GameModeEnum gameMode, bool bossStart = false)
     {
         Debug.Log("LOADING GAMEMODE: " + gameMode);
+        settings.SetSpawnBossOnStart(bossStart);
         currGameMode.ForceChangeGameMode(gameMode);
     }
 
@@ -93,7 +95,10 @@ public class MM_DevMenuManager : A_MenuManager<DevMenuButtonEnum>
         psoListSpawnRef.gameObject.SetActive(!psoListSpawnRef.gameObject.activeSelf);
     }
 
-
+    private void OnLoadBoss()
+    {
+        OnButtonLoadGameMode(GameModeEnum.PLAY, true);
+    }
 }
 
 //treadmill start speed delta

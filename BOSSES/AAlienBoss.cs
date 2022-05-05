@@ -118,7 +118,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         }
 
         //in case boss gains health
-        if (newHealth > oldHealth) { return; }
+        if (newHealth >= oldHealth) { return; }
 
         damageFlash.FlashWhiteDamage();
 
