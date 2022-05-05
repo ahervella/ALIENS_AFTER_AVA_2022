@@ -90,7 +90,7 @@ public class EnvTreadmill : MonoBehaviour
     private float colShiftPerc;
 
     private float totalZoneDistTraveled = 0;
-    private float lastZonePhaseDist = 0;
+    private float lastZonePhaseDistTraveled = 0;
     private float? dist2NextZonePhase = 0;
 
     private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
@@ -423,7 +423,7 @@ public class EnvTreadmill : MonoBehaviour
 
 
         if (dist2NextZonePhase != null
-            && totalZoneDistTraveled - lastZonePhaseDist >= dist2NextZonePhase)
+            && totalZoneDistTraveled - lastZonePhaseDistTraveled >= dist2NextZonePhase)
         {
             SetNextZonePhase();
         }
@@ -431,7 +431,7 @@ public class EnvTreadmill : MonoBehaviour
 
     private void SetNextZonePhase()
     {
-        lastZonePhaseDist = dist2NextZonePhase != null ? (float)dist2NextZonePhase : 0;
+        lastZonePhaseDistTraveled = totalZoneDistTraveled;
 
         currZonePhase.ModifyValue(currZoneWrapper.GetNextZonePhase(currZonePhase.Value));
         SetCurrZonePhaseDistances();

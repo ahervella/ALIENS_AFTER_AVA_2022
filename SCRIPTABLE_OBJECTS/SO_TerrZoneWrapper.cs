@@ -29,12 +29,12 @@ public class SO_TerrZoneWrapper : ScriptableObject
     //[SerializeField]
     //private float speedIncPerMin = default;
 
-    [SerializeField]
-    private float addonSpawnLikelihood = default;
+    //[SerializeField]
+    //private float addonSpawnLikelihood = default;
     [SerializeField]
     private FloatPropertySO dev_addonSpawnLikelihoodDelta = null;
     private float AddonSpawnLikelihood =>
-        addonSpawnLikelihood + dev_addonSpawnLikelihoodDelta?.Value ?? addonSpawnLikelihood;
+        cachedAddonSpawnLikelihood + dev_addonSpawnLikelihoodDelta?.Value ?? cachedAddonSpawnLikelihood;
 
     //[SerializeField]
     //private float addonSpawnIncPerMin = default;
@@ -87,6 +87,10 @@ public class SO_TerrZoneWrapper : ScriptableObject
         public ZonePhaseEnum NextPhase => nextPhase;
 
         [SerializeField]
+        private float addonSpawnLikelihood = 0f;
+        public float AddonSpawnLikelihood => addonSpawnLikelihood;
+
+        [SerializeField]
         private TerrAddonWeightWrapper[] terrAddonWeightWrappers = null;
         public TerrAddonWeightWrapper[] TerrAddonWeightWrappers => terrAddonWeightWrappers;
     }
@@ -104,7 +108,8 @@ public class SO_TerrZoneWrapper : ScriptableObject
     [NonSerialized]
     private float[] TerrFoleyAddonCachedPercents;
 
-
+    [NonSerialized]
+    private float cachedAddonSpawnLikelihood;
 
     private ZonePhaseWrapper GetZonePhaseWrapper(ZonePhaseEnum phase)
     {
@@ -125,18 +130,18 @@ public class SO_TerrZoneWrapper : ScriptableObject
 
     public void InitAndCacheTerrAddonData(ZonePhaseEnum phaseOverride = ZonePhaseEnum.NONE)
     {
-        CacheTerrAddonWeightWrapper(phaseOverride);
-        CacheWeightPercents();
-        CacheTerrSpawnViolations();
-    }
-
-    private void CacheTerrAddonWeightWrapper(ZonePhaseEnum phaseOverride)
-    {
         if (phaseOverride == ZonePhaseEnum.NONE)
         {
             phaseOverride = currZonePhase.Value;
         }
-        cachedTerrAddons = GetZonePhaseWrapper(phaseOverride).TerrAddonWeightWrappers;
+
+        ZonePhaseWrapper wrapper = GetZonePhaseWrapper(phaseOverride);
+
+        cachedAddonSpawnLikelihood = wrapper.AddonSpawnLikelihood;
+        cachedTerrAddons = wrapper.TerrAddonWeightWrappers;
+
+        CacheWeightPercents();
+        CacheTerrSpawnViolations();
     }
 
     private void CacheWeightPercents()
@@ -211,4 +216,4 @@ public class SO_TerrZoneWrapper : ScriptableObject
     }
 }
 
-public enum ZonePhaseEnum { NO_BOSS = 0, BOSS_SPAWN = 3, BOSS = 1, BOSS_RAGE = 2, NONE = 4 }
+public enum ZonePhaseEnum { NO_BOSS_SUB1 = 0, NO_BOSS_SUB2 = 5, NO_BOSS_SUB3 = 6, BOSS_SPAWN = 3, BOSS = 1, BOSS_RAGE = 2, NONE = 4 }
