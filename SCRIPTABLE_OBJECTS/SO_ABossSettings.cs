@@ -7,12 +7,19 @@ using static HelperUtil;
 public abstract class SO_ABossSettings : ScriptableObject
 {
     [SerializeField]
-    private int startingHealth = default;
-    public int StartingHealth => startingHealth;
+    private int startingHealth;
+    [SerializeField]
+    private IntPropertySO dev_startingHealthDelta = null;
+
+    public int StartingHealth =>
+        startingHealth + dev_startingHealthDelta?.Value ?? startingHealth;
 
     [SerializeField]
-    private float rageHealthThreshold = default;
-    public float RageHealthThreshold => rageHealthThreshold;
+    private int rageHealthThreshold = default;
+    [SerializeField]
+    private IntPropertySO dev_rageHealthThresholdDelta = null;
+    public virtual float RageHealthThreshold =>
+        rageHealthThreshold + dev_rageHealthThresholdDelta?.Value ?? rageHealthThreshold;
 
     [SerializeField]
     private int hitBoxTileWidth = 1;
@@ -51,6 +58,8 @@ public abstract class SO_ABossSettings : ScriptableObject
     public AAudioWrapperV2 HurtAudioWrapper => hurtAudioWrapper;
 }
 
+//TODO: Change to a general EnumValueWrapper to be able to have multiple boss
+//phase with sub phases
 [Serializable]
 public class RageValue<T>
 {
@@ -59,6 +68,12 @@ public class RageValue<T>
 
     [SerializeField]
     private T rageVal = default;
+
+    public RageValue(T prerageVal, T rageVal)
+    {
+        this.prerageVal = prerageVal;
+        this.rageVal = rageVal;
+    }
 
     public T GetVal(bool rage) => rage ? rageVal : prerageVal;
 }

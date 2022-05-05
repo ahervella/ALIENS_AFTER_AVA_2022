@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using static HelperUtil;
+using UnityEditor;
+using Object = UnityEngine.Object;
 
 [CreateAssetMenu(fileName = "SO_DeveloperToolsSettings", menuName = "ScriptableObjects/StaticData/SO_DeveloperToolsSettings")]
 public class SO_DeveloperToolsSettings : ScriptableObject
@@ -39,6 +41,11 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     private bool spawnBossOnStart = false;
     public bool SpawnBossOnStart => spawnBossOnStart;
 
+    public void SetSpawnBossOnStart(bool spawnBossOnStart)
+    {
+        this.spawnBossOnStart = spawnBossOnStart;
+    }
+
     [SerializeField]
     private bool demoMode = false;
     public bool DemoMode => demoMode;
@@ -67,12 +74,43 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     public Boss1ModPreset CurrBoss1Mods = null;
 
     //TODO: make it so we get all the stuff from the folder instead (for when,
-    //we make new ones in there)
+    //we make new ones in there), WITH scrolling, which is being a biatch
     [SerializeField]
-    private List<PropertySO> completePSOList = new List<PropertySO>();
-    public List<PropertySO> CompletePSOList => completePSOList;
+    private List<PropertySO> exposedPSOs = new List<PropertySO>();
+    public List<PropertySO> ExposedPSOs => exposedPSOs;
 
-    
+
+    /*
+    [NonSerialized]
+    private List<PropertySO> completePSOList = null;
+    public List<PropertySO> GetCompletePSOList()
+    {
+        if (completePSOList == null)
+        {
+            CacheCompletePSOList();
+        }
+
+        return completePSOList;
+    }
+
+
+    [SerializeField]
+    private string psoDirectory = string.Empty;
+
+    public void CacheCompletePSOList()
+    {
+        completePSOList = new List<PropertySO>();
+        string[] psos = AssetDatabase.FindAssets($"t:{typeof(PropertySO)}", new[] { psoDirectory });
+        foreach (string psoGUID in psos)
+        {
+            string psoPath = AssetDatabase.GUIDToAssetPath(psoGUID);
+            PropertySO castedPSO = AssetDatabase.LoadAssetAtPath<PropertySO>(psoPath);
+            if (castedPSO == null) { continue; }
+            completePSOList.Add(castedPSO);
+        }
+    }*/
+
+
     public string TryGetModName(DevMenuButtonEnum menuButtonType)
     {
         BuildModPreset mod = TryGetMod(menuButtonType);
@@ -173,8 +211,8 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     [Serializable]
     private class Boss1ModPSOs : AModPSOs<Boss1ModPreset>
     {
-        [SerializeField]
-        private RageFloatPSO animSwayMultiplyer = null;
+        //[SerializeField]
+        //private RageFloatPSO animSwayMultiplyer = null;
 
         [SerializeField]
         private IntPropertySO healthDelta = null;
@@ -186,20 +224,27 @@ public class SO_DeveloperToolsSettings : ScriptableObject
         private RageFloatPSO firePhaseDelayDelta = null;
 
         [SerializeField]
-        private RageFloatPSO shootDelayDeltaDelta = null;
+        private RageFloatPSO fireShotRandDelayRange = null;
 
         [SerializeField]
-        private BoolPropertySO easyShootSequence = null;
+        private RageFloatPSO shootDelayDeltaDelta = null;
+
+        //[SerializeField]
+        //private BoolPropertySO easyShootSequence = null;
 
         public override void SetMod(Boss1ModPreset modPreset)
         {
             healthDelta.ModifyValue(modPreset.HealthDelta);
 
+            rageHealthThreshold.ModifyValue(modPreset.RageHealthThresholdDelta);
+
             firePhaseDelayDelta.ModifyValue(modPreset.FirePhaseDelayDelta);
+
+            fireShotRandDelayRange.ModifyValue(modPreset.FireShotRandDelayRange);
 
             shootDelayDeltaDelta.ModifyValue(modPreset.ShootDelayDelta);
 
-            easyShootSequence.ModifyValue(modPreset.EasyShootSequence);
+            //easyShootSequence.ModifyValue(modPreset.EasyShootSequence);
         }
     }
 
@@ -211,9 +256,9 @@ public class SO_DeveloperToolsSettings : ScriptableObject
             devTools.boss1PSOs.SetMod(this);
         }
 
-        [SerializeField]
-        private RageValue<float> animSwayMultiplyer;
-        public RageValue<float> AnimSwayMultiplyer => animSwayMultiplyer;
+        //[SerializeField]
+        //private RageValue<float> animSwayMultiplyer;
+        //public RageValue<float> AnimSwayMultiplyer => animSwayMultiplyer;
 
         [SerializeField]
         private int healthDelta = 0;
@@ -235,9 +280,9 @@ public class SO_DeveloperToolsSettings : ScriptableObject
         private RageValue<float> shootDelayDelta;
         public RageValue<float> ShootDelayDelta => shootDelayDelta;
 
-        [SerializeField]
-        private bool easyShootSequence = false;
-        public bool EasyShootSequence => easyShootSequence;
+        //[SerializeField]
+        //private bool easyShootSequence = false;
+        //public bool EasyShootSequence => easyShootSequence;
     }
 
     [Serializable]
