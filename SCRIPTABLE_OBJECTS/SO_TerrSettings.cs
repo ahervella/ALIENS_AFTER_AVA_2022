@@ -10,8 +10,11 @@ public class SO_TerrSettings : ScriptableObject
 
     [SerializeField]
     private Vector2 tileDims;
-    public Vector2 TileDims => tileDims + (Vector2)devTools.GetModVale(
-        devTools.CurrTerrMods?.ZoneTileDimDelta, new Vector2(0, 0));
+    [SerializeField]
+    private Vector2PropertySO dev_tileDimsDelta = null;
+
+    public Vector2 TileDims =>
+        tileDims + dev_tileDimsDelta?.Value ?? tileDims;
 
     [SerializeField]
     private float floorHeight;

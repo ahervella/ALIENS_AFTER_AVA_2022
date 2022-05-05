@@ -48,17 +48,23 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     public Loadout FirstLoadout => firstLoadout;
 
     [SerializeField]
-    private List<DEV_TerrMods> terrMods = new List<DEV_TerrMods>();
-
-    [NonSerialized]
-    private DEV_TerrMods currTerrMods = null;
-    public DEV_TerrMods CurrTerrMods => currTerrMods;
+    private TerrModPSOs terrModPSOs = new TerrModPSOs();
 
     [SerializeField]
-    private List<DEV_Boss1Mods> boss1Mods = new List<DEV_Boss1Mods>();
+    private List<TerrModPreset> terrMods = new List<TerrModPreset>();
 
     [NonSerialized]
-    public DEV_Boss1Mods currBoss1Mods = null;
+    private TerrModPreset currTerrMods = null;
+    public TerrModPreset CurrTerrMods => currTerrMods;
+
+    [SerializeField]
+    private Boss1ModPSOs boss1PSOs = new Boss1ModPSOs();
+
+    [SerializeField]
+    private List<Boss1ModPreset> boss1Mods = new List<Boss1ModPreset>();
+
+    [NonSerialized]
+    public Boss1ModPreset CurrBoss1Mods = null;
 
     //TODO: make it so we get all the stuff from the folder instead (for when,
     //we make new ones in there)
@@ -66,93 +72,192 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     private List<PropertySO> completePSOList = new List<PropertySO>();
     public List<PropertySO> CompletePSOList => completePSOList;
 
-    public T GetModVale<T>(T modVal, T defaultVal)
+    
+    public string TryGetModName(DevMenuButtonEnum menuButtonType)
     {
-        if (demoMode)
-        {
-            return modVal == null? defaultVal : modVal;
-        }
-        return defaultVal;
+        BuildModPreset mod = TryGetMod(menuButtonType);
+        return mod?.PresetName;
     }
 
-    public void SetMod(DevMenuButtonEnum menuButtonType)
-    {
-        if (TryFindAndSetMod(ref currTerrMods, terrMods, menuButtonType))
-        {
-            return;
-        }
 
-        if (TryFindAndSetMod(ref currBoss1Mods, boss1Mods, menuButtonType))
-        {
-            return;
-        }
-    }
-
-    private bool TryFindAndSetMod<T>(ref T currMod, List<T> modsList, DevMenuButtonEnum menuButtonType) where T : DEV_BuildMods<T>
+    public bool TrySetMod(DevMenuButtonEnum menuButtonType)
     {
-        T buildMod = GetWrapperFromFunc(modsList, dbm => dbm.MenuButtonType, menuButtonType, LogEnum.NONE, null);
-        if (buildMod != null)
+        BuildModPreset mod = TryGetMod(menuButtonType);
+        if (mod != null)
         {
-            currMod = buildMod;
+            mod.SetThisMod(this);
             return true;
         }
 
         return false;
-
     }
 
+    private BuildModPreset TryGetMod(DevMenuButtonEnum menuButtonType)
+    {
+        TerrModPreset terrMod = TryGetModFromList(terrMods, menuButtonType);
+        if (terrMod != null)
+        {
+            return terrMod;
+        }
+
+        Boss1ModPreset boss1Mod = TryGetModFromList(boss1Mods, menuButtonType);
+        if (boss1Mod != null)
+        {
+            return boss1Mod;
+        }
+
+        return null;
+    }
+
+    private T TryGetModFromList<T>(List<T> modsList, DevMenuButtonEnum menuButtonType) where T : BuildModPreset
+    {
+        return GetWrapperFromFunc(modsList, dbm => dbm.MenuButtonType, menuButtonType, LogEnum.NONE, null);
+    }
+
+
     //TODO: mute just music, infinite energy bar, no delay for changing moves, no timer delays, etc.
+
+
+
+
+
+
+    [Serializable]
+    private class TerrModPSOs : AModPSOs<TerrModPreset>
+    {
+        [SerializeField]
+        private FloatPropertySO speedStartMultiplyer = null;
+
+        [SerializeField]
+        private Vector2PropertySO tileDimDelta = null;
+
+        [SerializeField]
+        private FloatPropertySO zonePhaseTileDistMultiplyer = null;
+
+        public override void SetMod(TerrModPreset modPreset)
+        {
+            speedStartMultiplyer.ModifyValue(modPreset.SpeedStartMultiplyer);
+
+            tileDimDelta.ModifyValue(modPreset.TileDimDelta);
+
+            zonePhaseTileDistMultiplyer.ModifyValue(modPreset.SpeedStartMultiplyer);
+        }
+    }
+
+    [Serializable]
+    public class TerrModPreset : BuildModPreset//<TerrModPreset>
+    {
+        public override void SetThisMod(SO_DeveloperToolsSettings devTools)
+        {
+            devTools.terrModPSOs.SetMod(this);
+        }
+
+        [SerializeField]
+        private float speedStartMultiplyer = 0f;
+        public float SpeedStartMultiplyer => speedStartMultiplyer;
+
+        //TODO: still need to implement slow acceleration if want it
+        //[SerializeField]
+        //private float speedAccelDelta = 0f;
+        //public float SpeedAccelDelta => speedAccelDelta;
+
+        [SerializeField]
+        private Vector2 tileDimDelta = new Vector2(0, 0);
+        public Vector2 TileDimDelta => tileDimDelta;
+
+        [SerializeField]
+        private float zonePhaseTileDistMultiplyer = 1f;
+        public float ZonePhaseTileDistMultiplyer => zonePhaseTileDistMultiplyer;
+    }
+
+    [Serializable]
+    private class Boss1ModPSOs : AModPSOs<Boss1ModPreset>
+    {
+        [SerializeField]
+        private RageFloatPSO animSwayMultiplyer = null;
+
+        [SerializeField]
+        private IntPropertySO healthDelta = null;
+
+        [SerializeField]
+        private IntPropertySO rageHealthThreshold = null;
+
+        [SerializeField]
+        private RageFloatPSO firePhaseDelayDelta = null;
+
+        [SerializeField]
+        private RageFloatPSO shootDelayDeltaDelta = null;
+
+        [SerializeField]
+        private BoolPropertySO easyShootSequence = null;
+
+        public override void SetMod(Boss1ModPreset modPreset)
+        {
+            healthDelta.ModifyValue(modPreset.HealthDelta);
+
+            firePhaseDelayDelta.ModifyValue(modPreset.FirePhaseDelayDelta);
+
+            shootDelayDeltaDelta.ModifyValue(modPreset.ShootDelayDelta);
+
+            easyShootSequence.ModifyValue(modPreset.EasyShootSequence);
+        }
+    }
+
+    [Serializable]
+    public class Boss1ModPreset : BuildModPreset//<Boss1ModPreset>
+    {
+        public override void SetThisMod(SO_DeveloperToolsSettings devTools)
+        {
+            devTools.boss1PSOs.SetMod(this);
+        }
+
+        [SerializeField]
+        private RageValue<float> animSwayMultiplyer;
+        public RageValue<float> AnimSwayMultiplyer => animSwayMultiplyer;
+
+        [SerializeField]
+        private int healthDelta = 0;
+        public int HealthDelta => healthDelta;
+
+        [SerializeField]
+        private int rageHealthThresholdDelta;
+        public int RageHealthThresholdDelta => rageHealthThresholdDelta;
+
+        [SerializeField]
+        private RageValue<float> firePhaseDelayDelta;
+        public RageValue<float> FirePhaseDelayDelta => firePhaseDelayDelta;
+
+        [SerializeField]
+        private RageValue<float> fireShotRandDelayRange;
+        public RageValue<float> FireShotRandDelayRange => fireShotRandDelayRange;
+
+        [SerializeField]
+        private RageValue<float> shootDelayDelta;
+        public RageValue<float> ShootDelayDelta => shootDelayDelta;
+
+        [SerializeField]
+        private bool easyShootSequence = false;
+        public bool EasyShootSequence => easyShootSequence;
+    }
+
+    [Serializable]
+    public abstract class BuildModPreset//<T>
+    {
+        [SerializeField]
+        private string presetName = "UNAMED_PRESET";
+        public string PresetName => presetName;
+
+        [SerializeField]
+        private DevMenuButtonEnum menuButton = default;
+        public DevMenuButtonEnum MenuButtonType => menuButton;
+
+        public abstract void SetThisMod(SO_DeveloperToolsSettings devTools);
+    }
+
+    public abstract class AModPSOs<T> where T : BuildModPreset
+    {
+        public abstract void SetMod(T modPreset);
+    }
 }
 
-[Serializable]
-public class DEV_TerrMods : DEV_BuildMods<DEV_TerrMods>
-{
-    [SerializeField]
-    private float speedStartDelta = 0f;
-    public float SpeedStartDelta => speedStartDelta;
 
-    //TODO: still need to implement slow acceleration if want it
-    //[SerializeField]
-    //private float speedAccelDelta = 0f;
-    //public float SpeedAccelDelta => speedAccelDelta;
-
-    [SerializeField]
-    private Vector2 zoneTileDimDelta = new Vector2(0, 0);
-    public Vector2 ZoneTileDimDelta => zoneTileDimDelta;
-
-    [SerializeField]
-    private float zonePhaseTileDistMultiplyer = 1f;
-    public float ZonePhaseTileDistMultiplyer => zonePhaseTileDistMultiplyer;
-}
-
-[Serializable]
-public class DEV_Boss1Mods : DEV_BuildMods<DEV_Boss1Mods>
-{
-    [SerializeField]
-    private RageValue<float> animSwayMultiplyer;
-    public RageValue<float> AnimSwayMultiplyer => animSwayMultiplyer;
-
-    [SerializeField]
-    private int healthDelta;
-    public int HealthDelta => healthDelta;
-
-    [SerializeField]
-    private RageValue<float> firePhaseDelayDelta;
-    public RageValue<float> FirePhaseDelayDelta => firePhaseDelayDelta;
-
-    [SerializeField]
-    private RageValue<float> shootDelayDelta;
-    public RageValue<float> ShootDelayDelta => shootDelayDelta;
-
-    [SerializeField]
-    private bool hardRageSequence = false;
-    public bool HardRageSequence => hardRageSequence;
-}
-
-[Serializable]
-public class DEV_BuildMods<T>
-{
-    [SerializeField]
-    private DevMenuButtonEnum menuButton = default;
-    public DevMenuButtonEnum MenuButtonType => menuButton;
-}

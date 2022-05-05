@@ -42,7 +42,8 @@ public class MM_DevMenuManager : A_MenuManager<DevMenuButtonEnum>
         foreach (DevMenuButtonEnum dmb in (DevMenuButtonEnum[])Enum.GetValues(typeof(DevMenuButtonEnum)))
         {
             if ((int)dmb >= 100) { continue; }
-            AssignOnButtonPressedMethod(dmb, () => settings.SetMod(dmb));
+            buttonGroup.GetButton(dmb).SetText(settings.TryGetModName(dmb) ?? "ERROR_NO_NAME_FOUND");
+            AssignOnButtonPressedMethod(dmb, () => settings.TrySetMod(dmb));
         }
 
         versionText.text = settings.CurrBuildVersion;

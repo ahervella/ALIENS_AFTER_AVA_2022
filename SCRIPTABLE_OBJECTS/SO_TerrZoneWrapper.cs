@@ -20,8 +20,11 @@ public class SO_TerrZoneWrapper : ScriptableObject
 
     [SerializeField]
     private float startSpeed = default;
-    public float StartSpeed => startSpeed
-        + (float)devTools.GetModVale(devTools.CurrTerrMods?.SpeedStartDelta, 0);
+    [SerializeField]
+    private FloatPropertySO dev_startSpeedMultiplyer = null;
+
+    public float StartSpeed => startSpeed * dev_startSpeedMultiplyer?.Value ?? startSpeed;
+
 
     //[SerializeField]
     //private float speedIncPerMin = default;
@@ -34,10 +37,6 @@ public class SO_TerrZoneWrapper : ScriptableObject
 
     [SerializeField]
     private float foleySpawnLikelihood = default;
-
-    [SerializeField]
-    private float tileDistance2Boss = default;
-    public float TileDistance2Boss => tileDistance2Boss;
 
     [SerializeField]
     private List<ZonePhaseWrapper> terrAddonPhaseWrappers = new List<ZonePhaseWrapper>();
@@ -69,8 +68,11 @@ public class SO_TerrZoneWrapper : ScriptableObject
 
         [SerializeField]
         private float tileDistanceOfPhase = 0;
-        public float? TileDistanceOfPhase => infiniteTileDist?
-            null : (float?)tileDistanceOfPhase;
+        [SerializeField]
+        private FloatPropertySO dev_tileDistMultiplyer = null;
+
+        public float? TileDistanceOfPhase => infiniteTileDist ?
+            null : (float?)(tileDistanceOfPhase * dev_tileDistMultiplyer?.Value ?? tileDistanceOfPhase);
 
         [SerializeField]
         private ZonePhaseEnum phase = ZonePhaseEnum.NONE;
@@ -114,10 +116,7 @@ public class SO_TerrZoneWrapper : ScriptableObject
 
     public float? TryGetZonePhaseTileDist(ZonePhaseEnum phase )
     {
-        float? devToolsMultiplyer = devTools.GetModVale(
-            devTools.CurrTerrMods?.ZonePhaseTileDistMultiplyer, 1f);
-
-        return GetZonePhaseWrapper(phase).TileDistanceOfPhase * devToolsMultiplyer ?? null;
+        return GetZonePhaseWrapper(phase).TileDistanceOfPhase;
     }
 
     public void InitAndCacheTerrAddonData(ZonePhaseEnum phaseOverride = ZonePhaseEnum.NONE)

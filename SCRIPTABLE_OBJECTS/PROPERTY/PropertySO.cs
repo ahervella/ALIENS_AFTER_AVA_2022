@@ -15,6 +15,9 @@ public abstract class PropertySO<T> : PropertySO
     //private bool setStartingValOnFirstGet = false;
 
     [NonSerialized]
+    private bool startValSet = false;
+
+    [NonSerialized]
     protected T currentValue;
 
     [ReadOnly, SerializeField]
@@ -43,11 +46,12 @@ public abstract class PropertySO<T> : PropertySO
     //reverting to setStartingValOnFirstGet
     private void OnEnable()
     {
+        //currentValue = startingValue;
+        //inpsectorCurrValue = startingValue;
         if (triggerChangeWithStartVal)
         {
+            startValSet = true;
             currentValue = startingValue;
-            inpsectorCurrValue = startingValue;
-            //startingValSet = true;
             OnPropertyChanged?.Invoke(currentValue, currentValue);
         }
     }
@@ -59,10 +63,10 @@ public abstract class PropertySO<T> : PropertySO
 
     protected virtual T ValueGetter()
     {
-        //if (setStartingValOnFirstGet && !startingValSet)
-        //{
-        //    currentValue = startingValue;
-        //}
+        if (!startValSet)
+        {
+            currentValue = startingValue;
+        }
         return currentValue;
     }
 
@@ -120,6 +124,9 @@ public abstract class PropertySO<T> : PropertySO
     //the oldValue?
     protected void SetValue(T newValue)
     {
+        //in case we set the value using the default 
+        startValSet = true;
+
         if (invokeFlag)
         {
             T oldValue = currentValue;
