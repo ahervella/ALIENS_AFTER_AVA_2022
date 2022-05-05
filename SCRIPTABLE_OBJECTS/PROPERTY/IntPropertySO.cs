@@ -17,6 +17,11 @@ public class IntPropertySO : PropertySO<int>
     [SerializeField]
     private IntPropertySO minValueSO = null;
 
+    public void DirectlySetValue(int newVal)
+    {
+        ModifyValue(newVal - Value);
+    }
+
     public override void ModifyValue(int change)
     {
         SetValue(Mathf.Clamp(Value + change, MinValue(), MaxValue()));

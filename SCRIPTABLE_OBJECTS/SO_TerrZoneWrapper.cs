@@ -31,6 +31,10 @@ public class SO_TerrZoneWrapper : ScriptableObject
 
     [SerializeField]
     private float addonSpawnLikelihood = default;
+    [SerializeField]
+    private FloatPropertySO dev_addonSpawnLikelihoodDelta = null;
+    private float AddonSpawnLikelihood =>
+        addonSpawnLikelihood + dev_addonSpawnLikelihoodDelta?.Value ?? addonSpawnLikelihood;
 
     //[SerializeField]
     //private float addonSpawnIncPerMin = default;
@@ -174,7 +178,7 @@ public class SO_TerrZoneWrapper : ScriptableObject
     public TerrAddon GenerateRandomNewAddon(bool getOnlyFoley)
     {
         //first roll dice for spawning any addon
-        if (!getOnlyFoley && Random.value < addonSpawnLikelihood)
+        if (!getOnlyFoley && Random.value < AddonSpawnLikelihood)
         {
             return GetRandomTerrFromWeights(TerrAddonCachedPercents, cachedTerrAddons);
         }

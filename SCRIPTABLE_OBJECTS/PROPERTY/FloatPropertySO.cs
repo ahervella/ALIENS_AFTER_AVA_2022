@@ -15,6 +15,13 @@ public class FloatPropertySO : PropertySO<float>
     [SerializeField]
     private FloatPropertySO minValueSO = null;
 
+    //TODO: edit code to use this throughout, set up virtual in base or
+    //other solution and change on all PSOs
+    public void DirectlySetValue(int newVal)
+    {
+        ModifyValue(newVal - Value);
+    }
+
     public override void ModifyValue(float change)
     {
         float min = minValueSO == null ? minValue : minValueSO.Value;

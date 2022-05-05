@@ -172,18 +172,23 @@ public class SO_DeveloperToolsSettings : ScriptableObject
         [SerializeField]
         private FloatPropertySO zonePhaseTileDistMultiplyer = null;
 
+        [SerializeField]
+        private FloatPropertySO addonSpawnLikelihoodDelta = null;
+
         public override void SetMod(TerrModPreset modPreset)
         {
-            speedStartMultiplyer.ModifyValue(modPreset.SpeedStartMultiplyer);
+            speedStartMultiplyer.DirectlySetValue(modPreset.SpeedStartMultiplyer);
 
             tileDimDelta.ModifyValue(modPreset.TileDimDelta);
 
-            zonePhaseTileDistMultiplyer.ModifyValue(modPreset.SpeedStartMultiplyer);
+            zonePhaseTileDistMultiplyer.DirectlySetValue(modPreset.SpeedStartMultiplyer);
+
+            addonSpawnLikelihoodDelta.DirectlySetValue(modPreset.AddonSpawnLikelihoodDelta);
         }
     }
 
     [Serializable]
-    public class TerrModPreset : BuildModPreset//<TerrModPreset>
+    public class TerrModPreset : BuildModPreset
     {
         public override void SetThisMod(SO_DeveloperToolsSettings devTools)
         {
@@ -206,6 +211,10 @@ public class SO_DeveloperToolsSettings : ScriptableObject
         [SerializeField]
         private float zonePhaseTileDistMultiplyer = 1f;
         public float ZonePhaseTileDistMultiplyer => zonePhaseTileDistMultiplyer;
+
+        [SerializeField]
+        private float addonSpawnLikelihoodDelta = 0f;
+        public float AddonSpawnLikelihoodDelta => addonSpawnLikelihoodDelta;
     }
 
     [Serializable]
@@ -234,9 +243,9 @@ public class SO_DeveloperToolsSettings : ScriptableObject
 
         public override void SetMod(Boss1ModPreset modPreset)
         {
-            healthDelta.ModifyValue(modPreset.HealthDelta);
+            healthDelta.DirectlySetValue(modPreset.HealthDelta);
 
-            rageHealthThreshold.ModifyValue(modPreset.RageHealthThresholdDelta);
+            rageHealthThreshold.DirectlySetValue(modPreset.RageHealthThresholdDelta);
 
             firePhaseDelayDelta.ModifyValue(modPreset.FirePhaseDelayDelta);
 
