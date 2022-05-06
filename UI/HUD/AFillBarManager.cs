@@ -60,7 +60,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     /// <summary>
     /// Target number of blocks in bar percent
     /// </summary>
-    protected float targetFillAmount;
+    private float targetFillAmount;
 
     /// <summary>
     /// Previous fill amount (bar percent) at the time of energy change
@@ -82,7 +82,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
     private bool spawnBarFillAnimInProgress = false;
 
-    private int cachedMaxQuant = -1;
+    protected int cachedMaxQuant = -1;
 
     protected Color startingFrameColor;
 
