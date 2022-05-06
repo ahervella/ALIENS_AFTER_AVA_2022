@@ -53,7 +53,7 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
         ResetSequence();
         StartMainMenuSequence();
 
-        currZonePhase.ModifyValue(ZonePhaseEnum.NO_BOSS);
+        currZonePhase.ModifyValue(ZonePhaseEnum.NO_BOSS_SUB1);
     }
 
     protected override void OnMenuStart() { }
