@@ -23,10 +23,10 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     private Image maskImg = null;
 
     [SerializeField]
-    private Image frameImg = null;
+    protected Image frameImg = null;
 
     [SerializeField]
-    private Image maskFillImg = null;
+    protected Image maskFillImg = null;
 
     [SerializeField]
     protected PSO_CURR_QUANT currQuant = null;
@@ -46,6 +46,9 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     [SerializeField]
     private bool NoTransitionOnIncrease = false;
 
+    [SerializeField]
+    private BoolDelegateSO optionalFilledDelegate = null;
+
 
     /// <summary>
     /// A fraction of an energy block in bar percent that is meant
@@ -57,7 +60,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     /// <summary>
     /// Target number of blocks in bar percent
     /// </summary>
-    private float targetFillAmount;
+    protected float targetFillAmount;
 
     /// <summary>
     /// Previous fill amount (bar percent) at the time of energy change
@@ -81,6 +84,10 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
     private int cachedMaxQuant = -1;
 
+    protected Color startingFrameColor;
+
+    protected Color startingMaskFillColor;
+
     private void Awake()
     {
         //energyBarDisplayDelegate.RegisterForDelegateInvoked(SetVisibility);
@@ -88,6 +95,8 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
         //currAction.RegisterForPropertyChanged(OnActionChanged);
         currQuant.RegisterForPropertyChanged(OnCurrQuantChanged);
         blockFractionPerc = 0;
+        startingFrameColor = frameImg.color;
+        startingMaskFillColor = maskFillImg.color;
         AfterAwake();
     }
 
@@ -100,20 +109,27 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
         targetFillAmount = currQuant.Value / (float)cachedMaxQuant;
 
+        if (optionalFilledDelegate != null && targetFillAmount == 1 && newQuant > oldQuant)
+        {
+            optionalFilledDelegate.InvokeDelegateMethod(true);
+        }
+
         if ((NoTransitionOnDecrease && oldQuant > newQuant)
             || (NoTransitionOnIncrease && newQuant > oldQuant))
         {
             ImmediatelySetBarQuant();
-            return;
+        }
+        else
+        {
+            //minus fractionFillPerc so that it's not part of the interpolated amount
+            //also need to use targeFill for when doing the spaw anim so we
+            //don't jump around the bar if we trigger this mid spawn anim
+            prevFillAmount = (spawnBarFillAnimInProgress ?
+                targetFillAmount : maskImg.fillAmount)
+                - blockFractionPerc;
+            currTweenPerc = 0;
         }
 
-        //minus fractionFillPerc so that it's not part of the interpolated amount
-        //also need to use targeFill for when doing the spaw anim so we
-        //don't jump around the bar if we trigger this mid spawn anim
-        prevFillAmount = (spawnBarFillAnimInProgress ?
-            targetFillAmount : maskImg.fillAmount)
-            - blockFractionPerc;
-        currTweenPerc = 0;
         AfterModifyCurrQuant(oldQuant, newQuant);
     }
 

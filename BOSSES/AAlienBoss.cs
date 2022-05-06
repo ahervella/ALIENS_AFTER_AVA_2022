@@ -38,7 +38,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     private AudioWrapperSource audioSource = null;
 
     [SerializeField]
-    private AlienBossDamageFlash damageFlash = null;
+    private SpriteFlasher damageFlash = null;
 
     private AFillBarManagerBase healthBarPrefab;
 
@@ -120,7 +120,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         //in case boss gains health
         if (newHealth >= oldHealth) { return; }
 
-        damageFlash.FlashWhiteDamage();
+        damageFlash.Flash();
 
         if (newHealth <= settings.RageHealthThreshold && !Rage)
         {
