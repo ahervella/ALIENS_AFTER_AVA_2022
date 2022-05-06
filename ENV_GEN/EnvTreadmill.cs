@@ -276,8 +276,10 @@ public class EnvTreadmill : MonoBehaviour
         }
 
         //line up in grid local position
-        taInstance.transform.localPosition += new Vector3
-            ((colIndex + 0.5f) * settings.TileDims.x, 0, settings.TileRows * settings.TileDims.y);
+        taInstance.transform.localPosition += new Vector3(
+            (colIndex + taInstance.Dimensions().x / 2f - taInstance.CenterXCoor()) * settings.TileDims.x,
+            0,
+            settings.TileRows * settings.TileDims.y);
         return taInstance;
     }
 
