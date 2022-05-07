@@ -26,6 +26,9 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
     [SerializeField]
     private TextMeshProUGUI lastWords = null;
 
+    [SerializeField]
+    private BoolPropertySO firstTimePlayingPSO = null;
+
     private Coroutine slidesFadeCR = null;
 
     private int currSlideIndex = 0;
@@ -60,6 +63,7 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
 
     protected override void OnMenuStart()
     {
+        firstTimePlayingPSO.ModifyValue(false);
     }
 
     private void OnBackButton()

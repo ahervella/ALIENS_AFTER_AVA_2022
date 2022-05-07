@@ -70,7 +70,6 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
     {
         if (firstTimePlayingPSO.Value)
         {
-            firstTimePlayingPSO.ModifyValue(false);
             currGameMode.ModifyValue(GameModeEnum.TUTORIAL);
             return;
         }

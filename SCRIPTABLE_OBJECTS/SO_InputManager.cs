@@ -4,11 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static UnityEngine.InputSystem.InputAction;
-using UnityEngine.InputSystem.Utilities;
-using UnityEngine.InputSystem.Controls;
-using UnityEngine.InputSystem.LowLevel;
-using UnityEngine.Serialization;
-using Unity.Collections.LowLevel.Unsafe;
 
 [CreateAssetMenu(fileName = "SO_InputManager", menuName = "ScriptableObjects/StaticData/SO_InputManager")]
 public class SO_InputManager : ScriptableObject

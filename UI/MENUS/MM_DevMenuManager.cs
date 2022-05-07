@@ -27,6 +27,7 @@ public class MM_DevMenuManager : A_MenuManager<DevMenuButtonEnum>
     private TextMeshProUGUI versionText = null;
 
     [SerializeField]
+    private BoolPropertySO devMenuVisible = null;
 
     protected override void OnMenuAwake()
     {
@@ -83,10 +84,12 @@ public class MM_DevMenuManager : A_MenuManager<DevMenuButtonEnum>
         if (menuContainer.gameObject.activeSelf)
         {
             GraphyManager.Instance.Enable();
+            devMenuVisible.ModifyValue(true);
         }
         else
         {
             GraphyManager.Instance.Disable();
+            devMenuVisible.ModifyValue(false);
         }
     }
 
