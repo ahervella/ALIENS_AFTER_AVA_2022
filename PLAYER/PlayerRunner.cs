@@ -39,8 +39,8 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private SO_TerrNodeFadeSettings fadeSettings = null;
 
-    //[SerializeField]
-    //private PlayerSounds sounds;
+    [SerializeField]
+    private SO_TussleSettings tussleSettings = null;
 
     [SerializeField]
     private PSO_CurrentGameMode currGameMode = null;
@@ -90,6 +90,9 @@ public class PlayerRunner : MonoBehaviour
         currGameMode.RegisterForPropertyChanged(OnGameModeChange);
         currEndOfDemo.RegisterForPropertyChanged(OnDemoEnd);
         currZonePhase.RegisterForPropertyChanged(OnZonePhaseChange);
+
+        tussleSettings.TussleHazardCleanUpDelegate.RegisterForDelegateInvoked(
+            OnTussleHazardCleanUpInvoked);
     }
 
     private void Start()
@@ -357,6 +360,35 @@ public class PlayerRunner : MonoBehaviour
         Debug.Log("Loading tussle scene...");
         currAction.ModifyValue(PlayerActionEnum.TUSSLE);
         tussleInitDelegate.InvokeDelegateMethod(advantage);
+    }
+
+    private int OnTussleHazardCleanUpInvoked(bool _)
+    {
+        Vector3 raycastPos = new Vector3(transform.position.x, terrSettings.FloorHeight / 2, transform.position.z);       
+        float dist = tussleSettings.TussleHazardCleanUpTileDist * terrSettings.TileDims.y;
+        foreach(int layer in tussleSettings.TussleHazardCleanUpLayers)
+        {
+            int maskLayer = 1 << layer;
+
+            //Physics.Raycast(raycastPos, Vector3.forward, out raycastInfo, dist, maskLayer)
+            RaycastHit[] hits = Physics.RaycastAll(raycastPos, Vector3.forward, dist, maskLayer);
+
+            foreach(RaycastHit hit in hits)
+            {
+                //TODO: move this to utilities with the one done in GrappleHook.cs
+                GameObject target = hit.collider.gameObject;
+                TerrHazard hazard = null;
+                while (hazard == null)
+                {
+                    hazard = target.GetComponent<TerrHazard>();
+                    target = target.transform.parent.gameObject;
+                }
+
+                SafeDestroy(hazard.gameObject);
+            }
+
+        }
+        return 0;
     }
 
     private void TakeDamage(PlayerActionEnum requiredAction)

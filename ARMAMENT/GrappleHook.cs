@@ -37,6 +37,7 @@ public class GrappleHook : MonoBehaviour
     [SerializeField]
     private SO_TerrSettings terrSettings = null;
 
+    //TODO: make part of tussle settings?
     [SerializeField]
     private int grappleLayer = 8;
     private int cachedMaskLayer;

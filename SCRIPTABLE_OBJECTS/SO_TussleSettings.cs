@@ -10,6 +10,22 @@ using static HelperUtil;
 public class SO_TussleSettings : ScriptableObject
 {
     [SerializeField]
+    private float showSequenceDelay = 1f;
+    public float ShowSequenceDelay => showSequenceDelay;
+
+    [SerializeField]
+    private List<int> tussleHazardCleanUpLayers = new List<int>();
+    public List<int> TussleHazardCleanUpLayers => tussleHazardCleanUpLayers;
+
+    [SerializeField]
+    private float tussleHazardCleanUpTileDist = 1f;
+    public float TussleHazardCleanUpTileDist => tussleHazardCleanUpTileDist;
+
+    [SerializeField]
+    private BoolDelegateSO tussleHazardCleanUpDelegate = null;
+    public BoolDelegateSO TussleHazardCleanUpDelegate => tussleHazardCleanUpDelegate;
+
+    [SerializeField]
     private List<TussleVideoWrapper> videoWrappers = new List<TussleVideoWrapper>();
 
 

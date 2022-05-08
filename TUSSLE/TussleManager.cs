@@ -64,7 +64,10 @@ public class TussleManager : MonoBehaviour
 
         TussleVideoWrapper startVidWrapper = settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_START : TussleVideoType.DIS_START);
         TussleVideoWrapper loopVidWrapper = settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_LOOP : TussleVideoType.DIS_LOOP);
-        startCR = StartCoroutine(PlayVideo(startVidWrapper));
+
+        void startVideoLoadedCallback() => settings.TussleHazardCleanUpDelegate.InvokeDelegateMethod(true);
+
+        startCR = StartCoroutine(PlayVideo(startVidWrapper, startVideoLoadedCallback));
         loopCR = StartCoroutine(WaitForCurrVideoAndPlay(loopVidWrapper));
 
         InitiateButtonSequence();
@@ -142,6 +145,13 @@ public class TussleManager : MonoBehaviour
 
     private void InitiateButtonSequence()
     {
+        StartCoroutine(InitiateButtonSequenceCR());
+    }
+
+    private IEnumerator InitiateButtonSequenceCR()
+    {
+        yield return new WaitForSeconds(settings.ShowSequenceDelay);
+
         currSequence = Instantiate(settings.GetInputSequencePrefab(playerAdvantage), transform);
         currSequence.StartSequence(SequenceResolved);
     }

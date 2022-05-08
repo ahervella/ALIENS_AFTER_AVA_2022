@@ -44,7 +44,8 @@ public abstract class ASpriteFlasher : MonoBehaviour
 
     public void Flash(FlashType flashType = FlashType.FLASH_LOOP)
     {
-        SafeStartCoroutine(ref flashCR, FlashCR(flashType), this);
+        if (!isActiveAndEnabled) { return; }
+            SafeStartCoroutine(ref flashCR, FlashCR(flashType), this);
     }
 
     private IEnumerator FlashCR(FlashType flashType)
