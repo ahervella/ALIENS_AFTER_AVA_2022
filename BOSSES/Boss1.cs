@@ -163,6 +163,7 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
             terrainNode.HorizTransform,
             muzzleFlashPosRef,
             projectilePos,
+            HitBox().Box(),
             settings.ShootWrapper(Rage));
 
         spawnedBulletShooters.Add(instance);

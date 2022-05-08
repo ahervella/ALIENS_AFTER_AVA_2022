@@ -21,6 +21,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     [SerializeField]
     private BoxColliderSP hitBox = null;
+    public override BoxColliderSP HitBox() => hitBox;
 
     [SerializeField]
     private AnimationEventExtender removeBossAEExtender = null;

@@ -20,6 +20,7 @@ public class TerrHazard : TerrAddon
 
     [SerializeField]
     private BoxColliderSP hitBox = null;
+    public BoxColliderSP HitBox => hitBox;
 
     [SerializeField]
     private BoxColliderSP energyRewardBox = null;

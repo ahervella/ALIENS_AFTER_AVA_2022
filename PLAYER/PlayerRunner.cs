@@ -336,6 +336,14 @@ public class PlayerRunner : MonoBehaviour
             return;
         }
 
+        //reeling in means your jumping over stuff
+        if (avoidAction == PlayerActionEnum.JUMP
+            && currAction.Value == PlayerActionEnum.GRAPPLE_REEL)
+        {
+            dodged = true;
+            return;
+        }
+
         if (shieldOnFlag.Value)
         {
             //Only break the shield if it wasn't a projectile

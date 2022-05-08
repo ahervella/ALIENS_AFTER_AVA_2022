@@ -7,4 +7,6 @@ public abstract class AAlienBossBase : MonoBehaviour
     public abstract AAlienBossBase InstantiateBoss(EnvTreadmill treadmill);
 
     public abstract void TakeDamage(int damage);
+
+    public abstract BoxColliderSP HitBox();
 }

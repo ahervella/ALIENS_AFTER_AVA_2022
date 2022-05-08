@@ -71,6 +71,8 @@ public class Projectile : MonoBehaviour
 
     private Transform mzTrans;
 
+    private BoxCollider sourceHitBox = null;
+
     private void Awake()
     {
         slope = (isAlienProjectile ? -1 : 1) * speedPerSec * new Vector3(
@@ -82,6 +84,11 @@ public class Projectile : MonoBehaviour
         travelAudio?.PlayAudioWrapper(audioSource);
 
         SetMuzzleFlashTranform(transform);
+    }
+
+    public void SetFireSourceHitBox(BoxCollider sourceHitBox)
+    {
+        this.sourceHitBox = sourceHitBox;
     }
 
     public void SetMuzzleFlashTranform(Transform mzTrans)
@@ -101,7 +108,7 @@ public class Projectile : MonoBehaviour
     {
         //TODO: is this too jank or can I just resort to using on collision or on trigger and return
         //depending on the isAlienProjectile flag?
-        hitBox.Box().isTrigger = !isAlienProjectile;
+        hitBox.Box().isTrigger = true;//!isAlienProjectile;
         SetHitBoxDimensionsAndPos(
             hitBox.Box(),
             new Vector2(1, 1),
@@ -172,7 +179,8 @@ public class Projectile : MonoBehaviour
 
     public void OnEnteredHazard(TerrHazard hazard)
     {
-        if (isAlienProjectile) { return; }
+        //if (isAlienProjectile) { return; }
+        if (hazard.HitBox.Box() == sourceHitBox) { return; }
 
         SafeDestroy(hazard.gameObject);
         MadeImpact();
@@ -180,7 +188,8 @@ public class Projectile : MonoBehaviour
 
     public void OnEnteredBoss(AAlienBossBase boss)
     {
-        if (isAlienProjectile) { return; }
+        if (boss.HitBox().Box() == sourceHitBox) { return; }
+        //if (isAlienProjectile) { return; }
 
         boss.TakeDamage(1);
         MadeImpact();
@@ -214,8 +223,9 @@ public class Projectile : MonoBehaviour
 
         if (destroyOnImpact)
         {
-            destructionSpritePrefab?.InstantiateDestruction(transform.parent, spriteAnim.transform);
             SafeDestroy(gameObject);
         }
+
+        destructionSpritePrefab?.InstantiateDestruction(transform.parent, spriteAnim.transform);
     }
 }

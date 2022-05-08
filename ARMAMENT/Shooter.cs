@@ -19,6 +19,9 @@ public class Shooter : MonoBehaviour
     private Vector3 projectileSpawnPos;
 
     [SerializeField]
+    private BoxCollider shooterHitBox = null;
+
+    [SerializeField]
     private AnimationEventExtender aeExtender = null;
 
     private Coroutine fireCR = null;
@@ -27,13 +30,19 @@ public class Shooter : MonoBehaviour
 
     private bool usingCustomShooterWrapper = false;
 
-    public static Shooter InstantiateShooterObject(Transform shooterParentRef, Transform muzzleFlashPosRef, Vector3 projectilePos, ShooterWrapper customShooterWrapper)
+    public static Shooter InstantiateShooterObject(
+        Transform shooterParentRef,
+        Transform muzzleFlashPosRef,
+        Vector3 projectilePos,
+        BoxCollider shooterHitBox,
+        ShooterWrapper customShooterWrapper)
     {
         Shooter instance = new GameObject("INSTANCED_SHOOTER").AddComponent<Shooter>();
         instance.transform.parent = shooterParentRef;
 
         instance.muzzleFlashSpawnPosRef = muzzleFlashPosRef;
         instance.projectileSpawnPos = projectilePos;
+        instance.shooterHitBox = shooterHitBox;
         instance.usingCustomShooterWrapper = true;
         instance.cachedShooterWrapper = customShooterWrapper;
         instance.AE_StartFiring();
@@ -62,7 +71,8 @@ public class Shooter : MonoBehaviour
                 cachedShooterWrapper.WeaponFirePrefab,
                 transform,
                 muzzleFlashSpawnPosRef,
-                projectileSpawnPosRef?.position?? projectileSpawnPos);
+                projectileSpawnPosRef?.position?? projectileSpawnPos,
+                shooterHitBox);
             yield return new WaitForSeconds(cachedShooterWrapper.DelayTime);
         }
     }
