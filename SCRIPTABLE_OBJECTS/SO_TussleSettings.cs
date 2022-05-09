@@ -14,8 +14,8 @@ public class SO_TussleSettings : ScriptableObject
     public float ShowSequenceDelay => showSequenceDelay;
 
     [SerializeField]
-    private List<int> tussleHazardCleanUpLayers = new List<int>();
-    public List<int> TussleHazardCleanUpLayers => tussleHazardCleanUpLayers;
+    private SO_LayerSettings layerSettings;
+    public SO_LayerSettings LayerSettings => layerSettings;
 
     [SerializeField]
     private float tussleHazardCleanUpTileDist = 1f;

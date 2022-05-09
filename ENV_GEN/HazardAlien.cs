@@ -26,7 +26,7 @@ public class HazardAlien : TerrHazard
     [SerializeField]
     public BoxColliderSP attackTrigger = null;
 
-    protected bool stunnedFlag = false;
+    public bool StunnedFlag { get; protected set; } = false;
 
     protected override void Awake()
     {
@@ -37,6 +37,11 @@ public class HazardAlien : TerrHazard
         currTreadmillSpeed.RegisterForPropertyChanged(OnTreadmillSpeedChange);
         OnTreadmillSpeedChange(currTreadmillSpeed.Value, currTreadmillSpeed.Value);
         attackTrigger.SetOnTriggerEnterMethod(OnTriggerEnterAttackBox);
+    }
+
+    protected override LayerEnum GetLayerType()
+    {
+        return LayerEnum.ALIEN;
     }
 
     private void OnTreadmillSpeedChange(float oldSpeed, float newSpeed)
@@ -56,7 +61,7 @@ public class HazardAlien : TerrHazard
     {
         if (other.gameObject.GetComponent<PlayerRunner>() != null)
         {
-            if (!stunnedFlag)
+            if (!StunnedFlag)
             {
                 sprite.Play(attackAnimation);
                 attackAudio.PlayAudioWrapper(audioSource);
@@ -67,7 +72,7 @@ public class HazardAlien : TerrHazard
 
     public virtual void Stun()
     {
-        stunnedFlag = true;
+        StunnedFlag = true;
         hazardTakeDownReqAction = PlayerActionEnum.ANY_ACTION;
         sprite.Play(stunAnimation);
     }

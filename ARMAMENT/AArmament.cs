@@ -25,6 +25,10 @@ public abstract class AArmament : ScriptableObject
     private GameObject armamentHUDIconPrefab = null;
     public GameObject ArmamentHUDIconPrefab => armamentHUDIconPrefab;
 
+    [SerializeField]
+    private List<PlayerActionEnum> applicableActions = new List<PlayerActionEnum>();
+    public List<PlayerActionEnum> ApplicableActions => applicableActions;
+
     //TODO: should these live else where to be easier to see all at once
     //in the inspector across all armaments? Armament settings?
     [SerializeField]

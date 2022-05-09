@@ -374,11 +374,11 @@ public class PlayerRunner : MonoBehaviour
     {
         Vector3 raycastPos = new Vector3(transform.position.x, terrSettings.FloorHeight / 2, transform.position.z);       
         float dist = tussleSettings.TussleHazardCleanUpTileDist * terrSettings.TileDims.y;
-        foreach(int layer in tussleSettings.TussleHazardCleanUpLayers)
+
+        foreach(int layer in tussleSettings.LayerSettings.GetAllLayers())
         {
             int maskLayer = 1 << layer;
 
-            //Physics.Raycast(raycastPos, Vector3.forward, out raycastInfo, dist, maskLayer)
             RaycastHit[] hits = Physics.RaycastAll(raycastPos, Vector3.forward, dist, maskLayer);
 
             foreach(RaycastHit hit in hits)
@@ -428,14 +428,12 @@ public class PlayerRunner : MonoBehaviour
 
         if (isWeapon)
         {
-            useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedWeapons[loadoutIndex]);
+            return useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedWeapons[loadoutIndex]);
         }
         else
         {
-            useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedEquipments[loadoutIndex]);
+            return useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedEquipments[loadoutIndex]);
         }
-
-        return true;
     }
 
     private void OnZonePhaseChange(ZonePhaseEnum _, ZonePhaseEnum newPhase)

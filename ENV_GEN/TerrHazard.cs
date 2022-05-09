@@ -19,6 +19,9 @@ public class TerrHazard : TerrAddon
     protected SO_TerrSettings terrSettings = null;
 
     [SerializeField]
+    private SO_LayerSettings layerSettings = null;
+
+    [SerializeField]
     private BoxColliderSP hitBox = null;
     public BoxColliderSP HitBox => hitBox;
 
@@ -36,16 +39,32 @@ public class TerrHazard : TerrAddon
     protected override void Awake()
     {
         base.Awake();
+        hitBox.gameObject.layer = layerSettings.GetLayerInt(GetLayerType());
         audioSource = GetComponent<AudioWrapperSource>();
         InitBoxColliders();
+    }
 
+    protected virtual LayerEnum GetLayerType()
+    {
+        if (requiredAvoidAction == PlayerActionEnum.JUMP)
+        {
+            return LayerEnum.JUMPABLE_HAZARD;
+        }
 
+        return LayerEnum.DEFAULT_HAZARD;
     }
 
     private void InitBoxColliders()
     {
         SetHitBoxDimensions(hitBox, Dimensions(), terrSettings, hitBoxDimEdgePercents);
         SetRewardBoxDimensions(hitBox.Box());
+
+        //TODO: realized that I set the standard of tiles and hit box length
+        //with half of it behind the terr object. Cleaner way to fix?
+        //Originally had to do this because the grapple was colliding with the back of the hazard
+        hitBox.Box().size = new Vector3(hitBox.Box().size.x, hitBox.Box().size.y, hitBox.Box().size.z / 2f);
+        hitBox.Box().center = new Vector3(hitBox.Box().center.x, hitBox.Box().center.y, -hitBox.Box().size.z / 2f);
+
         hitBox.SetOnTriggerEnterMethod(OnTriggerEnterDamageHitBox);
         energyRewardBox.SetOnTriggerExitMethod(OnTriggerExitRewardBox);
     }

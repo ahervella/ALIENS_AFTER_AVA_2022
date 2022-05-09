@@ -15,6 +15,9 @@ public class ArmamentManager : MonoBehaviour
     private PSO_CurrentLoadout currLoadout = null;
 
     [SerializeField]
+    private PSO_CurrentPlayerAction currAction = null;
+
+    [SerializeField]
     private BoolPropertySO grappleOnFlag = null;
 
     [SerializeField]
@@ -73,6 +76,11 @@ public class ArmamentManager : MonoBehaviour
         if (armament == null) { return false; }
 
         if (grappleOnFlag.Value)
+        {
+            return false;
+        }
+
+        if (armament.ApplicableActions.Count > 0 && !armament.ApplicableActions.Contains(currAction.Value))
         {
             return false;
         }

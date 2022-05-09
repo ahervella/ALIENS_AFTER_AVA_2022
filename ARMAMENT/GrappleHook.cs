@@ -8,6 +8,9 @@ using static AudioUtil;
 public class GrappleHook : MonoBehaviour
 {
     [SerializeField]
+    private Equipment grappleEquipmentSO = null;
+
+    [SerializeField]
     private int tileDistanceReach;
 
     //the visual grapple rope offset relative to its spawn location
@@ -37,10 +40,8 @@ public class GrappleHook : MonoBehaviour
     [SerializeField]
     private SO_TerrSettings terrSettings = null;
 
-    //TODO: make part of tussle settings?
     [SerializeField]
-    private int grappleLayer = 8;
-    private int cachedMaskLayer;
+    private SO_LayerSettings layerSettings = null;
 
     [SerializeField]
     private SpriteRenderer grappleRope = null;
@@ -60,10 +61,11 @@ public class GrappleHook : MonoBehaviour
     private Coroutine grappleRetractCR = null;
     private Coroutine grappleReelInCR = null;
 
+    private float currDist = 0;
+
     private void Awake()
     {
         audioSource = GetComponent<AudioWrapperSource>();
-        cachedMaskLayer = 1 << grappleLayer;
 
         grappleOnFlag.ModifyValue(true);
         grappleOnFlag.RegisterForPropertyChanged(OnGrappleFlagChange);
@@ -75,9 +77,10 @@ public class GrappleHook : MonoBehaviour
     {
         //whether because we got hit, reached the alien and going into a tussle
         //or changed action prior to reeling in, stop the whole thing
-        if (newAction != PlayerActionEnum.GRAPPLE_REEL)
+        if (newAction != PlayerActionEnum.GRAPPLE_REEL
+            && !grappleEquipmentSO.ApplicableActions.Contains(newAction))
         {
-            SafeDestroy(gameObject);
+            RetractGrapple();
         }
     }
 
@@ -119,34 +122,46 @@ public class GrappleHook : MonoBehaviour
     {
         Debug.Log("started grapple");
         float maxDist = tileDistanceReach * terrSettings.TileDims.y;
-        float currDist = 0;
+        currDist = 0;
         float grappleSpeed = maxDist / grappleTimeWindow;
 
         //aim for center of floor height
         Vector3 raycastPos = new Vector3(transform.position.x, terrSettings.FloorHeight / 2, transform.position.z);
 
-        bool raycastHit = false;
-        RaycastHit raycastInfo = new RaycastHit();
+        bool alienHit = false;
+        bool nonjumpableHazardHit = false;
 
-        while (!raycastHit && currDist < maxDist)
+        int alienBitMask = 1 << layerSettings.GetLayerInt(LayerEnum.ALIEN);
+        int nonjumpableHazardBitMask = 1 << layerSettings.GetLayerInt(LayerEnum.DEFAULT_HAZARD);
+
+        RaycastHit alienCastInfo = new RaycastHit();
+        RaycastHit test = new RaycastHit();
+
+        while (!nonjumpableHazardHit && !alienHit && currDist < maxDist)
         {
             yield return null;
             currDist += grappleSpeed * Time.deltaTime;
 
             Debug.DrawRay(raycastPos, Vector3.forward * currDist);
-            raycastHit = Physics.Raycast(raycastPos, Vector3.forward, out raycastInfo, currDist, cachedMaskLayer);
+            alienHit = Physics.Raycast(raycastPos, Vector3.forward, out alienCastInfo, currDist, alienBitMask);
+            nonjumpableHazardHit = Physics.Raycast(raycastPos, Vector3.forward, out test, currDist, nonjumpableHazardBitMask);
             SetSpritePositions(currDist);
         }
-
-        if (raycastHit)
+        //Also wait have you been hiking at the blue hills reservation
+        if (alienHit && !nonjumpableHazardHit)
         {
             //if layers set correctly, then we know this was an alien hit box
-            ReelInTowardsAlien(raycastInfo.collider.gameObject);
+            ReelInTowardsAlien(alienCastInfo.collider.gameObject);
             grappleWindowCR = null;
             yield break;
         }
 
-        RetractGrapple(currDist);
+        if (nonjumpableHazardHit)
+        {
+            Debug.Log("retract object: " + test.collider.gameObject);
+        }
+
+        RetractGrapple();
         grappleWindowCR = null;
     }
 
@@ -213,16 +228,18 @@ public class GrappleHook : MonoBehaviour
     }
 
     //TODO: do we want this or just a seperate prefab to play this out? (probably that...)
-    private void RetractGrapple(float currDist)
+    private void RetractGrapple()
     {
+        SafeStopCoroutine(ref grappleWindowCR, this);
         Debug.Log("retracting grapple");
         //TODO: change grapple animation to retract
-        grappleRetractCR = StartCoroutine(GrappleRetractCoroutine(currDist));
+        SafeStartCoroutine(ref grappleRetractCR, GrappleRetractCoroutine(), this);
     }
 
-    private IEnumerator GrappleRetractCoroutine(float currDist)
+    private IEnumerator GrappleRetractCoroutine()
     {
-        float retractSpeed = currDist / grappleRetractTime;
+        float maxDist = tileDistanceReach * terrSettings.TileDims.y;
+        float retractSpeed = maxDist / grappleRetractTime;
         while (currDist > 0)
         {
             yield return null;

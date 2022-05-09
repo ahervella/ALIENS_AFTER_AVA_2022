@@ -182,6 +182,12 @@ public class Projectile : MonoBehaviour
         //if (isAlienProjectile) { return; }
         if (hazard.HitBox.Box() == sourceHitBox) { return; }
 
+        //TODO: handle aliens being stunned by grapple differently?
+        if (hazard is HazardAlien alien && alien.StunnedFlag)
+        {
+            SafeDestroy(gameObject);
+        }
+
         SafeDestroy(hazard.gameObject);
         MadeImpact();
     }
