@@ -6,11 +6,29 @@ using System;
 [RequireComponent(typeof(BoxCollider))]
 public class BoxColliderSP : MonoBehaviour
 {
+    [SerializeField]
+    private MonoBehaviour rootParent = null;
+    public MonoBehaviour RootParent => rootParent;
+
+    [SerializeField]
+    private bool isNodeHitBox = false;
+
+    [SerializeField]
+    private SO_LayerSettings layerSettings = null;
+
     Action<Collider> onTriggerEnterMethod = null;
     Action<Collider> onTriggerExitMethod = null;
 
     Action<Collision> onColliderEnterMethod = null;
     Action<Collision> onColliderExitMethod = null;
+
+    private void Awake()
+    {
+        if (isNodeHitBox)
+        {
+            gameObject.layer = layerSettings.HitBoxLayer;
+        }
+    }
 
     private BoxCollider box;
     public BoxCollider Box()

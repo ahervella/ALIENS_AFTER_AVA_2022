@@ -55,6 +55,11 @@ public class GrappleHook : MonoBehaviour
     [SerializeField]
     private AAudioWrapperV2 grapplingSnagAudio = null;
 
+    [SerializeField]
+    private BoolDelegateSO tussleInitDelegate = null;
+
+    private bool cachedTussleStarted = false;
+
     private AudioWrapperSource audioSource;
 
     private Coroutine grappleWindowCR = null;
@@ -69,8 +74,16 @@ public class GrappleHook : MonoBehaviour
 
         grappleOnFlag.ModifyValue(true);
         grappleOnFlag.RegisterForPropertyChanged(OnGrappleFlagChange);
+        tussleInitDelegate.RegisterForDelegateInvoked(OnTussleInitDelegate);
         currAction.RegisterForPropertyChanged(OnActionChange);
         grappleWindowCR = StartCoroutine(GrappleWindowCoroutine());
+    }
+
+    //TODO change this delegate to a PSO to not have to do this
+    private int OnTussleInitDelegate(bool _)
+    {
+        cachedTussleStarted = true;
+        return 0;
     }
 
     private void OnActionChange(PlayerActionEnum oldAction, PlayerActionEnum newAction)
@@ -86,6 +99,7 @@ public class GrappleHook : MonoBehaviour
 
     private void OnGrappleFlagChange(bool oldVal, bool newVal)
     {
+        //In case we need something else to stop the grapple
         if (!newVal)
         {
             SafeDestroy(gameObject);
@@ -128,37 +142,48 @@ public class GrappleHook : MonoBehaviour
         //aim for center of floor height
         Vector3 raycastPos = new Vector3(transform.position.x, terrSettings.FloorHeight / 2, transform.position.z);
 
-        bool alienHit = false;
+        //TODO: do we even really need to keep this optimization? For reward boxes?
+        int maskLayer = 1 << layerSettings.HitBoxLayer;
+
         bool nonjumpableHazardHit = false;
 
-        int alienBitMask = 1 << layerSettings.GetLayerInt(LayerEnum.ALIEN);
-        int nonjumpableHazardBitMask = 1 << layerSettings.GetLayerInt(LayerEnum.DEFAULT_HAZARD);
+        List<GameObject> checkedObjects = new List<GameObject>();
 
-        RaycastHit alienCastInfo = new RaycastHit();
-        RaycastHit test = new RaycastHit();
-
-        while (!nonjumpableHazardHit && !alienHit && currDist < maxDist)
+        while (!nonjumpableHazardHit && currDist < maxDist)
         {
             yield return null;
             currDist += grappleSpeed * Time.deltaTime;
+            SetSpritePositions(currDist);
 
             Debug.DrawRay(raycastPos, Vector3.forward * currDist);
-            alienHit = Physics.Raycast(raycastPos, Vector3.forward, out alienCastInfo, currDist, alienBitMask);
-            nonjumpableHazardHit = Physics.Raycast(raycastPos, Vector3.forward, out test, currDist, nonjumpableHazardBitMask);
-            SetSpritePositions(currDist);
-        }
-        //Also wait have you been hiking at the blue hills reservation
-        if (alienHit && !nonjumpableHazardHit)
-        {
-            //if layers set correctly, then we know this was an alien hit box
-            ReelInTowardsAlien(alienCastInfo.collider.gameObject);
-            grappleWindowCR = null;
-            yield break;
-        }
+            RaycastHit[] hits = Physics.RaycastAll(raycastPos, Vector3.forward, currDist, maskLayer);
 
-        if (nonjumpableHazardHit)
-        {
-            Debug.Log("retract object: " + test.collider.gameObject);
+            foreach(RaycastHit hit in hits)
+            {
+                if (checkedObjects.Contains(hit.collider.gameObject)) { continue; }
+
+                if (hit.collider.GetComponent<BoxColliderSP>() is BoxColliderSP hitBox)
+                {
+
+                    if (hitBox.RootParent.GetComponent<HazardAlien>() is HazardAlien alien)
+                    {
+                        ReelInTowardsAlien(alien);
+                        grappleWindowCR = null;
+                        yield break;
+                    }
+
+                    if (hitBox.RootParent.GetComponent<TerrHazard>() is TerrHazard hazard)
+                    {
+                        if (hazard.RequiredAvoidAction != PlayerActionEnum.JUMP)
+                        {
+                            nonjumpableHazardHit = true;
+                            break;
+                        }
+
+                        checkedObjects.Add(hazard.gameObject);
+                    }
+                }
+            }
         }
 
         RetractGrapple();
@@ -191,7 +216,7 @@ public class GrappleHook : MonoBehaviour
         grappleRopeContainer.transform.rotation = Quaternion.Euler(new Vector3(xRot, -yRot, 0));
     }
 
-    private void ReelInTowardsAlien(GameObject target)
+    private void ReelInTowardsAlien(HazardAlien alien)
     {
         StopAllAudioSourceSounds(audioSource);
 
@@ -199,31 +224,26 @@ public class GrappleHook : MonoBehaviour
 
         Debug.Log("reeling in towards alien");
 
-        HazardAlien alienObj = null;
-        while (alienObj == null)
-        {
-            alienObj = target.GetComponent<HazardAlien>();
-            target = target.transform.parent.gameObject;
-        }
-
-        alienObj.Stun();
+        alien.Stun();
 
         //TODO: change animation? Or would player anim take care of that. Or at least
         //change grapple anim part
         speedChangeDelegate.InvokeDelegateMethod(treadmillSpeedChange);
         currAction.ModifyValue(PlayerActionEnum.GRAPPLE_REEL);
 
-        grappleReelInCR = StartCoroutine(ReelInCoroutine(alienObj.gameObject));
+        grappleReelInCR = StartCoroutine(ReelInCoroutine(alien.gameObject));
     }
 
     private IEnumerator ReelInCoroutine(GameObject target)
     {
         float currDist;
-        while (target.transform.position.z > transform.position.z)
+        //second part of condition here in case tussle video that triggers
+        //the start is taking a while
+        while (!cachedTussleStarted && target.transform.position.z > transform.position.z)
         {
-            yield return null;
             currDist = Vector3.Distance(target.transform.position, transform.position);
             SetSpritePositions(currDist);
+            yield return null;
         }
     }
 
@@ -242,9 +262,9 @@ public class GrappleHook : MonoBehaviour
         float retractSpeed = maxDist / grappleRetractTime;
         while (currDist > 0)
         {
-            yield return null;
             currDist -= retractSpeed * Time.deltaTime;
             SetSpritePositions(currDist);
+            yield return null;
         }
 
         SafeDestroy(gameObject);

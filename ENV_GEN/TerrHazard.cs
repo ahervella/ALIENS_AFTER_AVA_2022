@@ -8,6 +8,7 @@ public class TerrHazard : TerrAddon
 {
     [SerializeField]
     private PlayerActionEnum requiredAvoidAction = PlayerActionEnum.NONE;
+    public PlayerActionEnum RequiredAvoidAction => requiredAvoidAction;
 
     //The percent in each dimension we want to actually have on the edge tiles
     //of this hazard (if it's 3x1, and this is (0.8, 0.4, 0.7), then the dims of
@@ -39,19 +40,8 @@ public class TerrHazard : TerrAddon
     protected override void Awake()
     {
         base.Awake();
-        hitBox.gameObject.layer = layerSettings.GetLayerInt(GetLayerType());
         audioSource = GetComponent<AudioWrapperSource>();
         InitBoxColliders();
-    }
-
-    protected virtual LayerEnum GetLayerType()
-    {
-        if (requiredAvoidAction == PlayerActionEnum.JUMP)
-        {
-            return LayerEnum.JUMPABLE_HAZARD;
-        }
-
-        return LayerEnum.DEFAULT_HAZARD;
     }
 
     private void InitBoxColliders()

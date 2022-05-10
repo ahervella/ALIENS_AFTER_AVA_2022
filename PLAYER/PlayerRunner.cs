@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using static UnityEngine.InputSystem.InputAction;
 using static HelperUtil;
+using System;
 
 [RequireComponent(typeof(BoxCollider))]
 public class PlayerRunner : MonoBehaviour
@@ -77,6 +78,9 @@ public class PlayerRunner : MonoBehaviour
 
     [SerializeField]
     private SO_EnergySettings energySettings = null;
+
+    [SerializeField]
+    private SO_LayerSettings layerSettings = null;
 
     private Coroutine sprintCR = null;
 
@@ -375,26 +379,18 @@ public class PlayerRunner : MonoBehaviour
         Vector3 raycastPos = new Vector3(transform.position.x, terrSettings.FloorHeight / 2, transform.position.z);       
         float dist = tussleSettings.TussleHazardCleanUpTileDist * terrSettings.TileDims.y;
 
-        foreach(int layer in tussleSettings.LayerSettings.GetAllLayers())
+        int maskLayer = 1 << layerSettings.HitBoxLayer;
+
+        RaycastHit[] hits = Physics.RaycastAll(raycastPos, Vector3.forward, dist, maskLayer);
+
+        foreach (RaycastHit hit in hits)
         {
-            int maskLayer = 1 << layer;
+            BoxColliderSP hitBox = hit.collider.gameObject.GetComponent<BoxColliderSP>();
 
-            RaycastHit[] hits = Physics.RaycastAll(raycastPos, Vector3.forward, dist, maskLayer);
-
-            foreach(RaycastHit hit in hits)
+            if (hitBox != null)
             {
-                //TODO: move this to utilities with the one done in GrappleHook.cs
-                GameObject target = hit.collider.gameObject;
-                TerrHazard hazard = null;
-                while (hazard == null)
-                {
-                    hazard = target.GetComponent<TerrHazard>();
-                    target = target.transform.parent.gameObject;
-                }
-
-                SafeDestroy(hazard.gameObject);
+                SafeDestroy(hitBox.RootParent.gameObject);
             }
-
         }
         return 0;
     }

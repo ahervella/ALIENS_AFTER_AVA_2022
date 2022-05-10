@@ -39,11 +39,6 @@ public class HazardAlien : TerrHazard
         attackTrigger.SetOnTriggerEnterMethod(OnTriggerEnterAttackBox);
     }
 
-    protected override LayerEnum GetLayerType()
-    {
-        return LayerEnum.ALIEN;
-    }
-
     private void OnTreadmillSpeedChange(float oldSpeed, float newSpeed)
     {
         float triggerBoxDepth = newSpeed * timeBeforeTriggerAttack;

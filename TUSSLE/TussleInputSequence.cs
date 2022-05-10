@@ -16,6 +16,9 @@ public class TussleInputSequence : MonoBehaviour
     [SerializeField]
     private List<TussleButton> orderedButtons = new List<TussleButton>();
 
+    [SerializeField]
+    private PSO_CurrentGameMode currGameMode = null;
+
     private Coroutine sequenceCR = null;
 
     private Coroutine failTimerCR = null;
@@ -25,6 +28,8 @@ public class TussleInputSequence : MonoBehaviour
     private bool waitingForCorrectInput = true;
 
     private Action<bool> finishCallback;
+
+    private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
 
     //Used to store method reference for unregistering from inputs
     private Dictionary<InputEnum, Action<CallbackContext>> inputCallbackDict = new Dictionary<InputEnum, Action<CallbackContext>>();
@@ -40,7 +45,7 @@ public class TussleInputSequence : MonoBehaviour
     {
         RegisterInputChange(true);
 
-        //failTimerCR = StartCoroutine(FailTimer(settings.GetCurrZoneTussleTime()));
+        failTimerCR = StartCoroutine(FailTimer(settings.GetCurrZoneTussleTime()));
 
         foreach (TussleButton button in orderedButtons)
         {
@@ -85,7 +90,16 @@ public class TussleInputSequence : MonoBehaviour
 
     private IEnumerator FailTimer(float time)
     {
-        yield return new WaitForSeconds(time);
+        float currTime = 0;
+        while (currTime < time)
+        {
+            if (!gamePaused)
+            {
+                currTime += Time.unscaledDeltaTime;
+            }
+            yield return null;
+        }
+
         FailedInputSequence();
     }
 

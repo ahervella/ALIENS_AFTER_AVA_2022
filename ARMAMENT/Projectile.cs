@@ -17,7 +17,9 @@ public class Projectile : MonoBehaviour
     private PSO_TerrainTreadmillNodes terrTreadmillNodesPSO = null;
 
     [SerializeField]
-    private bool spawnAttachedToTreadmillHorizontal = true;
+    private TREADMILL_ATTACHMENT treadmillAttachment = TREADMILL_ATTACHMENT.NONE;
+
+    private enum TREADMILL_ATTACHMENT { NONE = 0, HORIZONTAL = 1, HORIZ_VERT = 2 }
 
     [SerializeField]
     private BoxColliderSP hitBox = null;
@@ -121,9 +123,13 @@ public class Projectile : MonoBehaviour
 
     private void SetSpawnPosition()
     {
-        if (spawnAttachedToTreadmillHorizontal)
+        if (treadmillAttachment == TREADMILL_ATTACHMENT.HORIZONTAL)
         {
             transform.parent = terrTreadmillNodesPSO.Value.HorizontalNode;
+        }
+        else if (treadmillAttachment == TREADMILL_ATTACHMENT.HORIZ_VERT)
+        {
+            transform.parent = terrTreadmillNodesPSO.Value.VerticalNode;
         }
 
         float xPos = autoAlignToNearestLane ?
@@ -182,10 +188,12 @@ public class Projectile : MonoBehaviour
         //if (isAlienProjectile) { return; }
         if (hazard.HitBox.Box() == sourceHitBox) { return; }
 
-        //TODO: handle aliens being stunned by grapple differently?
+        //TODO: handle aliens being stunned by grapple differently in
+        //case we still want to destroy stunned aliens from alien projectiles?
         if (hazard is HazardAlien alien && alien.StunnedFlag)
         {
             SafeDestroy(gameObject);
+            return;
         }
 
         SafeDestroy(hazard.gameObject);

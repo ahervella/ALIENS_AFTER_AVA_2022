@@ -17,6 +17,9 @@ public class TussleManager : MonoBehaviour
     private PSO_CurrentPlayerAction currAction = null;
 
     [SerializeField]
+    private PSO_CurrentGameMode currGameMode = null;
+
+    [SerializeField]
     private VideoPlayer videoPlayer = null;
     private VideoPlayer videoPlayer2;
 
@@ -40,6 +43,8 @@ public class TussleManager : MonoBehaviour
     private Coroutine startCR = null;
     private Coroutine loopCR = null;
 
+    private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
+
     private void Awake()
     {
         audioSource = GetComponent<AudioWrapperSource>();
@@ -54,6 +59,8 @@ public class TussleManager : MonoBehaviour
 
     private int InitiateTussle(bool playerAdvantage)
     {
+        currGameMode.RegisterForPropertyChanged(OnGameModeChange);
+
         videoPlayer.enabled = true;
         videoPlayer2.enabled = true;
 
@@ -61,6 +68,8 @@ public class TussleManager : MonoBehaviour
 
         treadmillSpeedDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(0, 0));
         energyBarDisplayDelegate.InvokeDelegateMethod(false);
+
+        Time.timeScale = 0;
 
         TussleVideoWrapper startVidWrapper = settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_START : TussleVideoType.DIS_START);
         TussleVideoWrapper loopVidWrapper = settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_LOOP : TussleVideoType.DIS_LOOP);
@@ -72,6 +81,18 @@ public class TussleManager : MonoBehaviour
 
         InitiateButtonSequence();
         return 0;
+    }
+
+    private void OnGameModeChange(GameModeEnum oldMode, GameModeEnum newMode)
+    {
+        if (newMode == GameModeEnum.PAUSE)
+        {
+            currVideoPlayer.Pause();
+        }
+        if (oldMode == GameModeEnum.PAUSE && newMode == GameModeEnum.PLAY)
+        {
+            currVideoPlayer.Play();
+        }
     }
 
     //TODO: base class these video methods to use with the main menu later
@@ -95,7 +116,7 @@ public class TussleManager : MonoBehaviour
 
     private IEnumerator WaitForCurrVideoToFinish()
     {
-        while (currVideoPlayer.isPlaying)
+        while (currVideoPlayer.isPlaying || gamePaused)
         {
             yield return null;
         }
@@ -150,7 +171,15 @@ public class TussleManager : MonoBehaviour
 
     private IEnumerator InitiateButtonSequenceCR()
     {
-        yield return new WaitForSeconds(settings.ShowSequenceDelay);
+        float time = 0;
+        while (time < settings.ShowSequenceDelay)
+        {
+            if (!gamePaused)
+            {
+                time += Time.unscaledDeltaTime;
+            }
+            yield return null;
+        }
 
         currSequence = Instantiate(settings.GetInputSequencePrefab(playerAdvantage), transform);
         currSequence.StartSequence(SequenceResolved);
@@ -175,6 +204,8 @@ public class TussleManager : MonoBehaviour
 
     public void EndTussle()
     {
+        currGameMode.DeRegisterForPropertyChanged(OnGameModeChange);
+        Time.timeScale = 1;
         treadmillSpeedDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(1, 0));
         energyBarDisplayDelegate.InvokeDelegateMethod(true);
 

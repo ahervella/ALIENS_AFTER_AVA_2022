@@ -8,42 +8,57 @@ using System;
 public class SO_LayerSettings : ScriptableObject
 {
     [SerializeField]
-    private List<LayerWrapper> layerWrappers = new List<LayerWrapper>();
+    private int hitBoxLayer = default;
+    public int HitBoxLayer => hitBoxLayer;
 
-    public int GetLayerInt(LayerEnum layerType)
-    {
-        return GetWrapperFromFunc(
-            layerWrappers,
-            lw => lw.LayerType,
-            layerType,
-            LogEnum.ERROR,
-            null).LayerInt;
-    }
+    //TODO: delete this if we don't end up needing something more complicated
 
-    public List<int> GetAllLayers()
-    {
-        List<int> list = new List<int>();
-        foreach (LayerWrapper lw in layerWrappers)
-        {
-            list.Add(lw.LayerInt);
-        }
-        return list;
-    }
+    //[SerializeField]
+    //private List<LayerWrapper> layerWrappers = new List<LayerWrapper>();
 
-    [Serializable]
-    private class LayerWrapper
-    {
-        [SerializeField]
-        private LayerEnum layerType = LayerEnum.DEFAULT_HAZARD;
-        public LayerEnum LayerType => layerType;
+    //public int GetLayerInt(LayerEnum layerType)
+    //{
+    //    return GetWrapperFromFunc(
+    //        layerWrappers,
+    //        lw => lw.LayerType,
+    //        layerType,
+    //        LogEnum.ERROR,
+    //        null).LayerInt;
+    //}
 
-        [SerializeField]
-        private int layerInt = 0;
-        public int LayerInt => layerInt;
-    }
+
+    //public Type GetLayerClassType(LayerEnum layerType)
+    //{
+    //    switch (layerType)
+    //    {
+    //        case LayerEnum.ALIEN:
+    //        case LayerEnum.DEFAULT_HAZARD:
+    //        case LayerEnum.JUMPABLE_HAZARD:
+    //            return typeof(TerrHazard);
+
+    //        case LayerEnum.PROJECTILE:
+    //            return typeof(Projectile);
+
+    //        default:
+    //            Debug.LogError("No class type set for this layer type!");
+    //            return null;
+    //    }
+    //}
+
+    //[Serializable]
+    //private class LayerWrapper
+    //{
+    //    [SerializeField]
+    //    private LayerEnum layerType = LayerEnum.DEFAULT_HAZARD;
+    //    public LayerEnum LayerType => layerType;
+
+    //    [SerializeField]
+    //    private int layerInt = 0;
+    //    public int LayerInt => layerInt;
+    //}
 }
 
-public enum LayerEnum
-{
-    ALIEN = 0, JUMPABLE_HAZARD = 1, DEFAULT_HAZARD = 2
-}
+//public enum LayerEnum
+//{
+//    ALIEN = 0, JUMPABLE_HAZARD = 1, DEFAULT_HAZARD = 2, PROJECTILE = 3
+//}
