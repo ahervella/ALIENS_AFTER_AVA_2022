@@ -16,6 +16,8 @@ public class HealthRecoveryManager : MonoBehaviour
 
     private Coroutine healCR = null;
 
+    //TODO reset when tussle is done, and pause when it happens?
+
     private void Awake()
     {
         currLives.ResetToStart();

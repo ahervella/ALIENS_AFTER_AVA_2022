@@ -32,6 +32,9 @@ public class TerrHazard : TerrAddon
     [SerializeField]
     private AAudioWrapperV2 impactAudio = null;
 
+    [SerializeField]
+    protected bool tussleOnAttack = false;
+
     protected AudioWrapperSource audioSource;
 
     //for aliens that inherit have their own serialized field
@@ -73,7 +76,8 @@ public class TerrHazard : TerrAddon
         PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
         if (player != null)
         {
-            player.OnEnterHazard(requiredAvoidAction, hazardTakeDownReqAction, TerrAddonEnum, out bool dodged);
+            player.OnEnterHazard(
+                requiredAvoidAction, hazardTakeDownReqAction, TerrAddonEnum, tussleOnAttack, out bool dodged);
             if (!dodged)
             {
                 impactAudio.PlayAudioWrapper(audioSource);

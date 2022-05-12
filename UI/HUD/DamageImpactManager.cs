@@ -13,6 +13,11 @@ public class DamageImpactManager : MonoBehaviour
     [SerializeField]
     private IntPropertySO currLivesSO = null;
 
+    [SerializeField]
+    private PSO_CurrentGameMode currGameMode = null;
+
+    private bool cachedGamePaused = false;
+
     private Image impactImg;
 
     private Coroutine impactCR = null;
@@ -22,8 +27,15 @@ public class DamageImpactManager : MonoBehaviour
         impactImg = GetComponent<Image>();
         impactImg.color = new Color(1, 1, 1, 0);
 
+        currGameMode.RegisterForPropertyChanged(OnGameModeChanged);
         currLivesSO.RegisterForPropertyChanged(OnLivesChanged);
         OnLivesChanged(currLivesSO.Value, currLivesSO.Value);
+    }
+
+    //TODO: Move this to helper utilities with a ref to the cached gamemode
+    private void OnGameModeChanged(GameModeEnum _, GameModeEnum newMode)
+    {
+        cachedGamePaused = newMode == GameModeEnum.PAUSE;
     }
 
     private void OnLivesChanged(int prevLife, int newLife)
@@ -45,7 +57,10 @@ public class DamageImpactManager : MonoBehaviour
     {
         while (impactImg.color.a > 0)
         {
-            impactImg.color = new Color(1, 1, 1, impactImg.color.a - Time.deltaTime / settings.DamageImpactTweenTime);
+            if (cachedGamePaused) { yield return null; }
+
+            impactImg.color = new Color(1, 1, 1,
+                impactImg.color.a - Time.unscaledDeltaTime / settings.DamageImpactTweenTime);
 
             yield return null;
         }

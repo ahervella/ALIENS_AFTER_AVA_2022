@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Video;
 using System;
+using UnityEngine.UI;
+using static HelperUtil;
 
 [RequireComponent(typeof(AudioWrapperSource))]
 public class TussleManager : MonoBehaviour
@@ -29,6 +31,9 @@ public class TussleManager : MonoBehaviour
     private VideoPlayer currVideoPlayer;
 
     [SerializeField]
+    private Image deathBlackBackground = null;
+
+    [SerializeField]
     private SO_TussleSettings settings = null;
 
     [SerializeField]
@@ -40,6 +45,9 @@ public class TussleManager : MonoBehaviour
     [SerializeField]
     private BoolDelegateSO tussleResolveDebugDelegate = null;
 
+    [SerializeField]
+    private BoolDelegateSO playerDeathTrigger = null;
+
     private AudioWrapperSource audioSource;
 
     private bool playerAdvantage;
@@ -48,6 +56,7 @@ public class TussleManager : MonoBehaviour
 
     private Coroutine startCR = null;
     private Coroutine loopCR = null;
+    private Coroutine waitForCurrVideoAndPlayCR = null;
 
     private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
 
@@ -61,6 +70,8 @@ public class TussleManager : MonoBehaviour
 
         //make the duplicate que videoplayer one at runtime to have the same settings
         videoPlayer2 = Instantiate(videoPlayer, transform);
+
+        deathBlackBackground.color = new Color(0, 0, 0, 0);
     }
 
     private int InitiateTussle(bool playerAdvantage)
@@ -83,7 +94,7 @@ public class TussleManager : MonoBehaviour
         void startVideoLoadedCallback() => settings.TussleHazardCleanUpDelegate.InvokeDelegateMethod(true);
 
         startCR = StartCoroutine(PlayVideo(startVidWrapper, startVideoLoadedCallback));
-        loopCR = StartCoroutine(WaitForCurrVideoAndPlay(loopVidWrapper));
+        loopCR = WaitForCurrVideoAndPlay(loopVidWrapper);//StartCoroutine(WaitForCurrVideoAndPlay(loopVidWrapper));
 
         InitiateButtonSequence();
         return 0;
@@ -149,7 +160,7 @@ public class TussleManager : MonoBehaviour
 
     private IEnumerator WaitForCurrVideoToFinish()
     {
-        while (currVideoPlayer.isPlaying || gamePaused)
+        while (currVideoPlayer == null || currVideoPlayer.clip == null || !currVideoPlayer.isPrepared || currVideoPlayer.isPlaying || gamePaused)
         {
             yield return null;
         }
@@ -179,7 +190,13 @@ public class TussleManager : MonoBehaviour
         }
     }
 
-    private IEnumerator WaitForCurrVideoAndPlay(TussleVideoWrapper queuedWrapper)
+    private Coroutine WaitForCurrVideoAndPlay(TussleVideoWrapper queuedWrapper)
+    {
+        SafeStartCoroutine(ref waitForCurrVideoAndPlayCR, WaitForCurrVideoAndPlayCR(queuedWrapper), this);
+        return waitForCurrVideoAndPlayCR;
+    }
+
+    private IEnumerator WaitForCurrVideoAndPlayCR(TussleVideoWrapper queuedWrapper)
     {
         VideoPlayer queuedPlayer = QueueTussleVideo(queuedWrapper);
 
@@ -191,10 +208,18 @@ public class TussleManager : MonoBehaviour
 
         yield return WaitForVideoToLoad(queuedPlayer);
 
+        //TODO: make a method for these two things together
         queuedWrapper.AudioWrapper?.PlayAudioWrapper(audioSource);
+
+        if (queuedWrapper.TakeDamageAfterDelay)
+        {
+            StartCoroutine(TakeDamageCR(queuedWrapper.DamageDelay));
+        }
 
         currVideoPlayer.clip = null;
         currVideoPlayer = queuedPlayer;
+
+        waitForCurrVideoAndPlayCR = null;
     }
 
     private void InitiateButtonSequence()
@@ -216,6 +241,8 @@ public class TussleManager : MonoBehaviour
             settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_WIN : TussleVideoType.DIS_WIN)
             : settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_LOSE : TussleVideoType.DIS_LOSE);
 
+        SafeStopCoroutine(ref waitForCurrVideoAndPlayCR, this);
+
         StartCoroutine(PlayVideo(wrapper, EndTussle));
     }
 
@@ -231,14 +258,25 @@ public class TussleManager : MonoBehaviour
     {
         currGameMode.DeRegisterForPropertyChanged(OnGameModeChange);
         Time.timeScale = 1;
+
+        Destroy(currSequence.gameObject);
+
+        if (currLives.Value <= currLives.MinValue())
+        {
+            deathBlackBackground.color = new Color(0, 0, 0, 1);
+            playerDeathTrigger.InvokeDelegateMethod(true);
+            return;
+        }
+
+        currVideoPlayer = null;
+        videoPlayer.clip = null;
+        videoPlayer2.clip = null;
+
+        
+
         treadmillSpeedDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(1, 0));
         energyBarDisplayDelegate.InvokeDelegateMethod(true);
 
         currAction.ModifyValue(PlayerActionEnum.RUN);
-
-        Destroy(currSequence.gameObject);
-        currVideoPlayer = null;
-        videoPlayer.clip = null;
-        videoPlayer2.clip = null;
     }
 }

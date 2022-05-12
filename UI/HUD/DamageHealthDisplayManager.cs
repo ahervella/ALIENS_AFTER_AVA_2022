@@ -19,6 +19,11 @@ public class DamageHealthDisplayManager : MonoBehaviour
     [SerializeField]
     private IntPropertySO currLivesSO = null;
 
+    [SerializeField]
+    private PSO_CurrentGameMode currGameMode = null;
+
+    private bool cachedGamePaused = false;
+
     private DamageWrapper cachedDW = null;
 
     private Coroutine damageAlphaCR = null;
@@ -40,6 +45,13 @@ public class DamageHealthDisplayManager : MonoBehaviour
         SetHurtTintVisiblePerc(0);
         damageImg.color = new Color(1, 1, 1, 0);
         currLivesSO.RegisterForPropertyChanged(OnLivesChanged);
+        currGameMode.RegisterForPropertyChanged(OnGameModeChanged);
+    }
+
+    //TODO: Move this to helper utilities with a ref to the cached gamemode
+    private void OnGameModeChanged(GameModeEnum _, GameModeEnum newMode)
+    {
+        cachedGamePaused = newMode == GameModeEnum.PAUSE;
     }
 
     private void Start()
@@ -84,7 +96,9 @@ public class DamageHealthDisplayManager : MonoBehaviour
     {
         while (cachedDamageAlphaMin != cachedDamageAlphaMax)
         {
-            currDamageTweenPerc += Time.deltaTime / (cachedDW.DamageAlphaPulseTime / 2) * flashTweenDirection;
+            if (cachedGamePaused) { yield return null; }
+
+            currDamageTweenPerc += Time.unscaledDeltaTime / (cachedDW.DamageAlphaPulseTime / 2) * flashTweenDirection;
 
             float alpha = Mathf.Lerp(cachedDamageAlphaMin, cachedDamageAlphaMax, EasedPercent(currDamageTweenPerc));
 
@@ -139,7 +153,9 @@ public class DamageHealthDisplayManager : MonoBehaviour
     {
         while (currTintTweenPerc < 1)
         {
-            currTintTweenPerc += Time.deltaTime / settings.TintTweenTime;
+            if (cachedGamePaused) { yield return null; }
+
+            currTintTweenPerc += Time.unscaledDeltaTime / settings.TintTweenTime;
 
             float visiblePerc = Mathf.Lerp(prevTintPerc, cachedDW.TintPercent, EasedPercent(currTintTweenPerc));
 
