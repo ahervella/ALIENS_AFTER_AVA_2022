@@ -20,6 +20,9 @@ public class TussleManager : MonoBehaviour
     private PSO_CurrentGameMode currGameMode = null;
 
     [SerializeField]
+    private IntPropertySO currLives = null;
+
+    [SerializeField]
     private VideoPlayer videoPlayer = null;
     private VideoPlayer videoPlayer2;
 
@@ -27,6 +30,9 @@ public class TussleManager : MonoBehaviour
 
     [SerializeField]
     private SO_TussleSettings settings = null;
+
+    [SerializeField]
+    private SO_DeveloperToolsSettings devTools = null;
 
     [SerializeField]
     private BoolDelegateSO tussleStartDelegate = null;
@@ -107,10 +113,37 @@ public class TussleManager : MonoBehaviour
 
         vidWrapper.AudioWrapper?.PlayAudioWrapper(audioSource);
 
+        if (vidWrapper.TakeDamageAfterDelay)
+        {
+            StartCoroutine(TakeDamageCR(vidWrapper.DamageDelay));
+        }
+
         if (callbackOnFinish != null)
         {
             yield return WaitForCurrVideoToFinish();
             callbackOnFinish();
+        }
+    }
+
+    private IEnumerator TakeDamageCR(float delay)
+    {
+        yield return TussleWaitForSeconds(delay);
+        if (!devTools.Invincibility)
+        {
+            currLives.ModifyValue(-1);
+        }
+    }
+
+    private IEnumerator TussleWaitForSeconds(float time)
+    {
+        float currTime = 0;
+        while (currTime < time)
+        {
+            if (!gamePaused)
+            {
+                currTime += Time.unscaledDeltaTime;
+            }
+            yield return null;
         }
     }
 
@@ -171,15 +204,7 @@ public class TussleManager : MonoBehaviour
 
     private IEnumerator InitiateButtonSequenceCR()
     {
-        float time = 0;
-        while (time < settings.ShowSequenceDelay)
-        {
-            if (!gamePaused)
-            {
-                time += Time.unscaledDeltaTime;
-            }
-            yield return null;
-        }
+        yield return TussleWaitForSeconds(settings.ShowSequenceDelay);
 
         currSequence = Instantiate(settings.GetInputSequencePrefab(playerAdvantage), transform);
         currSequence.StartSequence(SequenceResolved);

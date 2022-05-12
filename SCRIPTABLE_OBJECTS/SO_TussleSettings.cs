@@ -105,6 +105,14 @@ public class TussleVideoWrapper
     [SerializeField]
     private AAudioWrapperV2 audioWrapper = null;
     public AAudioWrapperV2 AudioWrapper => audioWrapper;
+
+    [SerializeField]
+    private bool takeDamageAfterDelay = false;
+    public bool TakeDamageAfterDelay => takeDamageAfterDelay;
+
+    [SerializeField]
+    private float damageDelay = 0f;
+    public float DamageDelay => damageDelay;
 }
 
 

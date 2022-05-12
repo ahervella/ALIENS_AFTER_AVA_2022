@@ -312,6 +312,7 @@ public class PlayerRunner : MonoBehaviour
         PlayerActionEnum avoidAction,
         PlayerActionEnum takeDownAction,
         TerrAddonEnum obstacleType,
+        bool tussleOnAttack,
         out bool dodged)
     {
         dodged = false;
@@ -350,11 +351,18 @@ public class PlayerRunner : MonoBehaviour
 
         if (shieldOnFlag.Value)
         {
+            //TODO: explode enemies on hit shield
             //Only break the shield if it wasn't a projectile
             if (obstacleType != TerrAddonEnum.PROJECTILE)
             {
                 shieldOnFlag.ModifyValue(false);
             }
+            return;
+        }
+
+        if (tussleOnAttack)
+        {
+            StartTussle(false);
             return;
         }
 
@@ -364,7 +372,7 @@ public class PlayerRunner : MonoBehaviour
     public void OnEnterProjectile(WeaponEnum weaponType, PlayerActionEnum avoidAction, out bool dodged)
     {
         //TODO: do we need tyhe projectile (weapon) type in the end?
-        OnEnterHazard(avoidAction, PlayerActionEnum.NONE, TerrAddonEnum.PROJECTILE, out dodged);
+        OnEnterHazard(avoidAction, PlayerActionEnum.NONE, TerrAddonEnum.PROJECTILE, false, out dodged);
     }
 
     private void StartTussle(bool advantage)

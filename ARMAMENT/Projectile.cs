@@ -5,11 +5,8 @@ using UnityEngine;
 using static HelperUtil;
 
 [RequireComponent(typeof(SafeAudioWrapperSource))]
-public class Projectile : MonoBehaviour
+public class Projectile : MovingNode
 {
-    [SerializeField]
-    private SO_TerrSettings terrSettings = null;
-
     [SerializeField]
     private Vector3PropertySO hitBoxDimEdgePerc = null;
 
@@ -40,13 +37,7 @@ public class Projectile : MonoBehaviour
     private GameObject OnImpactPrefab = null;
 
     [SerializeField]
-    private float angleOffset = 0f;
-    [SerializeField]
     private Vector3 posOffset = default;
-    private Vector3 slope;
-
-    [SerializeField]
-    private float speedPerSec = 10;
 
     [SerializeField]
     private bool autoAlignToNearestLane = true;
@@ -75,12 +66,9 @@ public class Projectile : MonoBehaviour
 
     private BoxCollider sourceHitBox = null;
 
-    private void Awake()
+    protected override void OnAwake()
     {
-        slope = (isAlienProjectile ? -1 : 1) * speedPerSec * new Vector3(
-            Mathf.Sin(Mathf.Deg2Rad * angleOffset),
-            0,
-            Mathf.Cos(Mathf.Deg2Rad * angleOffset));
+        slope *= isAlienProjectile ? -1 : 1;
 
         audioSource = GetComponent<AudioWrapperSource>();
         travelAudio?.PlayAudioWrapper(audioSource);
@@ -163,23 +151,6 @@ public class Projectile : MonoBehaviour
             Vector3 currLocalPos = Vector3.Lerp(originalSpriteLocalPos, finalLocalPos, EasedPercent(perc));
             spriteAnim.transform.localPosition = currLocalPos;
             yield return null;
-        }
-    }
-
-    private void Update()
-    {
-        transform.position += slope * Time.deltaTime;
-        CheckIfOutOfVerticalBounds();
-    }
-
-    private void CheckIfOutOfVerticalBounds()
-    {
-        //Destroy if one row behind 0 (which is when rows reset for terrNode)
-        //or if further than last row
-        if (transform.position.z > terrSettings.TileRows * terrSettings.TileDims.y
-            || transform.position.z < -terrSettings.TileDims.y)
-        {
-            SafeDestroy(gameObject);
         }
     }
 
