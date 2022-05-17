@@ -174,7 +174,7 @@ public class GrappleHook : MonoBehaviour
 
                     if (hitBox.RootParent.GetComponent<TerrHazard>() is TerrHazard hazard)
                     {
-                        if (hazard.RequiredAvoidAction != PlayerActionEnum.JUMP)
+                        if (hazard.GetRequiredAvoidAction(hitBox) != PlayerActionEnum.JUMP)
                         {
                             nonjumpableHazardHit = true;
                             break;
