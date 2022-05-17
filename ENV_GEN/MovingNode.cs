@@ -39,8 +39,8 @@ public class MovingNode : MonoBehaviour
     {
         //Destroy if one row behind 0 (which is when rows reset for terrNode)
         //or if further than last row
-        if ((slope.z < 0 && transform.position.z < -terrSettings.TileDims.y)
-            || (slope.z > 0 && transform.position.z > terrSettings.TileRows * terrSettings.TileDims.y))
+        if ((slope.z <= 0 && transform.position.z < -terrSettings.TileDims.y)
+            || (slope.z >= 0 && transform.position.z > terrSettings.TileRows * terrSettings.TileDims.y))
         {
             SafeDestroy(gameObject);
         }

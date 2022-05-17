@@ -405,6 +405,11 @@ public class EnvTreadmill : MonoBehaviour
 
         totalZoneDistTraveled += Mathf.Abs(posVert);
 
+        ForEachTransformChild(vertTransform, child =>
+        {
+            LocalPositionChange(child.transform, 0, 0, posVert);
+        });
+
         if (posVert + terrNodesTransform.localPosition.z <= -newRowThreshold)
         {
             posVert += settings.TileDims.y;
@@ -413,10 +418,6 @@ public class EnvTreadmill : MonoBehaviour
         }
 
         LocalPositionChange(terrNodesTransform, 0, 0, posVert);
-        ForEachTransformChild(vertTransform, child =>
-        {
-            LocalPositionChange(child.transform, 0, 0, posVert);
-        });
 
         if (spawnOnlyFoleyPSO.Value && totalZoneDistTraveled >= settings.StartHazardFreeRowsFromPlayer - settings.TileRows)
         {
