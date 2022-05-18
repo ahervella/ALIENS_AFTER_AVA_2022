@@ -189,7 +189,12 @@ public class Projectile : MovingNode
         {
             //We give the player the audio so its from their source,
             //and so we don't prematurely delete this source object
-            player.OnEnterProjectile(weaponType, requiredAvoidAction, /*impactAudio, */out bool dodged);
+            player.OnEnterProjectile(
+                weaponType,
+                requiredAvoidAction,
+                /*impactAudio, */
+                out bool dodged,
+                out bool _);
 
             if (!dodged) { MadeImpact(); }
             return;

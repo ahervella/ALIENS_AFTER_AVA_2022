@@ -19,6 +19,7 @@ public class MM_PauseMenuManager : A_MenuManager<PauseMenuButtonEnum>
         AssignOnButtonPressedMethod(PauseMenuButtonEnum.QUIT, OnQuit);
 
         pauseMenuContainer.SetActive(false);
+        MenuEnabled = false;
     }
 
     private void InputManager_OnGamePause(CallbackContext context)
@@ -37,6 +38,7 @@ public class MM_PauseMenuManager : A_MenuManager<PauseMenuButtonEnum>
         Time.timeScale = 0;
         currGameMode.ModifyValue(GameModeEnum.PAUSE);
         pauseMenuContainer.SetActive(true);
+        MenuEnabled = true;
     }
 
     private void OnResume()
@@ -44,6 +46,7 @@ public class MM_PauseMenuManager : A_MenuManager<PauseMenuButtonEnum>
         Time.timeScale = 1;
         pauseMenuContainer.SetActive(false);
         currGameMode.ModifyValue(GameModeEnum.PLAY);
+        MenuEnabled = false;
     }
 
     private void OnQuit()

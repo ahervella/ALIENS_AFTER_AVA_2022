@@ -12,7 +12,16 @@ public class TerrHazard : TerrAddon
     [SerializeField]
     private PlayerActionEnum requiredAvoidAction = PlayerActionEnum.NONE;
 
-    public PlayerActionEnum GetRequiredAvoidAction(BoxColliderSP hb) => reqActionDict[hb];
+    public PlayerActionEnum GetRequiredAvoidAction(BoxColliderSP hb)
+    {
+        if (!reqActionDict.ContainsKey(hb))
+        {
+            Debug.LogError("Should always be in the dictionary here!");
+            return PlayerActionEnum.NONE;
+        }
+
+        return reqActionDict[hb];
+    }
 
     //The percent in each dimension we want to actually have on the edge tiles
     //of this hazard (if it's 3x1, and this is (0.8, 0.4, 0.7), then the dims of
@@ -148,7 +157,16 @@ public class TerrHazard : TerrAddon
         if (player != null)
         {
             player.OnEnterHazard(
-                reqActionDict[hitBox], hazardTakeDownReqAction, TerrAddonEnum, tussleOnAttack, out bool dodged);
+                reqActionDict[hitBox],
+                hazardTakeDownReqAction,
+                TerrAddonEnum,
+                tussleOnAttack,
+                out bool dodged,
+                out bool destroySelf);
+            if (destroySelf)
+            {
+                SafeDestroy(gameObject);
+            }
             if (!dodged)
             {
                 impactAudio.PlayAudioWrapper(audioSource);

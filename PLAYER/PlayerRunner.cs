@@ -313,9 +313,11 @@ public class PlayerRunner : MonoBehaviour
         PlayerActionEnum takeDownAction,
         TerrAddonEnum obstacleType,
         bool tussleOnAttack,
-        out bool dodged)
+        out bool dodged,
+        out bool destroyHazard)
     {
         dodged = false;
+        destroyHazard = false;
 
         if (currAction.IsPlayingHurtAnim())
         {
@@ -356,6 +358,7 @@ public class PlayerRunner : MonoBehaviour
             if (obstacleType != TerrAddonEnum.PROJECTILE)
             {
                 shieldOnFlag.ModifyValue(false);
+                destroyHazard = true;
             }
             return;
         }
@@ -369,10 +372,19 @@ public class PlayerRunner : MonoBehaviour
         TakeDamage(avoidAction);
     }
 
-    public void OnEnterProjectile(WeaponEnum weaponType, PlayerActionEnum avoidAction, out bool dodged)
+    public void OnEnterProjectile(
+        WeaponEnum weaponType,
+        PlayerActionEnum avoidAction,
+        out bool dodged,
+        out bool destroyProjectile)
     {
         //TODO: do we need tyhe projectile (weapon) type in the end?
-        OnEnterHazard(avoidAction, PlayerActionEnum.NONE, TerrAddonEnum.PROJECTILE, false, out dodged);
+        OnEnterHazard(avoidAction,
+            PlayerActionEnum.NONE,
+            TerrAddonEnum.PROJECTILE,
+            false,
+            out dodged,
+            out destroyProjectile);
     }
 
     private void StartTussle(bool advantage)
