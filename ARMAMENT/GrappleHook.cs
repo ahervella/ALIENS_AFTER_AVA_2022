@@ -164,11 +164,6 @@ public class GrappleHook : MonoBehaviour
 
                 if (hit.collider.GetComponent<BoxColliderSP>() is BoxColliderSP hitBox)
                 {
-                    //This must be the original we made copies from...
-                    //kinda stupid Unity makes this still active even though
-                    //its disabled :/
-                    if (!hitBox.isActiveAndEnabled) { continue; }
-
                     if (hitBox.RootParent.GetComponent<HazardAlien>() is HazardAlien alien)
                     {
                         ReelInTowardsAlien(alien);

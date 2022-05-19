@@ -14,6 +14,14 @@ public class TerrHazard : TerrAddon
 
     public PlayerActionEnum GetRequiredAvoidAction(BoxColliderSP hb)
     {
+        //This must be the original we made copies from...
+        //kinda stupid Unity makes this still active even though
+        //its disabled :/
+        if (!hitBox.isActiveAndEnabled)
+        {
+            return PlayerActionEnum.NULL;
+        }
+
         if (!reqActionDict.ContainsKey(hb))
         {
             Debug.LogError("Should always be in the dictionary here!");

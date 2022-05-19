@@ -20,5 +20,8 @@
 
     GRAPPLE_REEL = 15,
     ANY_ACTION = 16,
-    TUSSLE = 17
+    TUSSLE = 17,
+    //TODO: switch objects that cant be hit to TAKE_DAMAGE_GROUND, use this
+    // for null purposes in code for now
+    NULL = 18
 }

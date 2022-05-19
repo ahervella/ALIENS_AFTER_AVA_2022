@@ -20,6 +20,9 @@ public class DestroyOnRaycast : MonoBehaviour
     [SerializeField]
     private float tileDistCheck = 1f;
 
+    [SerializeField]
+    private List<PlayerActionEnum> destroyOnReqAction = new List<PlayerActionEnum>();
+
     private Vector3 raycastPosOffset;
 
     private void Update()
@@ -50,10 +53,13 @@ public class DestroyOnRaycast : MonoBehaviour
         {
             BoxColliderSP hitBox = hit.collider.gameObject.GetComponent<BoxColliderSP>();
 
-            if (hitBox != null && hitBox.RootParent is TerrHazard)
+            if (hitBox != null && hitBox.RootParent is TerrHazard hazard)
             {
-                SafeDestroy(rootNode);
-                return;
+                if (destroyOnReqAction.Contains(hazard.GetRequiredAvoidAction(hitBox)))
+                {
+                    SafeDestroy(rootNode);
+                    return;
+                }
             }
         }
     }
