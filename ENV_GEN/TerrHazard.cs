@@ -38,6 +38,9 @@ public class TerrHazard : TerrAddon
     private Vector3PropertySO hitBoxDimEdgePercents = null;
 
     [SerializeField]
+    private int hitBoxHeight = 1;
+
+    [SerializeField]
     protected SO_TerrSettings terrSettings = null;
 
     [SerializeField]
@@ -97,7 +100,7 @@ public class TerrHazard : TerrAddon
         //TODO: currently only setting the default hit box no matter if we doing custom
         //hit boxes so that the reward hit box can do it's thing, fix so we only
         //do it for non custom hit box setups
-        SetHitBoxDimensions(hitBox, Dimensions(), terrSettings, hitBoxDimEdgePercents);
+        SetHitBoxDimensions(hitBox, Dimensions(), hitBoxHeight, terrSettings, hitBoxDimEdgePercents);
         SetRewardBoxDimensions(hitBox.Box());
 
         reqActionDict.Clear();
@@ -137,7 +140,7 @@ public class TerrHazard : TerrAddon
             int width = hbw.MaxXRange - hbw.MinXRange;
             Vector2Int dims = new Vector2Int(width, Dimensions().y);
 
-            SetHitBoxDimensions(instance, dims, terrSettings, hitBoxDimEdgePercents);
+            SetHitBoxDimensions(instance, dims, hitBoxHeight, terrSettings, hitBoxDimEdgePercents);
 
             float centerOffset = (width - Dimensions().x) / 2f + hbw.MinXRange;
             centerOffset *= terrSettings.TileDims.x;

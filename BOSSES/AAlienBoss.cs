@@ -20,6 +20,9 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     private Vector3PropertySO hitBoxDimEdgePerc = null;
 
     [SerializeField]
+    private int hitBoxHeight = 1;
+
+    [SerializeField]
     private BoxColliderSP hitBox = null;
     public override BoxColliderSP HitBox() => hitBox;
 
@@ -89,6 +92,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         SetHitBoxDimensions(
             hitBox,
             new Vector2(settings.HitBoxTileWidth, 1),
+            hitBoxHeight,
             terrSettings,
             hitBoxDimEdgePerc);
         hitBox.SetOnTriggerEnterMethod(OnTriggerEnterDamageHitBox);

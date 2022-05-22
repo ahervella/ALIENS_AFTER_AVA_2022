@@ -14,6 +14,9 @@ public class Projectile : MovingNode
     private PSO_TerrainTreadmillNodes terrTreadmillNodesPSO = null;
 
     [SerializeField]
+    private Vector2Int widthHeightDims = new Vector2Int(1, 1);
+
+    [SerializeField]
     private TREADMILL_ATTACHMENT treadmillAttachment = TREADMILL_ATTACHMENT.NONE;
 
     private enum TREADMILL_ATTACHMENT { NONE = 0, HORIZONTAL = 1, HORIZ_VERT = 2 }
@@ -106,7 +109,8 @@ public class Projectile : MovingNode
         hitBox.Box().isTrigger = true;//!isAlienProjectile;
         SetHitBoxDimensionsAndPos(
             hitBox.Box(),
-            new Vector2(1, 1),
+            new Vector2(widthHeightDims.x, 1),
+            widthHeightDims.y,
             terrSettings,
             hitBoxDimEdgePerc);
 

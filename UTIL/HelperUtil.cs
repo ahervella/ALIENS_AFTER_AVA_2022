@@ -115,11 +115,12 @@ public static class HelperUtil
     public static void SetHitBoxDimensions(
         BoxColliderSP hitBox,
         Vector2 objTileDims,
+        int height,
         SO_TerrSettings terrSettings,
         Vector3PropertySO hitBoxDimEdgePercents,
         bool setHitBoxDefaultLocalPos = true)
     {
-        SetHitBoxDimensionsAndPos(hitBox.Box(), objTileDims, terrSettings, hitBoxDimEdgePercents, setHitBoxDefaultLocalPos);
+        SetHitBoxDimensionsAndPos(hitBox.Box(), objTileDims, height, terrSettings, hitBoxDimEdgePercents, setHitBoxDefaultLocalPos);
     }
 
     /// <summary>
@@ -128,13 +129,14 @@ public static class HelperUtil
     public static void SetHitBoxDimensionsAndPos(
         BoxCollider hitBox,
         Vector2 objTileDims,
+        int height,
         SO_TerrSettings terrSettings,
         Vector3PropertySO hitBoxDimEdgePercents,
         bool setHitBoxDefaultLocalPos = true)
     {
         Vector3 hitBoxDimensions = new Vector3(
             objTileDims.x * terrSettings.TileDims.x,
-            terrSettings.FloorHeight,
+            height * terrSettings.FloorHeight,
             objTileDims.y * terrSettings.TileDims.y);
 
         hitBoxDimensions -= new Vector3(
