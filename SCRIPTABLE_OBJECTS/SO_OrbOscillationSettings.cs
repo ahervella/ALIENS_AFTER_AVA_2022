@@ -12,4 +12,8 @@ public class SO_OrbOscillationSettings : ScriptableObject
     [SerializeField]
     private float oscillationTime = 1f;
     public float OscillationTime => oscillationTime;
+
+    [SerializeField]
+    private float upDownMoveTime = 1f;
+    public float UpDownMoveTime => upDownMoveTime;
 }

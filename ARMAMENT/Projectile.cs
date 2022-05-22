@@ -60,6 +60,11 @@ public class Projectile : MovingNode
     [SerializeField]
     private bool isAlienProjectile = false;
 
+    [SerializeField]
+    private PSO_CurrentPlayerAction currPlayerAction = null;
+
+    private bool highOrLowShot => currPlayerAction.Value == PlayerActionEnum.JUMP;
+
     private AudioWrapperSource audioSource;
 
     private Transform mzTrans;
@@ -124,14 +129,15 @@ public class Projectile : MovingNode
             GetLaneXPosition(GetLaneIndexFromPosition(transform.position.x, terrSettings), terrSettings)
             : transform.position.x;
 
-        float yPos = 0;// GetFloorYPosition(FloorIndex, terrSettings);
+        float yPos = highOrLowShot ? terrSettings.FloorHeight : 0;//0;// GetFloorYPosition(FloorIndex, terrSettings);
 
-        
+
+
         transform.position = new Vector3(xPos, yPos, transform.position.z);
 
         Vector3 originalSpriteLocalPos = mzTrans.position - transform.position;
 
-        float spriteFinalYLocalPos = terrSettings.FloorHeight * spriteYPosPercFloorHeight;// + yPos;
+        float spriteFinalYLocalPos = terrSettings.FloorHeight * spriteYPosPercFloorHeight + yPos;
         Vector3 finalLocalPos = new Vector3(0, spriteFinalYLocalPos, 0);
 
         StartCoroutine(SpritePosTween(originalSpriteLocalPos, finalLocalPos));
