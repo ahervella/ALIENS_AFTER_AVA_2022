@@ -160,12 +160,12 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     private IEnumerator PlaySpawnAudioCR()
     {
         yield return new WaitForSeconds(settings.SpawnAudioDelay);
-        settings.SpawnAudioWrapper.PlayAudioWrapper(audioSource);
+        settings.SpawnAudioWrapper?.PlayAudioWrapper(audioSource);
     }
 
     private void OnTriggerEnterDamageHitBox(Collider other)
     {
-        Projectile projectile = other.transform.parent.gameObject.GetComponent<Projectile>();
+        Projectile projectile = other.transform.parent?.gameObject.GetComponent<Projectile>()?? null;
         if (projectile != null)
         {
             projectile.OnEnteredBoss(this);
