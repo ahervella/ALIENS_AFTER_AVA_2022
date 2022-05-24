@@ -37,6 +37,10 @@ public abstract class SO_AFillBarSettings : ScriptableObject
     public float BarFillOnSpawnTime => barFillOnSpawnTime;
 
     [SerializeField]
+    private float labelFadeInDelay = 1f;
+    public float LabelFadeInDelay => labelFadeInDelay;
+
+    [SerializeField]
     private int maxQuant = default;
     public virtual int MaxQuant => maxQuant;
 

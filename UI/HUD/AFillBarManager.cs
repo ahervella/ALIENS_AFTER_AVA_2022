@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using static HelperUtil;
@@ -27,6 +28,9 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
     [SerializeField]
     protected Image maskFillImg = null;
+
+    [SerializeField]
+    private TextMeshProUGUI optionalLabel = null;
 
     [SerializeField]
     protected PSO_CURR_QUANT currQuant = null;
@@ -180,6 +184,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
         if (settings.FadeIn)
         {
             StartCoroutine(SpawnFadeIn());
+            StartCoroutine(LabelFadeIn());
         }
 
         if (settings.SpawnFromTop)
@@ -213,6 +218,28 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
             perc += Time.deltaTime / settings.FadeInTime * dir;
             maskFillImg.color = new Color(ogColor.r, ogColor.g, ogColor.b, EasedPercent(perc));
             frameImg.color = new Color(ogColor.r, ogColor.g, ogColor.b, EasedPercent(perc));
+            yield return null;
+        }
+    }
+
+    private IEnumerator LabelFadeIn(bool reverse = false)
+    {
+        if (optionalLabel == null) { yield break; }
+
+        Color ogColor = optionalLabel.color;
+        float startingAlpha = reverse ? 1 : 0;
+        optionalLabel.color = new Color(ogColor.r, ogColor.g, ogColor.b, startingAlpha);
+
+        float delay = reverse ? 0 : settings.LabelFadeInDelay;
+        yield return new WaitForSeconds(delay);
+
+        float perc = 0;
+        float dir = reverse ? -1 : 1;
+
+        while (perc <= 1 && perc >= 0)
+        {
+            perc += Time.deltaTime / settings.FadeInTime * dir;
+            optionalLabel.color = new Color(ogColor.r, ogColor.g, ogColor.b, EasedPercent(perc));
             yield return null;
         }
     }
