@@ -41,9 +41,10 @@ public class EnvNodeGenerator : MonoBehaviour
     {
         if (devTools.SpawnBossOnStart)
         {
+            currZonePhase.ModifyValueNoInvoke(ZonePhaseEnum.BOSS_SPAWN);
             OnZoneChange(currZone.Value, currZone.Value);
             currZonePhase.ModifyValue(ZonePhaseEnum.BOSS_SPAWN);
-            
+
             terrainChangeDelegate.InvokeDelegateMethod(
                 queuedTerrainChangeWrapper);
 
