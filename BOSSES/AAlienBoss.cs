@@ -60,8 +60,6 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     //sequence will make themselves not invincible
     protected bool invincible = true;
 
-    protected bool stunned = false;
-
     //TODO: Do we need this if we're setting it before instantiating
     //the prefab?
     [NonSerialized]
@@ -125,7 +123,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
             hitBoxDimEdgePerc);
 
         hitBox.SetOnTriggerEnterMethod(
-            coll => OnTriggerEnterBossHitBox(coll, hitBox));
+            coll => OnTriggerEnterBossHitBox(coll, hitBox, tussleOnAttack: true));
     }
 
     private void InputManager_Dev9(CallbackContext ctx)
@@ -192,12 +190,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         settings.SpawnAudioWrapper?.PlayAudioWrapper(audioSource);
     }
 
-    public override void StunBoss()
-    {
-        stunned = true;
-    }
-
-    protected void OnTriggerEnterBossHitBox(Collider other, BoxColliderSP hb)
+    protected void OnTriggerEnterBossHitBox(Collider other, BoxColliderSP hb, bool tussleOnAttack)
     {
         Projectile projectile = other.transform.parent?.gameObject.GetComponent<Projectile>()?? null;
         if (projectile != null)
@@ -213,7 +206,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
                 hb.RequiredAvoidAction,
                 PlayerActionEnum.NULL,
                 TerrAddonEnum.BOSS,
-                tussleOnAttack: stunned,
+                tussleOnAttack,
                 out bool _,
                 out bool _
                 );

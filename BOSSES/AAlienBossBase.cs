@@ -9,6 +9,4 @@ public abstract class AAlienBossBase : MonoBehaviour
     public abstract void TakeDamage(int damage);
 
     public abstract BoxColliderSP HitBox();
-
-    public abstract void StunBoss();
 }

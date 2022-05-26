@@ -26,6 +26,7 @@ public class Boss2Animation : BaseAnimation<Boss2State, SO_Boss2AnimationSetting
             //To keep the scale from the attack start
             case Boss2State.SPREAD_WINGS_MIDDLE_LOW:
             case Boss2State.SPREAD_WINGS_MIDDLE_HIGH:
+            case Boss2State.SPREAD_WINGS:
                 break;
 
             default:

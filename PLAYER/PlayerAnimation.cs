@@ -29,9 +29,18 @@ public class PlayerAnimation : BaseAnimation<PlayerActionEnum, SO_PlayerAnimatio
 
     protected override void OnActionChange(PlayerActionEnum prevAction, PlayerActionEnum newAction)
     {
+        PrematureActionChangeAllowed = false;
+        float time = 0;
+
+        //only because they are currently the same jumping animation
+        if (prevAction == PlayerActionEnum.JUMP && newAction == PlayerActionEnum.GRAPPLE_REEL)
+        {
+            time = spriteAnimator.GetNormalisedTime();
+        }
+
         AnimationClip animClip = settings.GetAnimationAndChangeCamAngle(newAction, targetCameraAngle);
         spriteAnimator.Play(animClip);
-        PrematureActionChangeAllowed = false;
+        spriteAnimator.SetTime(time);
     }
 
     public void AE_ActionChangedAllowed()

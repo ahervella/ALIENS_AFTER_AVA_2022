@@ -20,7 +20,20 @@ public class BoxColliderSP : MonoBehaviour
 
     //hack to make sure we only get the req action if its enabled
     public PlayerActionEnum RequiredAvoidAction =>
-        isActiveAndEnabled ? requiredAvoidAction : PlayerActionEnum.NULL;
+        !BoxDisabled ? requiredAvoidAction : PlayerActionEnum.NULL;
+
+    public bool BoxDisabled
+    {
+        set
+        {
+            enabled = value;
+        }
+
+        get
+        {
+            return !isActiveAndEnabled;
+        }
+    }
 
     public void SetReqAvoidAction(PlayerActionEnum action)
     {
@@ -93,21 +106,25 @@ public class BoxColliderSP : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (BoxDisabled) { return; }
         onTriggerEnterMethod?.Invoke(other);
     }
 
     private void OnTriggerExit(Collider other)
     {
+        if (BoxDisabled) { return; }
         onTriggerExitMethod?.Invoke(other);
     }
 
     private void OnCollisionEnter(Collision collision)
     {
+        if (BoxDisabled) { return; }
         onColliderEnterMethod?.Invoke(collision);
     }
 
     private void OnCollisionExit(Collision collision)
     {
+        if (BoxDisabled) { return; }
         onColliderExitMethod?.Invoke(collision);
     }
 }

@@ -56,13 +56,13 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
 
         centerHBW.InstancedHB.SetAsNodeHitBox(true);
         centerHBW.InstancedHB.SetOnTriggerEnterMethod(
-            coll => OnTriggerEnterBossHitBox(coll, centerHBW.InstancedHB));
+            coll => OnTriggerEnterBossHitBox(coll, centerHBW.InstancedHB, tussleOnAttack: true));
 
         leftHBW.InstancedHB.SetOnTriggerEnterMethod(
-            coll => OnTriggerEnterBossHitBox(coll, leftHBW.InstancedHB));
+            coll => OnTriggerEnterBossHitBox(coll, leftHBW.InstancedHB, tussleOnAttack: false));
 
         rightHBW.InstancedHB.SetOnTriggerEnterMethod(
-            coll => OnTriggerEnterBossHitBox(coll, rightHBW.InstancedHB));
+            coll => OnTriggerEnterBossHitBox(coll, rightHBW.InstancedHB, tussleOnAttack: false));
     }
 
     protected override void InitDeath()
@@ -116,14 +116,15 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
 
     private void OnBossStateChange(Boss2State oldState, Boss2State newState)
     {
-        leftHBW.InstancedHB.enabled = true;
-        rightHBW.InstancedHB.enabled = true;
+        leftHBW.InstancedHB.BoxDisabled = true;
+        rightHBW.InstancedHB.BoxDisabled = true;
 
         switch (newState)
         {
+            case Boss2State.SPREAD_WINGS:
             case Boss2State.SPREAD_WINGS_MIDDLE_HIGH:
                 leftHBW.InstancedHB.SetReqAvoidAction(PlayerActionEnum.ROLL);
-                //centerHBW.InstancedHB.SetReqAvoidAction(PlayerActionEnum.NONE);
+                centerHBW.InstancedHB.SetReqAvoidAction(PlayerActionEnum.ROLL);
                 rightHBW.InstancedHB.SetReqAvoidAction(PlayerActionEnum.ROLL);
                 break;
 
@@ -134,8 +135,9 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
                 break;
 
             default:
-                leftHBW.InstancedHB.enabled = false;
-                rightHBW.InstancedHB.enabled = false;
+                leftHBW.InstancedHB.BoxDisabled = false;
+                rightHBW.InstancedHB.BoxDisabled = false;
+                centerHBW.InstancedHB.SetReqAvoidAction(PlayerActionEnum.NONE);
                 break;
                 //TODO: finish up with left and right leaning wings?
                 //case Boss2State.
@@ -323,13 +325,14 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
         Vector3 startPos = transform.localPosition;
         Vector3 endPos = new Vector3(cachedFarDefaultPos.x, attackYPos, -terrSettings.TileDims.y);
 
-        //TODO : rage wing spread
-
-        Boss2State wingSpreadState = Random.value > 0.5f ?
+        //50% chance of second attack on rage
+        if (Rage && Random.value > 0.5)
+        {
+            Boss2State wingSpreadState = Boss2State.SPREAD_WINGS;/*Random.value > 0.5f ?
             Boss2State.SPREAD_WINGS_MIDDLE_HIGH
-            : Boss2State.SPREAD_WINGS_MIDDLE_LOW;
-
-        currState.ModifyValue(wingSpreadState);
+            : Boss2State.SPREAD_WINGS_MIDDLE_LOW;*/
+            currState.ModifyValue(wingSpreadState);
+        }
 
         float time = Mathf.Abs(endPos.z - startPos.z) / speed;
         float perc = 0;
@@ -348,7 +351,6 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
 
         TreadmillAttachment(false);
 
-        stunned = false;
         StartCoroutine(IdleFlybySequenceCR());
     }
 
