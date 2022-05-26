@@ -55,7 +55,7 @@ public class DestroyOnRaycast : MonoBehaviour
 
             if (hitBox != null && hitBox.RootParent is TerrHazard hazard)
             {
-                if (destroyOnReqAction.Contains(hazard.GetRequiredAvoidAction(hitBox)))
+                if (destroyOnReqAction.Contains(hitBox.RequiredAvoidAction))//hazard.GetRequiredAvoidAction(hitBox)))
                 {
                     SafeDestroy(rootNode);
                     return;

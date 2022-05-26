@@ -15,12 +15,13 @@ public class SplashSpawner : MonoBehaviour
 
     public void AE_SpawnSplash(int spawnLocRefIndex)
     {
-        GameObject instance = Instantiate(splashPrefab, terrNodes.Value.VerticalNode);
+        GameObject instance = Instantiate(splashPrefab);
+        terrNodes.Value.AttachTransform(instance.transform, horizOrVert: false);
 
         Vector3 spawnPos = spawnLocRefIndex < orderedSpawnLocations.Count ?
             orderedSpawnLocations[spawnLocRefIndex].transform.position
             : transform.position;
 
-        instance.transform.position = spawnPos;//new Vector3(spawnPos.x, 0, spawnPos.z);
+        instance.transform.position = spawnPos;
     }
 }

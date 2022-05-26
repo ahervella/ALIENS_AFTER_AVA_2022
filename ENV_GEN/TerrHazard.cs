@@ -9,27 +9,13 @@ public class TerrHazard : TerrAddon
 {
     //TODO: should probably change this name to conicide with the option of not using
     //custom hitboxes but don't want to mess with serialization right now
-    [SerializeField]
-    private PlayerActionEnum requiredAvoidAction = PlayerActionEnum.NONE;
+    //[SerializeField]
+    //private PlayerActionEnum requiredAvoidAction = PlayerActionEnum.NONE;
 
-    public PlayerActionEnum GetRequiredAvoidAction(BoxColliderSP hb)
-    {
-        //This must be the original we made copies from...
-        //kinda stupid Unity makes this still active even though
-        //its disabled :/
-        if (!hitBox.isActiveAndEnabled)
-        {
-            return PlayerActionEnum.NULL;
-        }
-
-        if (!reqActionDict.ContainsKey(hb))
-        {
-            Debug.LogError("Should always be in the dictionary here!");
-            return PlayerActionEnum.NONE;
-        }
-
-        return reqActionDict[hb];
-    }
+    //public PlayerActionEnum GetRequiredAvoidAction(BoxColliderSP hb)
+    //{
+    //    return HelperUtil.GetRequiredAvoidAction(hitBox, reqActionDict, hb);
+    //}
 
     //The percent in each dimension we want to actually have on the edge tiles
     //of this hazard (if it's 3x1, and this is (0.8, 0.4, 0.7), then the dims of
@@ -50,29 +36,11 @@ public class TerrHazard : TerrAddon
     private BoxColliderSP hitBox = null;
     public BoxColliderSP HitBox => hitBox;
 
-    [SerializeField]
-    private bool useCustomHitBoxes = false;
+    //[SerializeField]
+    //private bool useCustomHitBoxes = false;
 
     [SerializeField]
     private List<HitBoxWrapper> customHitBoxes = new List<HitBoxWrapper>();
-
-    [Serializable]
-    private class HitBoxWrapper
-    {
-        [SerializeField]
-        private int minXRange = 0;
-        public int MinXRange => minXRange;
-
-        [SerializeField]
-        private int maxXRange = 1;
-        public int MaxXRange => maxXRange;
-
-        [SerializeField]
-        private PlayerActionEnum customAvoidAction = PlayerActionEnum.NONE;
-        public PlayerActionEnum CustomAvoidAction => customAvoidAction;
-    }
-
-    private Dictionary<BoxColliderSP, PlayerActionEnum> reqActionDict = new Dictionary<BoxColliderSP, PlayerActionEnum>();
 
     [SerializeField]
     private BoxColliderSP energyRewardBox = null;
@@ -95,72 +63,78 @@ public class TerrHazard : TerrAddon
         InitBoxColliders();
     }
 
+    //TODO: add some sort of verification to make sure that for hazards
+    //with only one hit box that we extend across the whole width, avoid
+    //human error?
     private void InitBoxColliders()
     {
-        //TODO: currently only setting the default hit box no matter if we doing custom
-        //hit boxes so that the reward hit box can do it's thing, fix so we only
-        //do it for non custom hit box setups
-        SetHitBoxDimensions(hitBox, Dimensions(), hitBoxHeight, terrSettings, hitBoxDimEdgePercents);
-        SetRewardBoxDimensions(hitBox.Box());
+        MakeCustomHitBoxes(
+                hitBox,
+                Dimensions(),
+                hitBoxHeight,
+                terrSettings,
+                hitBoxDimEdgePercents,
+                customHitBoxes);
 
-        reqActionDict.Clear();
-        if (useCustomHitBoxes)
+        foreach (HitBoxWrapper hbw in customHitBoxes)
         {
-            MakeCustomHitBoxes();
+            ApplyHitBoxSizeErrorFix(hbw.InstancedHB);
+            hbw.InstancedHB.SetOnTriggerEnterMethod(
+                coll => OnTriggerEnterDamageHitBox(coll, hbw.InstancedHB));
+        }
+
+        //if its only one hit box, can save time and use the one hit box for the reward hitbox
+        //assuming it should take up the full specified dimensions
+        if (customHitBoxes.Count == 1)
+        {
+            SetRewardBoxDimensionsFromHB(
+                customHitBoxes[0].InstancedHB.Box(), energyRewardBox, terrSettings);
+            
         }
         else
         {
-            reqActionDict.Add(hitBox, requiredAvoidAction);
-        }
-
-        
-        foreach(KeyValuePair<BoxColliderSP, PlayerActionEnum> kvp in reqActionDict)
-        {
-            BoxCollider box = kvp.Key.Box();
-            PlayerActionEnum reqAction = kvp.Value;
-
-            //TODO: realized that I set the standard of tiles and hit box length
-            //with half of it behind the terr object. Cleaner way to fix?
-            //Originally had to do this because the grapple was colliding with the back of the hazard
-            box.size = new Vector3(box.size.x, box.size.y, box.size.z / 2f);
-            box.center = new Vector3(box.center.x, box.center.y, -box.size.z / 2f);
-
-            kvp.Key.SetOnTriggerEnterMethod(coll => OnTriggerEnterDamageHitBox(coll, kvp.Key));
+            SetRewardBoxDimensions(
+                hitBox,
+                energyRewardBox,
+                Dimensions(),
+                hitBoxHeight,
+                terrSettings,
+                hitBoxDimEdgePercents);
         }
 
         //hitBox.SetOnTriggerEnterMethod(OnTriggerEnterDamageHitBox);
         energyRewardBox.SetOnTriggerExitMethod(OnTriggerExitRewardBox);
     }
 
-    private void MakeCustomHitBoxes()
-    {
-        foreach(HitBoxWrapper hbw in customHitBoxes)
-        {
-            BoxColliderSP instance = Instantiate(hitBox, hitBox.transform.parent);
-            int width = hbw.MaxXRange - hbw.MinXRange;
-            Vector2Int dims = new Vector2Int(width, Dimensions().y);
+    //private void MakeCustomHitBoxes()
+    //{
+    //    foreach(HitBoxWrapper hbw in customHitBoxes)
+    //    {
+    //        BoxColliderSP instance = Instantiate(hitBox, hitBox.transform.parent);
+    //        int width = hbw.MaxXRange - hbw.MinXRange;
+    //        Vector2Int dims = new Vector2Int(width, Dimensions().y);
 
-            SetHitBoxDimensions(instance, dims, hitBoxHeight, terrSettings, hitBoxDimEdgePercents);
+    //        SetHitBoxDimensions(instance, dims, hitBoxHeight, terrSettings, hitBoxDimEdgePercents);
 
-            float centerOffset = (width - Dimensions().x) / 2f + hbw.MinXRange;
-            centerOffset *= terrSettings.TileDims.x;
-            instance.Box().center = new Vector3(centerOffset, instance.Box().center.y, instance.Box().center.z);
+    //        float centerOffset = (width - Dimensions().x) / 2f + hbw.MinXRange;
+    //        centerOffset *= terrSettings.TileDims.x;
+    //        instance.Box().center = new Vector3(centerOffset, instance.Box().center.y, instance.Box().center.z);
 
-            reqActionDict.Add(instance, hbw.CustomAvoidAction);
-        }
+    //        reqActionDict.Add(instance, hbw.CustomAvoidAction);
+    //    }
 
-        //disable original so we don't overlap with that
-        hitBox.enabled = false;
-    }
+    //    //disable original so we don't overlap with that
+    //    hitBox.enabled = false;
+    //}
 
-    private void SetRewardBoxDimensions(BoxCollider hitBox)
-    {
-        //Hack: save computation by using hit box values
-        Vector3 rewardBoxDims = hitBox.size + new Vector3(0, 0, terrSettings.RewardBoxLengthFront);
+    //private void SetRewardBoxDimensionsFromHB(BoxCollider hitBox)
+    //{
+    //    //Hack: save computation by using hit box values
+    //    Vector3 rewardBoxDims = hitBox.size + new Vector3(0, 0, terrSettings.RewardBoxLengthFront);
 
-        energyRewardBox.Box().size = rewardBoxDims;
-        energyRewardBox.Box().center = new Vector3(0, rewardBoxDims.y / 2f, -(rewardBoxDims.z - hitBox.size.z) / 2f);
-    }
+    //    energyRewardBox.Box().size = rewardBoxDims;
+    //    energyRewardBox.Box().center = new Vector3(0, rewardBoxDims.y / 2f, -(rewardBoxDims.z - hitBox.size.z) / 2f);
+    //}
 
     private void OnTriggerEnterDamageHitBox(Collider other, BoxColliderSP hitBox)
     {
@@ -168,7 +142,7 @@ public class TerrHazard : TerrAddon
         if (player != null)
         {
             player.OnEnterHazard(
-                reqActionDict[hitBox],
+                hitBox.RequiredAvoidAction,
                 hazardTakeDownReqAction,
                 TerrAddonEnum,
                 tussleOnAttack,

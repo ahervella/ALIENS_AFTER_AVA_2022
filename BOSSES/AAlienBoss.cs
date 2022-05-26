@@ -17,14 +17,19 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     protected PropertySO<BOSS_STATE> currState = null;
 
     [SerializeField]
-    private Vector3PropertySO hitBoxDimEdgePerc = null;
+    protected Vector3PropertySO hitBoxDimEdgePerc = null;
 
     [SerializeField]
-    private int hitBoxHeight = 1;
+    protected int hitBoxHeight = 1;
 
     [SerializeField]
     private BoxColliderSP hitBox = null;
     public override BoxColliderSP HitBox() => hitBox;
+
+    //public PlayerActionEnum GetRequiredAvoidAction(BoxColliderSP hb)
+    //{
+    //    return HelperUtil.GetRequiredAvoidAction(hitBox, reqActionDict, hb);
+    //}
 
     [SerializeField]
     private AnimationEventExtender removeBossAEExtender = null;
@@ -44,6 +49,9 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     [SerializeField]
     private SpriteFlasher damageFlash = null;
 
+    [SerializeField]
+    private BoolDelegateSO bossTussleDamageDSO = null;
+
     private AFillBarManagerBase healthBarPrefab;
 
     protected bool Rage { get; private set; } = false;
@@ -52,7 +60,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     //sequence will make themselves not invincible
     protected bool invincible = true;
 
-    
+    protected bool stunned = false;
 
     //TODO: Do we need this if we're setting it before instantiating
     //the prefab?
@@ -89,13 +97,9 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
         currZonePhase.RegisterForPropertyChanged(OnZonePhaseChange);
 
-        SetHitBoxDimensions(
-            hitBox,
-            new Vector2(settings.HitBoxTileWidth, 1),
-            hitBoxHeight,
-            terrSettings,
-            hitBoxDimEdgePerc);
-        hitBox.SetOnTriggerEnterMethod(OnTriggerEnterDamageHitBox);
+        bossTussleDamageDSO.RegisterForDelegateInvoked(OnBossTussleDamage);
+
+        InitHitBoxes();
 
         removeBossAEExtender.AssignAnimationEvent(AE_OnRemoveBoss, 0);
 
@@ -106,6 +110,22 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         StartCoroutine(PlaySpawnAudioCR());
 
         OnBossAwake();
+    }
+
+    //Need this so that second boss (or any future boss) can take advantage
+    //of multiple hit boxes. Ideally though would rather spend more time making
+    //bosses a base class of a terr hazard...
+    protected virtual void InitHitBoxes()
+    {
+        SetHitBoxDimensions(
+            hitBox,
+            new Vector2(settings.HitBoxTileWidth, 1),
+            hitBoxHeight,
+            terrSettings,
+            hitBoxDimEdgePerc);
+
+        hitBox.SetOnTriggerEnterMethod(
+            coll => OnTriggerEnterBossHitBox(coll, hitBox));
     }
 
     private void InputManager_Dev9(CallbackContext ctx)
@@ -136,7 +156,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         }
         else
         {
-            settings.HurtAudioWrapper.PlayAudioWrapper(audioSource);
+            settings.HurtAudioWrapper?.PlayAudioWrapper(audioSource);
         }
     }
 
@@ -151,6 +171,15 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         }
     }
 
+    private int OnBossTussleDamage(bool isForBoss)
+    {
+        if (isForBoss)
+        {
+            TakeDamage(1);
+        }
+        return 0;
+    }
+
     private IEnumerator HealthBarSpawnCR()
     {
         yield return new WaitForSeconds(settings.HealthBarSpawnDelay);
@@ -163,13 +192,33 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         settings.SpawnAudioWrapper?.PlayAudioWrapper(audioSource);
     }
 
-    private void OnTriggerEnterDamageHitBox(Collider other)
+    public override void StunBoss()
+    {
+        stunned = true;
+    }
+
+    protected void OnTriggerEnterBossHitBox(Collider other, BoxColliderSP hb)
     {
         Projectile projectile = other.transform.parent?.gameObject.GetComponent<Projectile>()?? null;
         if (projectile != null)
         {
             projectile.OnEnteredBoss(this);
+            return;
         }
+
+        PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
+        if (player != null)
+        {
+            player.OnEnterHazard(
+                hb.RequiredAvoidAction,
+                PlayerActionEnum.NULL,
+                TerrAddonEnum.BOSS,
+                tussleOnAttack: stunned,
+                out bool _,
+                out bool _
+                );
+        }
+
     }
 
 

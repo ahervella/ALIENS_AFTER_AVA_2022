@@ -16,6 +16,27 @@ public class BoxColliderSP : MonoBehaviour
     [SerializeField]
     private SO_LayerSettings layerSettings = null;
 
+    private PlayerActionEnum requiredAvoidAction = PlayerActionEnum.NULL;
+
+    //hack to make sure we only get the req action if its enabled
+    public PlayerActionEnum RequiredAvoidAction =>
+        isActiveAndEnabled ? requiredAvoidAction : PlayerActionEnum.NULL;
+
+    public void SetReqAvoidAction(PlayerActionEnum action)
+    {
+        requiredAvoidAction = action;
+    }
+
+    //private PlayerActionEnum requiredTakeDownAction = PlayerActionEnum.NULL;
+
+    //public PlayerActionEnum RequiredTakeDownAction =>
+    //    isActiveAndEnabled ? requiredTakeDownAction : PlayerActionEnum.NULL;
+
+    //public void SetTakeDownAction(PlayerActionEnum action)
+    //{
+    //    requiredTakeDownAction = action;
+    //}
+
     Action<Collider> onTriggerEnterMethod = null;
     Action<Collider> onTriggerExitMethod = null;
 
@@ -24,9 +45,18 @@ public class BoxColliderSP : MonoBehaviour
 
     private void Awake()
     {
-        if (isNodeHitBox)
+        SetAsNodeHitBox(isNodeHitBox);
+    }
+
+    public void SetAsNodeHitBox(bool set)
+    {
+        if (set)
         {
             gameObject.layer = layerSettings.HitBoxLayer;
+        }
+        else
+        {
+            gameObject.layer = 0;
         }
     }
 

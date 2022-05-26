@@ -11,5 +11,7 @@
     
     ALL_RAMPS = 200,
     FOLEY = 300,
-    PROJECTILE = 666
+    PROJECTILE = 666,
+
+    BOSS = 999
 }

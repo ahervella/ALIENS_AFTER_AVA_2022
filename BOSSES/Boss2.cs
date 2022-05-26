@@ -8,7 +8,19 @@ using Random = UnityEngine.Random;
 public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
 {
     [SerializeField]
+    private HitBoxWrapper centerHBW = null;
+
+    [SerializeField]
+    private HitBoxWrapper leftHBW = null;
+
+    [SerializeField]
+    private HitBoxWrapper rightHBW = null;
+
+    [SerializeField]
     private float attackYPos = 1f;
+
+    [SerializeField]
+    private PSO_TerrainTreadmillNodes terrNodes = null;
 
     private Vector3 cachedSpawnPos;
     private Vector3 cachedFarDefaultPos;
@@ -23,6 +35,35 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
     private bool deathFlag = false;
 
     private Vector3 currVel;
+
+    protected override void InitHitBoxes()
+    {
+        List<HitBoxWrapper> customHitBoxWrappers = new List<HitBoxWrapper>()
+        {
+            centerHBW,
+            leftHBW,
+            rightHBW
+        };
+
+        MakeCustomHitBoxes(
+                HitBox(),
+                //TODO: move this out of settings and serialize it
+                new Vector2Int(settings.HitBoxTileWidth, 1),
+                hitBoxHeight,
+                terrSettings,
+                hitBoxDimEdgePerc,
+                customHitBoxWrappers);
+
+        centerHBW.InstancedHB.SetAsNodeHitBox(true);
+        centerHBW.InstancedHB.SetOnTriggerEnterMethod(
+            coll => OnTriggerEnterBossHitBox(coll, centerHBW.InstancedHB));
+
+        leftHBW.InstancedHB.SetOnTriggerEnterMethod(
+            coll => OnTriggerEnterBossHitBox(coll, leftHBW.InstancedHB));
+
+        rightHBW.InstancedHB.SetOnTriggerEnterMethod(
+            coll => OnTriggerEnterBossHitBox(coll, rightHBW.InstancedHB));
+    }
 
     protected override void InitDeath()
     {
@@ -70,6 +111,35 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
     protected override void OnBossAwake()
     {
         SpawnSequence();
+        currState.RegisterForPropertyChanged(OnBossStateChange);
+    }
+
+    private void OnBossStateChange(Boss2State oldState, Boss2State newState)
+    {
+        leftHBW.InstancedHB.enabled = true;
+        rightHBW.InstancedHB.enabled = true;
+
+        switch (newState)
+        {
+            case Boss2State.SPREAD_WINGS_MIDDLE_HIGH:
+                leftHBW.InstancedHB.SetReqAvoidAction(PlayerActionEnum.ROLL);
+                //centerHBW.InstancedHB.SetReqAvoidAction(PlayerActionEnum.NONE);
+                rightHBW.InstancedHB.SetReqAvoidAction(PlayerActionEnum.ROLL);
+                break;
+
+            case Boss2State.SPREAD_WINGS_MIDDLE_LOW:
+                leftHBW.InstancedHB.SetReqAvoidAction(PlayerActionEnum.JUMP);
+                //centerHBW.InstancedHB.SetReqAvoidAction(PlayerActionEnum.NONE);
+                rightHBW.InstancedHB.SetReqAvoidAction(PlayerActionEnum.JUMP);
+                break;
+
+            default:
+                leftHBW.InstancedHB.enabled = false;
+                rightHBW.InstancedHB.enabled = false;
+                break;
+                //TODO: finish up with left and right leaning wings?
+                //case Boss2State.
+        }
     }
 
     private void SpawnSequence()
@@ -94,28 +164,9 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
             new Vector3(0, flyOverDip, 0),
             settings.FlyOverTime,
             () => currState.ModifyValue(Boss2State.FLYOVER_RISE));
-        
-        //float perc = 0;
-        //float dipPerc;
 
 
-        //while (perc < 1)
-        //{
-        //    perc += Time.deltaTime / settings.FlyOverTime;
-        //    dipPerc = perc < 0.5 ? perc * 2 : 2 - perc * 2;
-
-        //    float zDelta = Mathf.Lerp(0, zTargetDelta, perc);
-        //    float dipYDelta = Mathf.Lerp(0, flyOverDip, EasedPercent(dipPerc));
-
-        //    if (perc > 0.5 && currState.Value != Boss2State.FLYOVER_RISE)
-        //    {
-        //        currState.ModifyValue(Boss2State.FLYOVER_RISE);
-        //    }
-
-        //    transform.localPosition = cachedSpawnPos + new Vector3(0, flyOverDip  - dipYDelta, zDelta);
-        //    yield return null;
-        //}
-
+        invincible = false;
         SafeStartCoroutine(ref idleFlybyCR, IdleFlybySequenceCR(), this);
     }
 
@@ -228,7 +279,7 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
         bool oneShotApex = true;
 
         float endZPos = settings.AttackStartTileDist * terrSettings.TileDims.y;
-        Vector3 endPos = new Vector3(cachedFarDefaultPos.x, cachedFarDefaultPos.y, endZPos);
+        Vector3 endPos = new Vector3(cachedFarDefaultPos.x, attackYPos, endZPos);
 
         float speed = settings.AttackZTileSpeed.GetVal(Rage) * terrSettings.TileDims.y;
         float time = Mathf.Abs(endZPos - absStartPos.z) / speed;
@@ -267,6 +318,8 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
 
     private IEnumerator OpenAttackWingsCR(float speed, bool fromLeftOrRight)
     {
+        TreadmillAttachment(true);
+
         Vector3 startPos = transform.localPosition;
         Vector3 endPos = new Vector3(cachedFarDefaultPos.x, attackYPos, -terrSettings.TileDims.y);
 
@@ -293,6 +346,20 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
 
         yield return new WaitForSeconds(settings.PosAttack2IdleDelay);
 
+        TreadmillAttachment(false);
+
+        stunned = false;
         StartCoroutine(IdleFlybySequenceCR());
+    }
+
+    private void TreadmillAttachment(bool attach)
+    {
+        if (attach)
+        {
+            terrNodes.Value.AttachTransform(transform, horizOrVert: false, useContainer: true);
+            return;
+        }
+
+        terrNodes.Value.DettachTransform(transform, null, usedContainer: true);
     }
 }

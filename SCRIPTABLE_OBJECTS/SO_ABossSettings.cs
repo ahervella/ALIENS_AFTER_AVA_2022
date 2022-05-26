@@ -21,6 +21,7 @@ public abstract class SO_ABossSettings : ScriptableObject
     public virtual float RageHealthThreshold =>
         rageHealthThreshold + dev_rageHealthThresholdDelta?.Value ?? rageHealthThreshold;
 
+    //TODO: move to serialized field on boss instead of here
     [SerializeField]
     private int hitBoxTileWidth = 1;
     public int HitBoxTileWidth => hitBoxTileWidth;

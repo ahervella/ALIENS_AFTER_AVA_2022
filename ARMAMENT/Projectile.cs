@@ -122,11 +122,11 @@ public class Projectile : MovingNode
     {
         if (treadmillAttachment == TREADMILL_ATTACHMENT.HORIZONTAL)
         {
-            transform.parent = terrTreadmillNodesPSO.Value.HorizontalNode;
+            terrTreadmillNodesPSO.Value.AttachTransform(transform, horizOrVert: true);
         }
         else if (treadmillAttachment == TREADMILL_ATTACHMENT.HORIZ_VERT)
         {
-            transform.parent = terrTreadmillNodesPSO.Value.VerticalNode;
+            terrTreadmillNodesPSO.Value.AttachTransform(transform, horizOrVert: false);
         }
 
         float xPos = autoAlignToNearestLane ?

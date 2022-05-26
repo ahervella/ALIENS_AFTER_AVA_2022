@@ -25,6 +25,9 @@ public class TussleManager : MonoBehaviour
     private IntPropertySO currLives = null;
 
     [SerializeField]
+    private BoolDelegateSO bossTussleDamageDSO = null;
+
+    [SerializeField]
     private VideoPlayer videoPlayer = null;
     private VideoPlayer videoPlayer2;
 
@@ -40,7 +43,10 @@ public class TussleManager : MonoBehaviour
     private SO_DeveloperToolsSettings devTools = null;
 
     [SerializeField]
-    private BoolDelegateSO tussleStartDelegate = null;
+    private PSO_CurrentTussle currTussle = null;
+
+    private bool playerAdv => currTussle.Value.PlayerAdvantage;
+    private bool bossTussle => currTussle.Value.BossTussle;
 
     [SerializeField]
     private BoolDelegateSO tussleResolveDebugDelegate = null;
@@ -49,8 +55,6 @@ public class TussleManager : MonoBehaviour
     private BoolDelegateSO playerDeathTrigger = null;
 
     private AudioWrapperSource audioSource;
-
-    private bool playerAdvantage;
 
     private TussleInputSequence currSequence;
 
@@ -63,7 +67,7 @@ public class TussleManager : MonoBehaviour
     private void Awake()
     {
         audioSource = GetComponent<AudioWrapperSource>();
-        tussleStartDelegate.RegisterForDelegateInvoked(InitiateTussle);
+        currTussle.RegisterForPropertyChanged(InitiateTussle);
         tussleResolveDebugDelegate.RegisterForDelegateInvoked(ResolveDebug);
         videoPlayer.targetCamera = Camera.main;
         videoPlayer.clip = null;
@@ -74,22 +78,20 @@ public class TussleManager : MonoBehaviour
         deathBlackBackground.color = new Color(0, 0, 0, 0);
     }
 
-    private int InitiateTussle(bool playerAdvantage)
+    private void InitiateTussle(TussleWrapper _, TussleWrapper __)
     {
         currGameMode.RegisterForPropertyChanged(OnGameModeChange);
 
         videoPlayer.enabled = true;
         videoPlayer2.enabled = true;
 
-        this.playerAdvantage = playerAdvantage;
-
         treadmillSpeedDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(0, 0));
         energyBarDisplayDelegate.InvokeDelegateMethod(false);
 
         Time.timeScale = 0;
 
-        TussleVideoWrapper startVidWrapper = settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_START : TussleVideoType.DIS_START);
-        TussleVideoWrapper loopVidWrapper = settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_LOOP : TussleVideoType.DIS_LOOP);
+        TussleVideoWrapper startVidWrapper = settings.GetTussleVideoWrapper(playerAdv ? TussleVideoType.ADV_START : TussleVideoType.DIS_START);
+        TussleVideoWrapper loopVidWrapper = settings.GetTussleVideoWrapper(playerAdv ? TussleVideoType.ADV_LOOP : TussleVideoType.DIS_LOOP);
 
         void startVideoLoadedCallback() => settings.TussleHazardCleanUpDelegate.InvokeDelegateMethod(true);
 
@@ -97,7 +99,6 @@ public class TussleManager : MonoBehaviour
         loopCR = WaitForCurrVideoAndPlay(loopVidWrapper);//StartCoroutine(WaitForCurrVideoAndPlay(loopVidWrapper));
 
         InitiateButtonSequence();
-        return 0;
     }
 
     private void OnGameModeChange(GameModeEnum oldMode, GameModeEnum newMode)
@@ -129,6 +130,11 @@ public class TussleManager : MonoBehaviour
             StartCoroutine(TakeDamageCR(vidWrapper.DamageDelay));
         }
 
+        if (vidWrapper.AlienDamageAfterDelay)
+        {
+            StartCoroutine(AlienDamageCR(vidWrapper.DamageDelay));
+        }
+
         if (callbackOnFinish != null)
         {
             yield return WaitForCurrVideoToFinish();
@@ -143,6 +149,12 @@ public class TussleManager : MonoBehaviour
         {
             currLives.ModifyValue(-1);
         }
+    }
+
+    private IEnumerator AlienDamageCR(float delay)
+    {
+        yield return TussleWaitForSeconds(delay);
+        bossTussleDamageDSO.InvokeDelegateMethod(bossTussle);
     }
 
     private IEnumerator TussleWaitForSeconds(float time)
@@ -231,15 +243,15 @@ public class TussleManager : MonoBehaviour
     {
         yield return TussleWaitForSeconds(settings.ShowSequenceDelay);
 
-        currSequence = Instantiate(settings.GetInputSequencePrefab(playerAdvantage), transform);
+        currSequence = Instantiate(settings.GetInputSequencePrefab(playerAdv), transform);
         currSequence.StartSequence(SequenceResolved);
     }
 
     private void SequenceResolved(bool successful)
     {
         TussleVideoWrapper wrapper = successful ?
-            settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_WIN : TussleVideoType.DIS_WIN)
-            : settings.GetTussleVideoWrapper(playerAdvantage ? TussleVideoType.ADV_LOSE : TussleVideoType.DIS_LOSE);
+            settings.GetTussleVideoWrapper(playerAdv ? TussleVideoType.ADV_WIN : TussleVideoType.DIS_WIN)
+            : settings.GetTussleVideoWrapper(playerAdv ? TussleVideoType.ADV_LOSE : TussleVideoType.DIS_LOSE);
 
         SafeStopCoroutine(ref waitForCurrVideoAndPlayCR, this);
 

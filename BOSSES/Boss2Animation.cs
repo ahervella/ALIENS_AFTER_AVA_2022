@@ -38,12 +38,12 @@ public class Boss2Animation : BaseAnimation<Boss2State, SO_Boss2AnimationSetting
         {
             case Boss2State.ATTACK_START_LEFT:
             case Boss2State.IDLE_FLY_LEFT:
-                transform.localPosition = startLocalPos - new Vector3(flybyCenterXOffset, 0, 0);
+                transform.localPosition = startLocalPos + new Vector3(flybyCenterXOffset, 0, 0);
                 break;
 
             case Boss2State.ATTACK_START_RIGHT:
             case Boss2State.IDLE_FLY_RIGHT:
-                transform.localPosition = startLocalPos + new Vector3(flybyCenterXOffset, 0, 0);
+                transform.localPosition = startLocalPos - new Vector3(flybyCenterXOffset, 0, 0);
                 break;
 
             default:

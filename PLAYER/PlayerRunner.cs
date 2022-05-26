@@ -68,7 +68,7 @@ public class PlayerRunner : MonoBehaviour
     private BoolPropertySO shieldOnFlag = null;
 
     [SerializeField]
-    private BoolDelegateSO tussleInitDelegate = null;
+    private PSO_CurrentTussle currTussle = null;
 
     [SerializeField]
     private BoolPropertySO currEndOfDemo = null;
@@ -325,14 +325,12 @@ public class PlayerRunner : MonoBehaviour
             return;
         }
 
-        //TODO: since grappling puts alien in stun, do we need the first check?
-        //Is it safe to leave it in case there is an alien infront of the one we grappled??
-        //Even though that shouldn't ever be possible (unless an alien pops out in front?)
-        if (/*currAction.Value == PlayerActionEnum.GRAPPLE_REEL
-            || */takeDownAction == currAction.Value
+
+        if (currAction.Value == PlayerActionEnum.GRAPPLE_REEL
+            || takeDownAction == currAction.Value
             || takeDownAction == PlayerActionEnum.ANY_ACTION)
         {
-            StartTussle(true);
+            StartTussle(true, obstacleType == TerrAddonEnum.BOSS);
             return;
         }
 
@@ -365,7 +363,7 @@ public class PlayerRunner : MonoBehaviour
 
         if (tussleOnAttack)
         {
-            StartTussle(false);
+            StartTussle(false, obstacleType == TerrAddonEnum.BOSS);
             return;
         }
 
@@ -387,11 +385,11 @@ public class PlayerRunner : MonoBehaviour
             out destroyProjectile);
     }
 
-    private void StartTussle(bool advantage)
+    private void StartTussle(bool advantage, bool bossTussle)
     {
         Debug.Log("Loading tussle scene...");
         currAction.ModifyValue(PlayerActionEnum.TUSSLE);
-        tussleInitDelegate.InvokeDelegateMethod(advantage);
+        currTussle.ModifyValue(new TussleWrapper(advantage, bossTussle));
     }
 
     private int OnTussleHazardCleanUpInvoked(bool _)
@@ -407,7 +405,8 @@ public class PlayerRunner : MonoBehaviour
         {
             BoxColliderSP hitBox = hit.collider.gameObject.GetComponent<BoxColliderSP>();
 
-            if (hitBox != null)
+            if (hitBox != null
+                && !(hitBox.RootParent.GetComponent<AAlienBossBase>() is AAlienBossBase))
             {
                 SafeDestroy(hitBox.RootParent.gameObject);
             }

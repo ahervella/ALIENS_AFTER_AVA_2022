@@ -379,17 +379,6 @@ public class EnvTreadmill : MonoBehaviour
         return meshTriangles;
     }
 
-    public void AddTransformAsHorizChild(Transform newChild)
-    {
-        newChild.parent = horizTransform;
-    }
-
-    public void AddTransformAsVertChild(Transform newChild, bool destroyIfOutOfRange)
-    {
-        //TODO: would we need to implement destroyIfOutOfRange?
-        newChild.parent = vertTransform;
-    }
-
     private void Update()
     {
         if (gamePaused) { return; }

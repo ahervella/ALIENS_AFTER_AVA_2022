@@ -171,9 +171,17 @@ public class GrappleHook : MonoBehaviour
                         yield break;
                     }
 
+                    if (hitBox.RootParent.GetComponent<AAlienBossBase>() is AAlienBossBase boss)
+                    {
+                        ReelInTowardsBoss(boss);
+                        grappleWindowCR = null;
+                        yield break;
+                    }
+
                     if (hitBox.RootParent.GetComponent<TerrHazard>() is TerrHazard hazard)
                     {
-                        if (hazard.GetRequiredAvoidAction(hitBox) != PlayerActionEnum.JUMP)
+                        if (/*hazard.GetRequiredAvoidAction(hitBox)*/
+                            hitBox.RequiredAvoidAction != PlayerActionEnum.JUMP)
                         {
                             nonjumpableHazardHit = true;
                             break;
@@ -215,22 +223,31 @@ public class GrappleHook : MonoBehaviour
         grappleRopeContainer.transform.rotation = Quaternion.Euler(new Vector3(xRot, -yRot, 0));
     }
 
+    private void ReelInTowardsBoss(AAlienBossBase boss)
+    {
+        Debug.Log("reeling in towards boss: " + boss.name);
+        ReelInTowardsEnemy(boss.gameObject);
+    }
+
     private void ReelInTowardsAlien(HazardAlien alien)
+    {
+        Debug.Log("reeling in towards alien");
+        alien.Stun();
+        ReelInTowardsEnemy(alien.gameObject);
+    }
+
+    private void ReelInTowardsEnemy(GameObject obj)
     {
         StopAllAudioSourceSounds(audioSource);
 
         grapplingSnagAudio.PlayAudioWrapper(audioSource);
-
-        Debug.Log("reeling in towards alien");
-
-        alien.Stun();
 
         //TODO: change animation? Or would player anim take care of that. Or at least
         //change grapple anim part
         speedChangeDelegate.InvokeDelegateMethod(treadmillSpeedChange);
         currAction.ModifyValue(PlayerActionEnum.GRAPPLE_REEL);
 
-        grappleReelInCR = StartCoroutine(ReelInCoroutine(alien.gameObject));
+        grappleReelInCR = StartCoroutine(ReelInCoroutine(obj));
     }
 
     private IEnumerator ReelInCoroutine(GameObject target)

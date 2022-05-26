@@ -152,6 +152,51 @@ public static class HelperUtil
         }
     }
 
+    //TODO: do we even need this? Don't think it's currently used...
+    /// <summary>
+    /// Set the Reward Box Dimensions from scratch
+    /// </summary>
+    /// <param name="hitBoxSP"></param>
+    /// <param name="energyRewardBox"></param>
+    /// <param name="objTileDims"></param>
+    /// <param name="height"></param>
+    /// <param name="terrSettings"></param>
+    /// <param name="hitBoxDimEdgePercents"></param>
+    public static void SetRewardBoxDimensions(
+        BoxColliderSP hitBoxSP,
+        BoxColliderSP energyRewardBox,
+        Vector2 objTileDims,
+        int height,
+        SO_TerrSettings terrSettings,
+        Vector3PropertySO hitBoxDimEdgePercents
+        )
+    {
+        SetHitBoxDimensions(
+            hitBoxSP, objTileDims, height, terrSettings, hitBoxDimEdgePercents);
+
+        SetRewardBoxDimensionsFromHB(hitBoxSP.Box(), energyRewardBox, terrSettings);
+    }
+
+    /// <summary>
+    /// Set the Reward Box Dimensions from the object hit box that has
+    /// already been set
+    /// </summary>
+    /// <param name="hitBox"></param>
+    /// <param name="energyRewardBox"></param>
+    /// <param name="terrSettings"></param>
+    public static void SetRewardBoxDimensionsFromHB(
+        BoxCollider hitBox,
+        BoxColliderSP energyRewardBox,
+        SO_TerrSettings terrSettings
+        )
+    {
+        //Hack: save computation by using hit box values
+        Vector3 rewardBoxDims = hitBox.size + new Vector3(0, 0, terrSettings.RewardBoxLengthFront);
+
+        energyRewardBox.Box().size = rewardBoxDims;
+        energyRewardBox.Box().center = new Vector3(0, rewardBoxDims.y / 2f, -(rewardBoxDims.z - hitBox.size.z) / 2f);
+    }
+
 
     //TODO: convert all cr uses to use this
 
@@ -207,5 +252,60 @@ public static class HelperUtil
     public static float GetFloorYPosition(int floorIndex, SO_TerrSettings terrSettings)
     {
         return floorIndex * terrSettings.FloorHeight;
+    }
+
+
+    //TODO base class bosses with terr hazards so we don't need to share
+    //code this way lol
+    public static void MakeCustomHitBoxes(
+        BoxColliderSP hitBox,
+        Vector2Int hazardDims,
+        int hitBoxHeight,
+        SO_TerrSettings terrSettings,
+        Vector3PropertySO hitBoxDimEdgePercents,
+        List<HitBoxWrapper> customHitBoxes)
+    {
+        foreach (HitBoxWrapper hbw in customHitBoxes)
+        {
+            BoxColliderSP instance = Object.Instantiate(hitBox, hitBox.transform.parent);
+            int width = hbw.MaxXRange - hbw.MinXRange;
+            Vector2Int dims = new Vector2Int(width, hazardDims.y);
+
+            SetHitBoxDimensions(instance, dims, hitBoxHeight, terrSettings, hitBoxDimEdgePercents);
+
+            float centerOffset = (width - hazardDims.x) / 2f + hbw.MinXRange;
+            centerOffset *= terrSettings.TileDims.x;
+            instance.Box().center = new Vector3(centerOffset, instance.Box().center.y, instance.Box().center.z);
+
+            hbw.CacheInstancedHB(instance);
+            instance.SetReqAvoidAction(hbw.CustomAvoidAction);
+        }
+
+        //disable original so we don't overlap with that
+        hitBox.gameObject.SetActive(false);
+    }
+
+    //TODO: does this need to live here?
+    public static void ApplyHitBoxSizeErrorFix(BoxColliderSP hb)
+    {
+        BoxCollider box = hb.Box();
+
+        //TODO: realized that I set the standard of tiles and hit box length
+        //with half of it behind the terr object. Cleaner way to fix?
+        //Originally had to do this because the grapple was colliding with the back of the hazard
+        box.size = new Vector3(box.size.x, box.size.y, box.size.z / 2f);
+        box.center = new Vector3(box.center.x, box.center.y, -box.size.z / 2f);
+    }
+
+    //TODO: convert all places where unscaled time is being because of
+    //tussles with this
+    public static float UnscaledTimeIfNotPaused(bool paused)
+    {
+        if (paused)
+        {
+            return 0;
+        }
+
+        return Time.unscaledDeltaTime;
     }
 }

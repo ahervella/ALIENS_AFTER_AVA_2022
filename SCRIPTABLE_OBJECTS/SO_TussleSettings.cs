@@ -106,9 +106,14 @@ public class TussleVideoWrapper
     private AAudioWrapperV2 audioWrapper = null;
     public AAudioWrapperV2 AudioWrapper => audioWrapper;
 
+    //TODO: make this and the alien damage one an enum
     [SerializeField]
     private bool takeDamageAfterDelay = false;
     public bool TakeDamageAfterDelay => takeDamageAfterDelay;
+
+    [SerializeField]
+    private bool alienDamageAfterDelay = false;
+    public bool AlienDamageAfterDelay => alienDamageAfterDelay;
 
     [SerializeField]
     private float damageDelay = 0f;

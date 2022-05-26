@@ -50,9 +50,17 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     [SerializeField]
     private bool NoTransitionOnIncrease = false;
 
+    //Only needed for the boss health bars so we can show them animating
+    //during tussles
     [SerializeField]
     private BoolDelegateSO optionalFilledDelegate = null;
 
+    [SerializeField]
+    private PSO_CurrentGameMode optionalCurrGameMode = null;
+
+    private bool cachedGamePaused = false;
+
+    private float customDeltaTime => UnscaledTimeIfNotPaused(cachedGamePaused);
 
     /// <summary>
     /// A fraction of an energy block in bar percent that is meant
@@ -97,6 +105,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
         //energyBarDisplayDelegate.RegisterForDelegateInvoked(SetVisibility);
         //currEnergy.RegisterForPropertyChanged(OnEnergyChanged);
         //currAction.RegisterForPropertyChanged(OnActionChanged);
+        optionalCurrGameMode?.RegisterForPropertyChanged(OnCurrGameModeChange);
         currQuant.RegisterForPropertyChanged(OnCurrQuantChanged);
         blockFractionPerc = 0;
         startingFrameColor = frameImg.color;
@@ -105,6 +114,11 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     }
 
     protected abstract void AfterAwake();
+
+    private void OnCurrGameModeChange(GameModeEnum _, GameModeEnum newMode)
+    {
+        cachedGamePaused = newMode == GameModeEnum.PAUSE;
+    }
 
     private void OnCurrQuantChanged(int oldQuant, int newQuant)
     {
@@ -215,7 +229,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
         while (perc <= 1 && perc >= 0)
         {
-            perc += Time.deltaTime / settings.FadeInTime * dir;
+            perc += customDeltaTime / settings.FadeInTime * dir;
             maskFillImg.color = new Color(ogColor.r, ogColor.g, ogColor.b, EasedPercent(perc));
             frameImg.color = new Color(ogColor.r, ogColor.g, ogColor.b, EasedPercent(perc));
             yield return null;
@@ -238,7 +252,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
         while (perc <= 1 && perc >= 0)
         {
-            perc += Time.deltaTime / settings.FadeInTime * dir;
+            perc += customDeltaTime / settings.FadeInTime * dir;
             optionalLabel.color = new Color(ogColor.r, ogColor.g, ogColor.b, EasedPercent(perc));
             yield return null;
         }
@@ -258,7 +272,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
         float perc = reverse ? 1 : 0;
         while (perc <= 1 && perc >= 0)
         {
-            perc += Time.deltaTime / settings.SpawnFromTopTime * dir;
+            perc += customDeltaTime / settings.SpawnFromTopTime * dir;
 
             float yPos = Mathf.Lerp(tweenStartYPos, finalSpawnPos.y, EasedPercent(perc));
 
@@ -287,7 +301,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
         float perc = reverse ? 1 : 0;
         while (perc <= 1 && perc >= 0)
         {
-            perc += Time.deltaTime / settings.SpawnFromTopTime * dir;
+            perc += customDeltaTime / settings.SpawnFromTopTime * dir;
 
             barDisplayContainer.position = Vector3.Lerp(spawnFromRef.position, finalPos, EasedPercent(perc));
             yield return null;
@@ -313,7 +327,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
         float perc = 0;
         while (perc < 1)
         {
-            perc += Time.deltaTime / settings.BarFillOnSpawnTime;
+            perc += customDeltaTime / settings.BarFillOnSpawnTime;
             maskImg.fillAmount = EasedPercent(perc) * targetFillAmount;
             //Debug.Log("maskImg fillamount: " + maskImg.fillAmount);
             yield return null;
@@ -341,7 +355,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     {
         if (currTweenPerc >= 1) { return; }
 
-        currTweenPerc += Time.deltaTime;
+        currTweenPerc += customDeltaTime;
 
         SetFillAmount();
     }
@@ -355,7 +369,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
             SetFillAmount();
         }
 
-        blockFractionPerc += autoDeltaRatePerSec * Time.deltaTime / cachedMaxQuant;
+        blockFractionPerc += autoDeltaRatePerSec * customDeltaTime / cachedMaxQuant;
 
 
         //Once we've passed the integer threshold, trigger the curr quant change
