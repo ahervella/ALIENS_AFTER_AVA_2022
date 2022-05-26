@@ -60,7 +60,7 @@ public class MM_DemoMenuManager : A_MenuManager<DemoMenuEnum>
 
     private void OnZoneChange(int oldZone, int newZone)
     {
-        if (newZone == 2)
+        if (newZone == settings.EndDemoZone)
         {
             currEndOfDemo.ModifyValue(true);
             endOfDemoContainer.gameObject.SetActive(true);

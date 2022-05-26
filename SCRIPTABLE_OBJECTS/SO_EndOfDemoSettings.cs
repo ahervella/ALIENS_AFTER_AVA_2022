@@ -30,4 +30,7 @@ public class SO_EndOfDemoSettings : ScriptableObject
     private float transition2MainMenuDelay = 1f;
     public float Transition2MainMenuDelay => transition2MainMenuDelay;
 
+    [SerializeField]
+    private int endDemoZone = 1;
+    public int EndDemoZone => endDemoZone;
 }

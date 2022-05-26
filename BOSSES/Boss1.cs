@@ -206,4 +206,9 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
         currZonePhase.ModifyValue(ZonePhaseEnum.BOSS);
         currState.ModifyValue(Boss1State.IDLE);
     }
+
+    protected override void ExtraRemoveBoss()
+    {
+        throw new System.NotImplementedException();
+    }
 }

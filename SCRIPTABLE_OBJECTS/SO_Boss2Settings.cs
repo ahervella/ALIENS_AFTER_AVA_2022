@@ -55,6 +55,14 @@ public class SO_Boss2Settings : SO_ABossSettings
     [SerializeField]
     private float deathRiseTime = 1f;
     public float DeathRiseTime => deathRiseTime;
+
+    [SerializeField]
+    private float deathFallDelay = 1f;
+    public float DeathFallDelay => deathFallDelay;
+
+    [SerializeField]
+    private float deathFallTime = 1f;
+    public float DeathFallTime => deathFallTime;
 }
 
 public enum Boss2State
@@ -70,5 +78,6 @@ public enum Boss2State
     SPREAD_WINGS_MIDDLE_HIGH = 10,
     SPREAD_WINGS_LEFT = 7,
     SPREAD_WINGS_RIGHT = 8,
+    DEATH_FALL = 12,
     NONE = 9
 }

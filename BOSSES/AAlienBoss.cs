@@ -99,7 +99,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
         InitHitBoxes();
 
-        removeBossAEExtender.AssignAnimationEvent(AE_OnRemoveBoss, 0);
+        removeBossAEExtender.AssignAnimationEvent(AE_RemoveBoss, 0);
 
         SetStartingPosition();
 
@@ -215,7 +215,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     }
 
 
-    private void AE_OnRemoveBoss()
+    protected void AE_RemoveBoss()
     {
         currHealth.DeRegisterForPropertyChanged(OnHealthChanged);
         currZonePhase.DeRegisterForPropertyChanged(OnZonePhaseChange);
@@ -224,8 +224,12 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         healthBarPrefab.TearDown(settings.TearDownDelayPostDeath);
 
         currZonePhase.ModifyValue(ZonePhaseEnum.NO_BOSS_SUB1);
+
+        ExtraRemoveBoss();
+
         SafeDestroy(gameObject);
     }
+
 
     protected abstract void SetStartingPosition();
 
@@ -238,6 +242,8 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     }
 
     protected abstract void InitDeath();
+
+    protected abstract void ExtraRemoveBoss();
 
     protected abstract void InitRage();
 

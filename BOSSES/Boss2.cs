@@ -20,6 +20,9 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
     private float attackYPos = 1f;
 
     [SerializeField]
+    private float finalDeathFallPos = default;
+
+    [SerializeField]
     private PSO_TerrainTreadmillNodes terrNodes = null;
 
     private Vector3 cachedSpawnPos;
@@ -35,6 +38,9 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
     private bool deathFlag = false;
 
     private Vector3 currVel;
+
+    private float deathStartHeight =>
+        cachedSpawnPos.y + settings.SpawnFlyOverDipFloorHeight * terrSettings.FloorHeight;
 
     protected override void InitHitBoxes()
     {
@@ -68,6 +74,15 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
     protected override void InitDeath()
     {
         deathFlag = true;
+        centerHBW.InstancedHB.BoxDisabled = true;
+        leftHBW.InstancedHB.BoxDisabled = true;
+        rightHBW.InstancedHB.BoxDisabled = true;
+
+        if (transform.parent != null)
+        {
+            terrNodes.Value.DettachTransform(transform, null, usedContainer: true);
+        }
+
         SafeStopCoroutine(ref idleFlybyCR, this);
         SafeStopCoroutine(ref flyOverCR, this);
         SafeStopCoroutine(ref startAttackCR, this);
@@ -81,7 +96,7 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
         Vector3 startPos = transform.localPosition;
         Vector3 endPos = new Vector3(
             currVel.x * settings.DeathRiseTime + startPos.x,
-            cachedSpawnPos.y + settings.SpawnFlyOverDipFloorHeight * terrSettings.FloorHeight,
+            deathStartHeight,
             currVel.z * settings.DeathRiseTime + startPos.z);
 
         float perc = 0f;
@@ -101,7 +116,27 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
 
     private IEnumerator FallDeathAnim()
     {
-        yield return null;
+        yield return new WaitForSeconds(settings.DeathFallDelay);
+
+        currState.ModifyValue(Boss2State.DEATH_FALL);
+
+        Vector3 startPos = new Vector3(cachedFarDefaultPos.x, deathStartHeight, cachedFarDefaultPos.z);
+
+        float perc = 0;
+        while (perc < 1)
+        {
+            perc += Time.deltaTime / settings.DeathFallTime;
+            float yPos = Mathf.Lerp(startPos.y, finalDeathFallPos, perc);
+            transform.localPosition = new Vector3(startPos.x, yPos, startPos.z);
+            yield return null;
+        }
+
+        AE_RemoveBoss();
+    }
+
+
+    protected override void ExtraRemoveBoss()
+    {
     }
 
     protected override void InitRage()
