@@ -58,7 +58,7 @@ public class HazardAlien : TerrHazard
         BoxColliderSP hb = other.gameObject.GetComponent<BoxColliderSP>();
 
         if (hb != null
-            && hb.RootParent.GetComponent<PlayerRunner>() != null)
+            && hb.RootParent?.GetComponent<PlayerRunner>() != null)
         {
             if (!StunnedFlag)
             {

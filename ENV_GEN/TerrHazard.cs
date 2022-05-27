@@ -139,7 +139,7 @@ public class TerrHazard : TerrAddon
     private void OnTriggerEnterDamageHitBox(Collider other, BoxColliderSP hazardHb)
     {
         BoxColliderSP hb = other.gameObject.GetComponent<BoxColliderSP>();
-        PlayerRunner player = hb.RootParent.GetComponent<PlayerRunner>();
+        PlayerRunner player = hb?.RootParent?.GetComponent<PlayerRunner>();
 
         if (player != null)
         {
@@ -174,7 +174,7 @@ public class TerrHazard : TerrAddon
     protected virtual void OnTriggerExitRewardBox(Collider other)
     {
         BoxColliderSP hb = other.gameObject.GetComponent<BoxColliderSP>();
-        PlayerRunner player = hb.RootParent.GetComponent<PlayerRunner>();
+        PlayerRunner player = hb?.RootParent.GetComponent<PlayerRunner>();
 
         if (player != null)
         {
