@@ -90,6 +90,9 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private DSO_LaneChange laneChangeDelegate = null;
 
+    [SerializeField]
+    private SO_DamageQuantSettings damageSettings = null;
+
     private Coroutine sprintCR = null;
 
     private bool pausedControls = false;
@@ -350,7 +353,8 @@ public class PlayerRunner : MonoBehaviour
         TerrAddonEnum obstacleType,
         bool tussleOnAttack,
         out bool dodged,
-        out bool destroyHazard)
+        out bool destroyHazard,
+        WeaponEnum weaponType = WeaponEnum.NONE)
     {
         dodged = false;
         destroyHazard = false;
@@ -403,7 +407,7 @@ public class PlayerRunner : MonoBehaviour
             return;
         }
 
-        TakeDamage(avoidAction);
+        TakeDamage(avoidAction, weaponType);
     }
 
     public void OnEnterProjectile(
@@ -418,7 +422,8 @@ public class PlayerRunner : MonoBehaviour
             TerrAddonEnum.PROJECTILE,
             false,
             out dodged,
-            out destroyProjectile);
+            out destroyProjectile,
+            weaponType);
     }
 
     private void StartTussle(bool advantage, bool bossTussle)
@@ -457,7 +462,7 @@ public class PlayerRunner : MonoBehaviour
         tempDodgeInvincibility = false;
     }
 
-    private void TakeDamage(PlayerActionEnum requiredAction)
+    private void TakeDamage(PlayerActionEnum requiredAction, WeaponEnum weaponType = WeaponEnum.NONE)
     {
         /*
         //TODO: only necessary if we ever do a mid air hurt with a falling animation
@@ -474,7 +479,12 @@ public class PlayerRunner : MonoBehaviour
         //TODO: seperate sounds of player getting hurt due to hurt action,
         //and impact of specific objects
         currAction.PerformCorrespondingHurt(requiredAction);
-        currLives.ModifyValue(-1);
+
+        int damage = weaponType == WeaponEnum.NONE ?
+            damageSettings.GetDefaultHazardDamage()
+            : damageSettings.GetWeaponDamage(weaponType, damage2PlayerOrAlien: true);
+
+        currLives.ModifyValue(-1 * damage);
     }
 
     

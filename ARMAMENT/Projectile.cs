@@ -66,6 +66,9 @@ public class Projectile : MovingNode
     [SerializeField]
     private PSO_CurrentPlayerAction currPlayerAction = null;
 
+    [SerializeField]
+    private SO_DamageQuantSettings damageSettings = null;
+
     private bool highOrLowShot =>
         !isAlienProjectile && currPlayerAction.Value == PlayerActionEnum.JUMP;
 
@@ -187,7 +190,7 @@ public class Projectile : MovingNode
         //Null check on the sourceHitBox for bullets instanced from player
         if (boss.HitBox().RootParent == sourceHitBox?.RootParent) { return; }
 
-        boss.TakeDamage(1);
+        boss.TakeDamage(damageSettings.GetWeaponDamage(weaponType, damage2PlayerOrAlien: false));
         MadeImpact();
     }
 

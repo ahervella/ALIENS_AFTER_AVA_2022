@@ -52,6 +52,9 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     [SerializeField]
     private BoolDelegateSO bossTussleDamageDSO = null;
 
+    [SerializeField]
+    private SO_DamageQuantSettings damageSettings = null;
+
     private AFillBarManagerBase healthBarPrefab;
 
     protected bool Rage { get; private set; } = false;
@@ -173,7 +176,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     {
         if (isForBoss)
         {
-            TakeDamage(1);
+            TakeDamage(damageSettings.GetTussleDamage(damage2PlayerOrAlien: false));
         }
         return 0;
     }

@@ -45,14 +45,17 @@ public class TussleManager : MonoBehaviour
     [SerializeField]
     private PSO_CurrentTussle currTussle = null;
 
-    private bool playerAdv => currTussle.Value.PlayerAdvantage;
-    private bool bossTussle => currTussle.Value.BossTussle;
-
     [SerializeField]
     private BoolDelegateSO tussleResolveDebugDelegate = null;
 
     [SerializeField]
     private BoolDelegateSO playerDeathTrigger = null;
+
+    [SerializeField]
+    private SO_DamageQuantSettings damageSettings = null;
+
+    private bool playerAdv => currTussle.Value.PlayerAdvantage;
+    private bool bossTussle => currTussle.Value.BossTussle;
 
     private AudioWrapperSource audioSource;
 
@@ -147,7 +150,8 @@ public class TussleManager : MonoBehaviour
         yield return TussleWaitForSeconds(delay);
         if (!devTools.Invincibility)
         {
-            currLives.ModifyValue(-1);
+            currLives.ModifyValue(
+                -1 * damageSettings.GetTussleDamage(damage2PlayerOrAlien: true));
         }
     }
 
