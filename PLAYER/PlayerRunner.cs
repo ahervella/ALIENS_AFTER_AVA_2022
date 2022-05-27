@@ -97,6 +97,8 @@ public class PlayerRunner : MonoBehaviour
     private Coroutine laneChangeCR = null;
     private float cachedStartXPos;
 
+    private bool tempDodgeInvincibility = false;
+
     private void Awake()
     {
         SetPlayerStartPosition();
@@ -128,6 +130,7 @@ public class PlayerRunner : MonoBehaviour
 
     private IEnumerator LaneChangeCR(float time, int dir)
     {
+        tempDodgeInvincibility = true;
         PositionChange(hitBox.transform, dir * terrSettings.TileDims.x, 0, 0);
         yield return new WaitForSeconds(time);
         hitBox.transform.position =
@@ -447,6 +450,13 @@ public class PlayerRunner : MonoBehaviour
         return 0;
     }
 
+    //TODO: move to animation script
+    //TODO: reverse the hitbox changes and just work with this?
+    public void AE_DodgeInvincibilityOff()
+    {
+        tempDodgeInvincibility = false;
+    }
+
     private void TakeDamage(PlayerActionEnum requiredAction)
     {
         /*
@@ -459,7 +469,7 @@ public class PlayerRunner : MonoBehaviour
                 PlayerActionEnum.TAKE_DAMAGE_AIR : PlayerActionEnum.TAKE_DAMAGE_GROUND;
         }
         */
-        if (developerSettings.Invincibility || currEndOfDemo.Value) { return; }
+        if (tempDodgeInvincibility || developerSettings.Invincibility || currEndOfDemo.Value) { return; }
 
         //TODO: seperate sounds of player getting hurt due to hurt action,
         //and impact of specific objects

@@ -167,7 +167,8 @@ public class Projectile : MovingNode
 
     public void OnEnteredHazard(TerrHazard hazard, BoxColliderSP hitBox)
     {
-        if (hitBox.RootParent == sourceHitBox.RootParent) { return; }
+        //Null check on the sourceHitBox for bullets instanced from player
+        if (hitBox.RootParent == sourceHitBox?.RootParent) { return; }
 
         //TODO: handle aliens being stunned by grapple differently in
         //case we still want to destroy stunned aliens from alien projectiles?

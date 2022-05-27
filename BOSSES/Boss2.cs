@@ -204,6 +204,7 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
 
 
         invincible = false;
+        currZonePhase.ModifyValue(ZonePhaseEnum.BOSS);
         SafeStartCoroutine(ref idleFlybyCR, IdleFlybySequenceCR(), this);
     }
 
