@@ -19,7 +19,7 @@ public class Shooter : MonoBehaviour
     private Vector3 projectileSpawnPos;
 
     [SerializeField]
-    private BoxCollider shooterHitBox = null;
+    private BoxColliderSP shooterHitBox = null;
 
     [SerializeField]
     private AnimationEventExtender aeExtender = null;
@@ -34,7 +34,7 @@ public class Shooter : MonoBehaviour
         Transform shooterParentRef,
         Transform muzzleFlashPosRef,
         Vector3 projectilePos,
-        BoxCollider shooterHitBox,
+        BoxColliderSP shooterHitBox,
         ShooterWrapper customShooterWrapper)
     {
         Shooter instance = new GameObject("INSTANCED_SHOOTER").AddComponent<Shooter>();

@@ -66,13 +66,14 @@ public class Projectile : MovingNode
     [SerializeField]
     private PSO_CurrentPlayerAction currPlayerAction = null;
 
-    private bool highOrLowShot => currPlayerAction.Value == PlayerActionEnum.JUMP;
+    private bool highOrLowShot =>
+        !isAlienProjectile && currPlayerAction.Value == PlayerActionEnum.JUMP;
 
     private AudioWrapperSource audioSource;
 
     private Transform mzTrans;
 
-    private BoxCollider sourceHitBox = null;
+    private BoxColliderSP sourceHitBox = null;
 
     protected override void OnAwake()
     {
@@ -84,7 +85,7 @@ public class Projectile : MovingNode
         SetMuzzleFlashTranform(transform);
     }
 
-    public void SetFireSourceHitBox(BoxCollider sourceHitBox)
+    public void SetFireSourceHitBox(BoxColliderSP sourceHitBox)
     {
         this.sourceHitBox = sourceHitBox;
     }
@@ -166,8 +167,7 @@ public class Projectile : MovingNode
 
     public void OnEnteredHazard(TerrHazard hazard, BoxColliderSP hitBox)
     {
-        //if (isAlienProjectile) { return; }
-        if (hitBox == sourceHitBox) { return; }
+        if (hitBox.RootParent == sourceHitBox.RootParent) { return; }
 
         //TODO: handle aliens being stunned by grapple differently in
         //case we still want to destroy stunned aliens from alien projectiles?
@@ -183,8 +183,8 @@ public class Projectile : MovingNode
 
     public void OnEnteredBoss(AAlienBossBase boss)
     {
-        if (boss.HitBox().Box() == sourceHitBox) { return; }
-        //if (isAlienProjectile) { return; }
+        //Null check on the sourceHitBox for bullets instanced from player
+        if (boss.HitBox().RootParent == sourceHitBox?.RootParent) { return; }
 
         boss.TakeDamage(1);
         MadeImpact();
@@ -195,7 +195,7 @@ public class Projectile : MovingNode
         if (!isAlienProjectile) { return; }
 
         BoxColliderSP hb = other.gameObject.GetComponent<BoxColliderSP>();
-        PlayerRunner player = hb.RootParent.GetComponent<PlayerRunner>();
+        PlayerRunner player = hb?.RootParent?.GetComponent<PlayerRunner>();
 
         if (player != null)
         {

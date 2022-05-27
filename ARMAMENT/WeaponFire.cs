@@ -12,7 +12,7 @@ public class WeaponFire : MonoBehaviour
     [SerializeField]
     private Projectile projectile = null;
 
-    private BoxCollider shooterHitBox;
+    private BoxColliderSP shooterHitBox;
 
     private MuzzleFlash muzzleFlashInstance;
 
@@ -36,14 +36,14 @@ public class WeaponFire : MonoBehaviour
             shooterHitBox));
     }
 
-    private static void InstantiateProjectile(Projectile projectile, Transform prefabParent, Vector3 projectilePos, Transform muzzleFlashTransform, BoxCollider shooterHitBox)
+    private static void InstantiateProjectile(Projectile projectile, Transform prefabParent, Vector3 projectilePos, Transform muzzleFlashTransform, BoxColliderSP shooterHitBox)
     {
         Projectile instance = InstantiateAndSetPosition(projectile, prefabParent, projectilePos);
         instance.SetMuzzleFlashTranform(muzzleFlashTransform);
         instance.SetFireSourceHitBox(shooterHitBox);
     }
 
-    public static void InstantiateWithCustomPositions(WeaponFire weaponFirePrefab, Transform prefabParent, Transform muzzleFlashPosRef, Vector3 projectilePos, BoxCollider shooterHitBox)
+    public static void InstantiateWithCustomPositions(WeaponFire weaponFirePrefab, Transform prefabParent, Transform muzzleFlashPosRef, Vector3 projectilePos, BoxColliderSP shooterHitBox)
     {
         WeaponFire instance = GameObject.Instantiate(weaponFirePrefab, prefabParent);
         instance.shooterHitBox = shooterHitBox;
