@@ -54,7 +54,11 @@ public class HazardAlien : TerrHazard
 
     private void OnTriggerEnterAttackBox(Collider other)
     {
-        if (other.gameObject.GetComponent<PlayerRunner>() != null)
+        //If its the player
+        BoxColliderSP hb = other.gameObject.GetComponent<BoxColliderSP>();
+
+        if (hb != null
+            && hb.RootParent.GetComponent<PlayerRunner>() != null)
         {
             if (!StunnedFlag)
             {

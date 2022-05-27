@@ -7,7 +7,6 @@ using static UnityEngine.InputSystem.InputAction;
 using static HelperUtil;
 using System;
 
-[RequireComponent(typeof(BoxCollider))]
 public class PlayerRunner : MonoBehaviour
 {
     [SerializeField]
@@ -82,9 +81,21 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private SO_LayerSettings layerSettings = null;
 
+    [SerializeField]
+    private PSO_TerrainTreadmillNodes terrNodes = null;
+
+    [SerializeField]
+    private BoxColliderSP hitBox = null;
+
+    [SerializeField]
+    private DSO_LaneChange laneChangeDelegate = null;
+
     private Coroutine sprintCR = null;
 
     private bool pausedControls = false;
+
+    private Coroutine laneChangeCR = null;
+    private float cachedStartXPos;
 
     private void Awake()
     {
@@ -97,19 +108,41 @@ public class PlayerRunner : MonoBehaviour
 
         tussleSettings.TussleHazardCleanUpDelegate.RegisterForDelegateInvoked(
             OnTussleHazardCleanUpInvoked);
+
+        laneChangeDelegate.RegisterForDelegateInvoked(OnLaneChangeDelegate);
     }
 
     private void Start()
     {
         RegisterForInputs();
         currAction.ModifyValue(PlayerActionEnum.RUN);
+
+        terrNodes.Value.AttachTransform(hitBox.transform, horizOrVert: true);
+    }
+
+    private int OnLaneChangeDelegate(LaneChange lc)
+    {
+        SafeStartCoroutine(ref laneChangeCR, LaneChangeCR(lc.Time, lc.Dir), this);
+        return 0;
+    }
+
+    private IEnumerator LaneChangeCR(float time, int dir)
+    {
+        PositionChange(hitBox.transform, dir * terrSettings.TileDims.x, 0, 0);
+        yield return new WaitForSeconds(time);
+        hitBox.transform.position =
+            new Vector3(cachedStartXPos, hitBox.transform.position.y, hitBox.transform.position.z);
     }
 
     private void SetPlayerStartPosition()
     {
+        //TODO: set to standard hit box sizes
         float x = GetLaneXPosition(0, terrSettings);
         float z = settings.StartRowsFromEnd * terrSettings.TileDims.y;
         transform.position = new Vector3(x, 0, z) + settings.StartPosOffset;
+
+        cachedStartXPos = transform.position.x;
+
         fadeSettings.InitFadeSettings(transform.position);
     }
 

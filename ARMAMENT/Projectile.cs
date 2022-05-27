@@ -194,7 +194,9 @@ public class Projectile : MovingNode
     {
         if (!isAlienProjectile) { return; }
 
-        PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
+        BoxColliderSP hb = other.gameObject.GetComponent<BoxColliderSP>();
+        PlayerRunner player = hb.RootParent.GetComponent<PlayerRunner>();
+
         if (player != null)
         {
             //We give the player the audio so its from their source,

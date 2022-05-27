@@ -136,13 +136,15 @@ public class TerrHazard : TerrAddon
     //    energyRewardBox.Box().center = new Vector3(0, rewardBoxDims.y / 2f, -(rewardBoxDims.z - hitBox.size.z) / 2f);
     //}
 
-    private void OnTriggerEnterDamageHitBox(Collider other, BoxColliderSP hitBox)
+    private void OnTriggerEnterDamageHitBox(Collider other, BoxColliderSP hazardHb)
     {
-        PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
+        BoxColliderSP hb = other.gameObject.GetComponent<BoxColliderSP>();
+        PlayerRunner player = hb.RootParent.GetComponent<PlayerRunner>();
+
         if (player != null)
         {
             player.OnEnterHazard(
-                hitBox.RequiredAvoidAction,
+                hazardHb.RequiredAvoidAction,
                 hazardTakeDownReqAction,
                 TerrAddonEnum,
                 tussleOnAttack,
@@ -164,14 +166,16 @@ public class TerrHazard : TerrAddon
         Projectile projectile = other.transform.parent.gameObject.GetComponent<Projectile>();
         if (projectile != null)
         {
-            projectile.OnEnteredHazard(this, hitBox);
+            projectile.OnEnteredHazard(this, hazardHb);
         }
     }
 
 
     protected virtual void OnTriggerExitRewardBox(Collider other)
     {
-        PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
+        BoxColliderSP hb = other.gameObject.GetComponent<BoxColliderSP>();
+        PlayerRunner player = hb.RootParent.GetComponent<PlayerRunner>();
+
         if (player != null)
         {
             player.OnExitHazardRewardArea();

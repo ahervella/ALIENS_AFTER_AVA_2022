@@ -199,7 +199,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
             return;
         }
 
-        PlayerRunner player = other.gameObject.GetComponent<PlayerRunner>();
+        PlayerRunner player = hb.RootParent.GetComponent<PlayerRunner>();
         if (player != null)
         {
             player.OnEnterHazard(
