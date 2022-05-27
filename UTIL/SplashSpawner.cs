@@ -13,8 +13,16 @@ public class SplashSpawner : MonoBehaviour
     [SerializeField]
     private List<GameObject> orderedSpawnLocations = new List<GameObject>();
 
+    [SerializeField]
+    private IntPropertySO currZone = null;
+
+    [SerializeField]
+    private int zoneForSplash = 2;
+
     public void AE_SpawnSplash(int spawnLocRefIndex)
     {
+        if (currZone.Value != zoneForSplash) { return; }
+
         GameObject instance = Instantiate(splashPrefab);
         terrNodes.Value.AttachTransform(instance.transform, horizOrVert: false);
 
