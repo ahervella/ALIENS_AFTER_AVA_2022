@@ -286,7 +286,8 @@ public class S_AudioManager : Singleton<S_AudioManager>
             yield return null;
         }
 
-        yield return new WaitForSeconds(delay);
+        yield return new WaitForSecondsRealtime(delay);
+        //yield return new WaitForSeconds(delay);
 
         if (soundObject != null)
         {

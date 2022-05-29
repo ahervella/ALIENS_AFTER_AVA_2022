@@ -57,6 +57,8 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     private AFillBarManagerBase healthBarPrefab;
 
+    private bool stunned = false;
+
     protected bool Rage { get; private set; } = false;
 
     //Assuming all bosses will start with BOSS_SPAWN, and after their spawn
@@ -193,6 +195,11 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         settings.SpawnAudioWrapper?.PlayAudioWrapper(audioSource);
     }
 
+    public override void Stun()
+    {
+        stunned = true;
+    }
+
     protected void OnTriggerEnterBossHitBox(Collider other, BoxColliderSP hb, bool tussleOnAttack)
     {
         Projectile projectile = other.transform.parent?.gameObject.GetComponent<Projectile>()?? null;
@@ -207,12 +214,14 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         {
             player.OnEnterHazard(
                 hb.RequiredAvoidAction,
-                PlayerActionEnum.NULL,
+                stunned ? PlayerActionEnum.ANY_ACTION : PlayerActionEnum.NULL,
                 TerrAddonEnum.BOSS,
                 tussleOnAttack,
                 out bool _,
                 out bool _
                 );
+
+            stunned = false;
         }
 
     }

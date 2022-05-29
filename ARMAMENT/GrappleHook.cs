@@ -58,6 +58,10 @@ public class GrappleHook : MonoBehaviour
     [SerializeField]
     private BoolDelegateSO tussleInitDelegate = null;
 
+    [SerializeField]
+    private PSO_CurrentGameMode currGameMode = null;
+    private bool paused => currGameMode.Value == GameModeEnum.PAUSE;
+
     private bool cachedTussleStarted = false;
 
     private AudioWrapperSource audioSource;
@@ -226,6 +230,7 @@ public class GrappleHook : MonoBehaviour
     private void ReelInTowardsBoss(AAlienBossBase boss)
     {
         Debug.Log("reeling in towards boss: " + boss.name);
+        boss.Stun();
         ReelInTowardsEnemy(boss.gameObject);
     }
 
@@ -278,11 +283,13 @@ public class GrappleHook : MonoBehaviour
         float retractSpeed = maxDist / grappleRetractTime;
         while (currDist > 0)
         {
-            currDist -= retractSpeed * Time.deltaTime;
+            currDist -= retractSpeed * UnscaledTimeIfNotPaused(paused);
             SetSpritePositions(currDist);
             yield return null;
         }
 
+        StopAllAudioSourceSounds(audioSource);
+        tussleInitDelegate.DeRegisterFromDelegateInvoked(OnTussleInitDelegate);
         SafeDestroy(gameObject);
     }
 }

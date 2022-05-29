@@ -356,18 +356,18 @@ public class PlayerRunner : MonoBehaviour
         out bool destroyHazard,
         WeaponEnum weaponType = WeaponEnum.NONE)
     {
-        dodged = false;
+        dodged = true;
         destroyHazard = false;
+
+        if (currEndOfDemo.Value) { return; }
 
         if (currAction.IsPlayingHurtAnim())
         {
-            dodged = true;
             return;
         }
 
 
-        if (currAction.Value == PlayerActionEnum.GRAPPLE_REEL
-            || takeDownAction == currAction.Value
+        if (takeDownAction == currAction.Value
             || takeDownAction == PlayerActionEnum.ANY_ACTION)
         {
             StartTussle(true, obstacleType == TerrAddonEnum.BOSS);
@@ -377,7 +377,6 @@ public class PlayerRunner : MonoBehaviour
         if (avoidAction == currAction.Value)
         {
             currEnergy.RewardPlayerEnergy(currAction.Value);
-            dodged = true;
             return;
         }
 
@@ -385,7 +384,6 @@ public class PlayerRunner : MonoBehaviour
         if (avoidAction == PlayerActionEnum.JUMP
             && currAction.Value == PlayerActionEnum.GRAPPLE_REEL)
         {
-            dodged = true;
             return;
         }
 
@@ -398,16 +396,19 @@ public class PlayerRunner : MonoBehaviour
                 shieldOnFlag.ModifyValue(false);
                 destroyHazard = true;
             }
+
+            dodged = false;
             return;
         }
 
         if (tussleOnAttack)
         {
             StartTussle(false, obstacleType == TerrAddonEnum.BOSS);
+            dodged = false;
             return;
         }
 
-        TakeDamage(avoidAction, weaponType);
+        dodged = !TryTakeDamage(avoidAction, weaponType);
     }
 
     public void OnEnterProjectile(
@@ -416,7 +417,7 @@ public class PlayerRunner : MonoBehaviour
         out bool dodged,
         out bool destroyProjectile)
     {
-        //TODO: do we need tyhe projectile (weapon) type in the end?
+        //TODO: do we need the projectile (weapon) type in the end?
         OnEnterHazard(avoidAction,
             PlayerActionEnum.NONE,
             TerrAddonEnum.PROJECTILE,
@@ -462,7 +463,7 @@ public class PlayerRunner : MonoBehaviour
         tempDodgeInvincibility = false;
     }
 
-    private void TakeDamage(PlayerActionEnum requiredAction, WeaponEnum weaponType = WeaponEnum.NONE)
+    private bool TryTakeDamage(PlayerActionEnum requiredAction, WeaponEnum weaponType = WeaponEnum.NONE)
     {
         /*
         //TODO: only necessary if we ever do a mid air hurt with a falling animation
@@ -474,7 +475,7 @@ public class PlayerRunner : MonoBehaviour
                 PlayerActionEnum.TAKE_DAMAGE_AIR : PlayerActionEnum.TAKE_DAMAGE_GROUND;
         }
         */
-        if (tempDodgeInvincibility || developerSettings.Invincibility || currEndOfDemo.Value) { return; }
+        if (tempDodgeInvincibility || developerSettings.Invincibility) { return false; }
 
         //TODO: seperate sounds of player getting hurt due to hurt action,
         //and impact of specific objects
@@ -485,6 +486,7 @@ public class PlayerRunner : MonoBehaviour
             : damageSettings.GetWeaponDamage(weaponType, damage2PlayerOrAlien: true);
 
         currLives.ModifyValue(-1 * damage);
+        return true;
     }
 
     

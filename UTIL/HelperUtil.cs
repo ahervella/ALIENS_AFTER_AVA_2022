@@ -260,7 +260,7 @@ public static class HelperUtil
     public static void MakeCustomHitBoxes(
         BoxColliderSP hitBox,
         Vector2Int hazardDims,
-        int hitBoxHeight,
+        //int hitBoxHeight,
         SO_TerrSettings terrSettings,
         Vector3PropertySO hitBoxDimEdgePercents,
         List<HitBoxWrapper> customHitBoxes)
@@ -271,7 +271,7 @@ public static class HelperUtil
             int width = hbw.MaxXRange - hbw.MinXRange;
             Vector2Int dims = new Vector2Int(width, hazardDims.y);
 
-            SetHitBoxDimensions(instance, dims, hitBoxHeight, terrSettings, hitBoxDimEdgePercents);
+            SetHitBoxDimensions(instance, dims, hbw.FloorHeight, terrSettings, hitBoxDimEdgePercents);
 
             float centerOffset = (width - hazardDims.x) / 2f + hbw.MinXRange;
             centerOffset *= terrSettings.TileDims.x;

@@ -6,10 +6,11 @@ using System;
 [Serializable]
 public class HitBoxWrapper
 {
-    public HitBoxWrapper(int minXRange, int maxXRange, PlayerActionEnum customAvoidAction)
+    public HitBoxWrapper(int minXRange, int maxXRange, int floorHeight, PlayerActionEnum customAvoidAction)
     {
         this.minXRange = minXRange;
         this.maxXRange = maxXRange;
+        this.floorHeight = floorHeight;
         this.customAvoidAction = customAvoidAction;
     }
 
@@ -20,6 +21,10 @@ public class HitBoxWrapper
     [SerializeField]
     private int maxXRange = 1;
     public int MaxXRange => maxXRange;
+
+    [SerializeField]
+    private int floorHeight = 1;
+    public int FloorHeight => floorHeight;
 
     [SerializeField]
     private PlayerActionEnum customAvoidAction = PlayerActionEnum.NONE;

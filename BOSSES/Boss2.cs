@@ -55,7 +55,7 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
                 HitBox(),
                 //TODO: move this out of settings and serialize it
                 new Vector2Int(settings.HitBoxTileWidth, 1),
-                hitBoxHeight,
+                //hitBoxHeight,
                 terrSettings,
                 hitBoxDimEdgePerc,
                 customHitBoxWrappers);

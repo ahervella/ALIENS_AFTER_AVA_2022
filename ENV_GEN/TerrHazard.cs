@@ -23,8 +23,8 @@ public class TerrHazard : TerrAddon
     [SerializeField]
     private Vector3PropertySO hitBoxDimEdgePercents = null;
 
-    [SerializeField]
-    private int hitBoxHeight = 1;
+    //[SerializeField]
+    //private int hitBoxHeight = 1;
 
     [SerializeField]
     protected SO_TerrSettings terrSettings = null;
@@ -71,7 +71,6 @@ public class TerrHazard : TerrAddon
         MakeCustomHitBoxes(
                 hitBox,
                 Dimensions(),
-                hitBoxHeight,
                 terrSettings,
                 hitBoxDimEdgePercents,
                 customHitBoxes);
@@ -97,7 +96,9 @@ public class TerrHazard : TerrAddon
                 hitBox,
                 energyRewardBox,
                 Dimensions(),
-                hitBoxHeight,
+                //TODO: until we make reward boxes  match
+                //custom hit boxes, stick with this
+                1,
                 terrSettings,
                 hitBoxDimEdgePercents);
         }
