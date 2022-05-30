@@ -25,13 +25,16 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
     [SerializeField]
     private PSO_TerrainTreadmillNodes terrNodes = null;
 
+    [SerializeField]
+    private AnimationEventExtender aee = null;
+
     private Vector3 cachedSpawnPos;
     private Vector3 cachedFarDefaultPos;
 
     private Coroutine idleFlybyCR = null;
     private Coroutine flyOverCR = null;
     private Coroutine startAttackCR = null;
-    private Coroutine openAttackWingsCR = null;
+    private Coroutine attackForwardChargeCR = null;
 
     //need this because stopping a nested coroutine
     //doesn't seem to work
@@ -86,7 +89,7 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
         SafeStopCoroutine(ref idleFlybyCR, this);
         SafeStopCoroutine(ref flyOverCR, this);
         SafeStopCoroutine(ref startAttackCR, this);
-        SafeStopCoroutine(ref openAttackWingsCR, this);
+        SafeStopCoroutine(ref attackForwardChargeCR, this);
 
         StartCoroutine(DeathSequence());
     }
@@ -147,6 +150,15 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
     {
         SpawnSequence();
         currState.RegisterForPropertyChanged(OnBossStateChange);
+
+        //0 is for removing boss after death
+        aee.AssignAnimationEvent(OnTwirlAttackLoopAnim, 1);
+    }
+
+    private void OnTwirlAttackLoopAnim()
+    {
+        Debug.Log("hit anim extender");
+        TreadmillAttachment(true, true);
     }
 
     private void OnBossStateChange(Boss2State oldState, Boss2State newState)
@@ -270,9 +282,9 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
         currState.ModifyValue(idleState);
 
         float xStartPos = settings.FlybyStartTileDelta * terrSettings.TileDims.x * sideMod;
-        float yStartPos = settings.FlybyDipFloorHeight * terrSettings.FloorHeight;
+        float yDipPos = settings.FlybyDipFloorHeight * terrSettings.FloorHeight;
 
-        Vector3 startPos = new Vector3(xStartPos, yStartPos, 0);
+        Vector3 startPos = new Vector3(xStartPos, 0, 0);
 
         int flyByCount = settings.GetRandFlyByCount(Rage);
 
@@ -290,7 +302,7 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
             yield return DipFly(
                            cachedFarDefaultPos + startPos,
                            new Vector3(-startPos.x * 2, 0, 0),
-                           new Vector3(0, yStartPos, 0),
+                           new Vector3(0, yDipPos, 0),
                            settings.FullFlybyTime.GetVal(Rage)
                            );
 
@@ -313,11 +325,28 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
 
     private IEnumerator StartAttackCR(Vector3 absStartPos, bool fromLeftOrRight)
     {
+        //TreadmillAttachment(true, true);
+
         float perc = 0;
         bool oneShotApex = true;
 
         float endZPos = settings.AttackStartTileDist * terrSettings.TileDims.y;
         Vector3 endPos = new Vector3(cachedFarDefaultPos.x, attackYPos, endZPos);
+
+        //50% chance of second attack on rage
+        //TODO: make into a setting
+        bool spreadWingsAttack = Rage;// && Random.value > 0.5f;
+
+        //TODO: make this a dev tools if need more options for making harder
+        //if (spreadWingsAttack)
+        //{
+        //    float sideOffset = fromLeftOrRight ?
+        //        -terrSettings.TileDims.x
+        //        : -terrSettings.TileDims.x;
+
+        //    endPos += new Vector3(sideOffset, 0, 0);
+        //}
+
 
         float speed = settings.AttackZTileSpeed.GetVal(Rage) * terrSettings.TileDims.y;
         float time = Mathf.Abs(endZPos - absStartPos.z) / speed;
@@ -345,24 +374,24 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
             yield return null;
         }
 
-        OpenAttackWings(speed, fromLeftOrRight);
+        TreadmillAttachment(false);
+        AttackForwardCharge(speed, spreadWingsAttack);
     }
 
-    private void OpenAttackWings(float speed, bool fromLeftOrRight)
+    private void AttackForwardCharge(float speed, bool spreadWingsAttack)
     {
         //activate correct hit box here, or just sub to state change?
-        SafeStartCoroutine(ref openAttackWingsCR, OpenAttackWingsCR(speed, fromLeftOrRight), this);
+        SafeStartCoroutine(ref attackForwardChargeCR, AttackForwardChargeCR(speed, spreadWingsAttack), this);
     }
 
-    private IEnumerator OpenAttackWingsCR(float speed, bool fromLeftOrRight)
+    private IEnumerator AttackForwardChargeCR(float speed, bool spreadWingsAttack)
     {
-        TreadmillAttachment(true);
+        TreadmillAttachment(true, false);
 
         Vector3 startPos = transform.localPosition;
-        Vector3 endPos = new Vector3(cachedFarDefaultPos.x, attackYPos, -terrSettings.TileDims.y);
+        Vector3 endPos = new Vector3(startPos.x, attackYPos, -terrSettings.TileDims.y);
 
-        //50% chance of second attack on rage
-        if (Rage && Random.value > 0.5)
+        if (spreadWingsAttack)
         {
             Boss2State wingSpreadState = Boss2State.SPREAD_WINGS;/*Random.value > 0.5f ?
             Boss2State.SPREAD_WINGS_MIDDLE_HIGH
@@ -390,11 +419,11 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
         StartCoroutine(IdleFlybySequenceCR());
     }
 
-    private void TreadmillAttachment(bool attach)
+    private void TreadmillAttachment(bool attach, bool horizOrVert = false)
     {
         if (attach)
         {
-            terrNodes.Value.AttachTransform(transform, horizOrVert: false, useContainer: true);
+            terrNodes.Value.AttachTransform(transform, horizOrVert, useContainer: true);
             return;
         }
 

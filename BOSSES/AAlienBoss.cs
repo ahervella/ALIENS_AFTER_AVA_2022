@@ -200,20 +200,25 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         stunned = true;
     }
 
-    protected void OnTriggerEnterBossHitBox(Collider other, BoxColliderSP hb, bool tussleOnAttack)
+    protected void OnTriggerEnterBossHitBox(Collider other, BoxColliderSP hbSource, bool tussleOnAttack)
     {
-        Projectile projectile = other.transform.parent?.gameObject.GetComponent<Projectile>()?? null;
+        BoxColliderSP hb = other.gameObject.GetComponent<BoxColliderSP>();
+        if (hb?.RootParent == hbSource) { return; }
+
+        Projectile projectile = hb?.RootParent?.GetComponent<Projectile>();
+
         if (projectile != null)
         {
             projectile.OnEnteredBoss(this);
             return;
         }
 
-        PlayerRunner player = hb.RootParent.GetComponent<PlayerRunner>();
+
+        PlayerRunner player = hb?.RootParent?.GetComponent<PlayerRunner>();
         if (player != null)
         {
             player.OnEnterHazard(
-                hb.RequiredAvoidAction,
+                hbSource.RequiredAvoidAction,
                 stunned ? PlayerActionEnum.ANY_ACTION : PlayerActionEnum.NULL,
                 TerrAddonEnum.BOSS,
                 tussleOnAttack,
