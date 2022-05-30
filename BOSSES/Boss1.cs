@@ -204,11 +204,10 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
         transform.position = finalSpawnPos;
         currZonePhase.ModifyValue(ZonePhaseEnum.BOSS);
-        currState.ModifyValue(Boss1State.IDLE);
+        currState.ModifyValue(Boss1State.SHOOT);
     }
 
     protected override void ExtraRemoveBoss()
     {
-        throw new System.NotImplementedException();
     }
 }

@@ -64,6 +64,9 @@ public class Projectile : MovingNode
     private bool isAlienProjectile = false;
 
     [SerializeField]
+    private bool destroyTerrHazards = true;
+
+    [SerializeField]
     private PSO_CurrentPlayerAction currPlayerAction = null;
 
     [SerializeField]
@@ -174,12 +177,17 @@ public class Projectile : MovingNode
         if (hitBox.RootParent == sourceHitBox?.RootParent) { return; }
 
         //TODO: handle aliens being stunned by grapple differently in
-        //case we still want to destroy stunned aliens from alien projectiles?
-        if (hazard is HazardAlien alien && alien.StunnedFlag)
+        if (hazard is HazardAlien alien)
         {
-            SafeDestroy(gameObject);
-            return;
+            //case we still want to destroy stunned aliens from alien projectiles?
+            if (alien.StunnedFlag)
+            {
+                SafeDestroy(gameObject);
+                return;
+            }
         }
+
+        if (!destroyTerrHazards) { return; }
 
         SafeDestroy(hazard.gameObject);
         MadeImpact();

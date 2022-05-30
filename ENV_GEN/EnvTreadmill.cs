@@ -89,8 +89,9 @@ public class EnvTreadmill : MonoBehaviour
     private LaneChange targetLaneChange;
     private float colShiftPerc;
 
-    private float totalZoneDistTraveled = 0;
-    private float lastZonePhaseDistTraveled = 0;
+    //Total distance is for any future achievement we want
+    private float totalDistTraveled = 0;
+    private float zonePhaseDistTraveled = 0;
     private float? dist2NextZonePhase = 0;
 
     private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
@@ -106,6 +107,8 @@ public class EnvTreadmill : MonoBehaviour
         GetComponent<MeshFilter>().mesh = mesh;
 
         currZone.RegisterForPropertyChanged(OnZoneWrapperChange);
+        currZonePhase.RegisterForPropertyChanged(OnZonePhaseChange);
+
         laneChangeDelegate.RegisterForDelegateInvoked(OnLaneChange);
         treadmillToggleDelegate.RegisterForDelegateInvoked(OnTreadmillSpeedChange);
         terrTreadmillNodesPSO.ModifyValue(
@@ -392,7 +395,8 @@ public class EnvTreadmill : MonoBehaviour
 
         generator.TerrainChangeDelegateTick(posVert);
 
-        totalZoneDistTraveled += Mathf.Abs(posVert);
+        totalDistTraveled += Mathf.Abs(posVert);
+        zonePhaseDistTraveled += Mathf.Abs(posVert);
 
         ForEachTransformChild(vertTransform, child =>
         {
@@ -408,24 +412,22 @@ public class EnvTreadmill : MonoBehaviour
 
         LocalPositionChange(terrNodesTransform, 0, 0, posVert);
 
-        if (spawnOnlyFoleyPSO.Value && totalZoneDistTraveled >= settings.StartHazardFreeRowsFromPlayer - settings.TileRows)
+        if (spawnOnlyFoleyPSO.Value && totalDistTraveled >= settings.StartHazardFreeRowsFromPlayer - settings.TileRows)
         {
             spawnOnlyFoleyPSO.ModifyValue(false);
         }
 
 
         if (dist2NextZonePhase != null
-            && totalZoneDistTraveled - lastZonePhaseDistTraveled >= dist2NextZonePhase)
+            && zonePhaseDistTraveled >= dist2NextZonePhase)
         {
-            SetNextZonePhase();
+            currZonePhase.ModifyValue(currZoneWrapper.GetNextZonePhase(currZonePhase.Value));
         }
     }
 
-    private void SetNextZonePhase()
+    private void OnZonePhaseChange(ZonePhaseEnum _, ZonePhaseEnum __)
     {
-        lastZonePhaseDistTraveled = totalZoneDistTraveled;
-
-        currZonePhase.ModifyValue(currZoneWrapper.GetNextZonePhase(currZonePhase.Value));
+        zonePhaseDistTraveled = 0;
         SetCurrZonePhaseDistances();
     }
 

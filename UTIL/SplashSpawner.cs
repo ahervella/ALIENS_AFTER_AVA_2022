@@ -17,11 +17,21 @@ public class SplashSpawner : MonoBehaviour
     private IntPropertySO currZone = null;
 
     [SerializeField]
+    private PSO_CurrentZonePhase currZonePhase = null;
+
+    [SerializeField]
     private int zoneForSplash = 2;
 
     public void AE_SpawnSplash(int spawnLocRefIndex)
     {
-        if (currZone.Value != zoneForSplash) { return; }
+        if (currZone.Value < zoneForSplash || currZone.Value > zoneForSplash + 1) { return; }
+
+        if (currZone.Value == zoneForSplash + 1
+            && currZonePhase.Value != ZonePhaseEnum.ZONE_TRANS) { return; }
+
+        if (currZone.Value == zoneForSplash
+            && currZonePhase.Value == ZonePhaseEnum.ZONE_TRANS) { return; }
+
 
         GameObject instance = Instantiate(splashPrefab);
         terrNodes.Value.AttachTransform(instance.transform, horizOrVert: false);

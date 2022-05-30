@@ -240,7 +240,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         //TODO: Do elimination sequence for one sprite has fallen?
         healthBarPrefab.TearDown(settings.TearDownDelayPostDeath);
 
-        currZonePhase.ModifyValue(ZonePhaseEnum.NO_BOSS_SUB1);
+        currZonePhase.ModifyValue(ZonePhaseEnum.ZONE_TRANS);
 
         ExtraRemoveBoss();
 
