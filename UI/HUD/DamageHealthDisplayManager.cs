@@ -62,8 +62,6 @@ public class DamageHealthDisplayManager : MonoBehaviour
     private void OnLivesChanged(int prevLife, int newLife)
     {
         cachedDW = settings.GetDamageWrapper(newLife);
-        cachedDamageAlphaMax = cachedDW.DamageAlphaPercentMax;
-        cachedDamageAlphaMin = cachedDW.DamageAlphaPercentMin;
 
         StartFlashingDamageSprite();
         StartTintCoroutine();
@@ -94,7 +92,8 @@ public class DamageHealthDisplayManager : MonoBehaviour
 
     private IEnumerator DamageSpriteFlashCoroutine()
     {
-        while (cachedDamageAlphaMin != cachedDamageAlphaMax)
+        while (cachedDamageAlphaMin != cachedDamageAlphaMax
+            || cachedDW.DamageAlphaPercentMin != cachedDW.DamageAlphaPercentMax)
         {
             if (cachedGamePaused) { yield return null; }
 
