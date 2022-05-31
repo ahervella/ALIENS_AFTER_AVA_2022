@@ -168,6 +168,12 @@ public class GrappleHook : MonoBehaviour
 
                 if (hit.collider.GetComponent<BoxColliderSP>() is BoxColliderSP hitBox)
                 {
+                    if (hitBox.BoxDisabled)
+                    {
+                        checkedObjects.Add(hit.collider.gameObject);
+                        continue;
+                    }
+
                     if (hitBox.RootParent.GetComponent<HazardAlien>() is HazardAlien alien)
                     {
                         ReelInTowardsAlien(alien);

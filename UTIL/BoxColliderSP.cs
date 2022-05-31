@@ -26,7 +26,7 @@ public class BoxColliderSP : MonoBehaviour
     {
         set
         {
-            enabled = value;
+            enabled = !value;
         }
 
         get
