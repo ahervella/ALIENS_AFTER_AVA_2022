@@ -78,16 +78,6 @@ public class TussleButton : MonoBehaviour
 
     public void SetButtonState(TussleButtonStateEnum state)
     {
-        if (state == TussleButtonStateEnum.PRESS_NOW)
-        {
-            animRenderer.color = Color.white;
-            textMesh.color = Color.white;
-            anim.Play(pressNowAnim);
-            return;
-        }
-
-        anim.Stop();
-
         foreach(ButtonSpriteWrapper bsw in buttonSpriteWrappers)
         {
             if (bsw.ButtonState == state)
@@ -95,8 +85,23 @@ public class TussleButton : MonoBehaviour
                 animRenderer.sprite = bsw.ButtonSprite;
                 animRenderer.color = bsw.ButtonColor;
                 textMesh.color = bsw.ButtonColor;
-                if (bsw.IsUpPosition) { ExtendedAE_ButtonUp();  }
-                else { ExtendedAE_ButtonDown(); }
+
+                if (state == TussleButtonStateEnum.PRESS_NOW)
+                {
+                    anim.Play(pressNowAnim);
+                    return;
+                }
+
+                anim.Stop();
+
+                if (bsw.IsUpPosition)
+                {
+                    ExtendedAE_ButtonUp();
+                }
+                else
+                {
+                    ExtendedAE_ButtonDown();
+                }
                 return;
             }
         }
