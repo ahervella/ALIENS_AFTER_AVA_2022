@@ -157,6 +157,7 @@ public class TerrHazard : TerrAddon
             }
             if (!dodged)
             {
+                //TODO: custom impact sounds per hit box wrapper
                 impactAudio.PlayAudioWrapper(audioSource);
             }
             return;

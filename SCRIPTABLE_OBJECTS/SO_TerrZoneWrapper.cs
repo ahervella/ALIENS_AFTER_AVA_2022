@@ -99,6 +99,10 @@ public class SO_TerrZoneWrapper : ScriptableObject
     private AAlienBossBase bossPrefab = null;
     public AAlienBossBase BossPrefab => bossPrefab;
 
+    [SerializeField]
+    private Color envColor = default;
+    public Color EnvColor => envColor;
+
     [NonSerialized]
     private TerrAddonWeightWrapper[] cachedTerrAddons;
 

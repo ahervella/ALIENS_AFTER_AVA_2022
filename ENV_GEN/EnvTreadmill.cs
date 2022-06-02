@@ -272,7 +272,7 @@ public class EnvTreadmill : MonoBehaviour
         }
 
 
-        TerrAddon taInstance = taPrefab.InstantiateAddon(terrNodesTransform);
+        TerrAddon taInstance = taPrefab.InstantiateAddon(terrNodesTransform, currZoneWrapper);
         if (taInstance.RandomYTileOffset)
         {
             taInstance.transform.localPosition += new Vector3(0, 0, settings.TileDims.y * Random.Range(-0.5f, 0.5f));

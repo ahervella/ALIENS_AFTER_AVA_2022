@@ -32,6 +32,9 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
     protected SpriteAnim sprite = null;
 
     [SerializeField]
+    private SpriteRenderer optSpriteRend2Color = null;
+
+    [SerializeField]
     private bool isFlippable = true;
 
     [SerializeField]
@@ -47,10 +50,14 @@ public abstract class TerrAddon : MonoBehaviour, ITerrNode
     }
 
     //TODO test to make sure we can just move this to on awake
-    public TerrAddon InstantiateAddon(Transform parent)
+    public TerrAddon InstantiateAddon(Transform parent, SO_TerrZoneWrapper zoneWrapper)
     {
         TerrAddon taInstance = Instantiate(this, parent);
         taInstance.cachedSpawnViolations = cachedSpawnViolations;
+        if (taInstance.optSpriteRend2Color != null)
+        {
+            taInstance.optSpriteRend2Color.color = zoneWrapper.EnvColor;
+        }
         return taInstance;
     }
 

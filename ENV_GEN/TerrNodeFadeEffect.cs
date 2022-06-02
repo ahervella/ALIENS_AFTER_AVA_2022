@@ -16,7 +16,7 @@ public class TerrNodeFadeEffect : MonoBehaviour
     private Color ogColor;
 
 
-    private void Awake()
+    private void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         ogColor = spriteRenderer.color;
