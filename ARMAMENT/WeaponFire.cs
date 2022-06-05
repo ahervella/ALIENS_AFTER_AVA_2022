@@ -14,7 +14,9 @@ public class WeaponFire : MonoBehaviour
 
     private BoxColliderSP shooterHitBox;
 
-    private MuzzleFlash muzzleFlashInstance;
+    protected MuzzleFlash muzzleFlashInstance;
+
+    protected Projectile projectileInstance;
 
     private void Awake()
     {
@@ -36,11 +38,11 @@ public class WeaponFire : MonoBehaviour
             shooterHitBox));
     }
 
-    private static void InstantiateProjectile(Projectile projectile, Transform prefabParent, Vector3 projectilePos, Transform muzzleFlashTransform, BoxColliderSP shooterHitBox)
+    protected virtual void InstantiateProjectile(Projectile projectile, Transform prefabParent, Vector3 projectilePos, Transform muzzleFlashTransform, BoxColliderSP shooterHitBox)
     {
-        Projectile instance = InstantiateAndSetPosition(projectile, prefabParent, projectilePos);
-        instance.SetMuzzleFlashTranform(muzzleFlashTransform);
-        instance.SetFireSourceHitBox(shooterHitBox);
+        projectileInstance = InstantiateAndSetPosition(projectile, prefabParent, projectilePos);
+        projectileInstance.SetMuzzleFlashTranform(muzzleFlashTransform);
+        projectileInstance.SetFireSourceHitBox(shooterHitBox);
     }
 
     public static void InstantiateWithCustomPositions(WeaponFire weaponFirePrefab, Transform prefabParent, Transform muzzleFlashPosRef, Vector3 projectilePos, BoxColliderSP shooterHitBox)

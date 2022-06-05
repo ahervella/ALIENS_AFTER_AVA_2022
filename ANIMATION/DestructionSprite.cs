@@ -8,22 +8,21 @@ using static HelperUtil;
 public class DestructionSprite : MonoBehaviour
 {
     [SerializeField]
-    GameObject object2Destroy = null;
+    private GameObject object2Destroy = null;
+
+    [SerializeField]
+    private PSO_TerrainTreadmillNodes terrNodesPSO = null;
 
     public void AE_OnAnimationFinished()
     {
         SafeDestroy(object2Destroy == null ? gameObject : object2Destroy);
     }
 
-    public DestructionSprite InstantiateDestruction(Transform parent, Transform spawnPosRot)
+    public DestructionSprite InstantiateDestruction(Vector3 spawnPos, Quaternion spawnRot = new Quaternion())
     {
-        while (parent == null)
-        {
-            parent = parent.parent;
-        }
-
-        DestructionSprite instance = Instantiate(this, parent);
-        instance.transform.SetPositionAndRotation(spawnPosRot.position, spawnPosRot.rotation);
+        DestructionSprite instance = Instantiate(this);
+        terrNodesPSO.Value.AttachTransform(instance.transform, horizOrVert: false);
+        instance.transform.SetPositionAndRotation(spawnPos, spawnRot);
         return this;
     }
 }

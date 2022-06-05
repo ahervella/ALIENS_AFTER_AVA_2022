@@ -286,15 +286,24 @@ public static class HelperUtil
     }
 
     //TODO: does this need to live here?
-    public static void ApplyHitBoxSizeErrorFix(BoxColliderSP hb)
+    public static void ApplyHitBoxSizeErrorFix(BoxColliderSP hb, bool towardsOrAwayFromPlayer)
     {
         BoxCollider box = hb.Box();
 
         //TODO: realized that I set the standard of tiles and hit box length
         //with half of it behind the terr object. Cleaner way to fix?
         //Originally had to do this because the grapple was colliding with the back of the hazard
+
         box.size = new Vector3(box.size.x, box.size.y, box.size.z / 2f);
-        box.center = new Vector3(box.center.x, box.center.y, -box.size.z / 2f);
+        OffsetHitBoxCenterToEdge(hb, towardsOrAwayFromPlayer);
+    }
+
+    public static void OffsetHitBoxCenterToEdge(BoxColliderSP hb, bool towardsOrAwayFromPlayer)
+    {
+        float mul = towardsOrAwayFromPlayer ? -1 : 1;
+
+        BoxCollider box = hb.Box();
+        box.center = new Vector3(box.center.x, box.center.y, box.size.z / 2f * mul);
     }
 
     //TODO: convert all places where unscaled time is being because of

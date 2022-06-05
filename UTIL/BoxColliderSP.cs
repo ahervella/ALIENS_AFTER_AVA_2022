@@ -16,6 +16,12 @@ public class BoxColliderSP : MonoBehaviour
     [SerializeField]
     private SO_LayerSettings layerSettings = null;
 
+    [SerializeField]
+    private bool cacheObjsOnDisable = false;
+
+    private List<Collider> cachedColliders = new List<Collider>();
+    private List<Collision> cachedCollisions = new List<Collision>();
+
     private PlayerActionEnum requiredAvoidAction = PlayerActionEnum.NULL;
 
     //hack to make sure we only get the req action if its enabled
@@ -26,12 +32,55 @@ public class BoxColliderSP : MonoBehaviour
     {
         set
         {
-            enabled = !value;
+            Box().enabled = !value;
+            OnBoxDisabledChange(enabled);
         }
 
         get
         {
-            return !isActiveAndEnabled;
+            return !Box().enabled;
+        }
+    }
+
+    public void OnBoxDisabledChange(bool boxEnabled)
+    {
+        if (!cacheObjsOnDisable) { return; }
+        if (enabled)
+        {
+            if (onTriggerEnterMethod != null)
+            {
+                foreach (Collider c in cachedColliders)
+                {
+                    onTriggerEnterMethod.Invoke(c);
+                }
+            }
+
+            if (onColliderEnterMethod != null)
+            {
+                foreach (Collision c in cachedCollisions)
+                {
+                    onColliderEnterMethod.Invoke(c);
+                }
+            }
+        }
+
+        else
+        {
+            if (onTriggerExitMethod != null)
+            {
+                foreach (Collider c in cachedColliders)
+                {
+                    onTriggerExitMethod.Invoke(c);
+                }
+            }
+
+            if (onColliderExitMethod != null)
+            {
+                foreach (Collision c in cachedCollisions)
+                {
+                    onColliderExitMethod.Invoke(c);
+                }
+            }
         }
     }
 
@@ -106,25 +155,47 @@ public class BoxColliderSP : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (BoxDisabled) { return; }
-        onTriggerEnterMethod?.Invoke(other);
+        if (BoxDisabled || onTriggerEnterMethod == null) { return; }
+
+        onTriggerEnterMethod.Invoke(other);
+
+        if (cacheObjsOnDisable)
+        {
+            cachedColliders.Add(other);
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (BoxDisabled) { return; }
-        onTriggerExitMethod?.Invoke(other);
+        if (BoxDisabled || onTriggerExitMethod == null) { return; }
+
+        onTriggerExitMethod.Invoke(other);
+        if (cacheObjsOnDisable)
+        {
+            cachedColliders.Remove(other);
+        }
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (BoxDisabled) { return; }
-        onColliderEnterMethod?.Invoke(collision);
+        if (BoxDisabled || onColliderEnterMethod == null) { return; }
+
+        onColliderEnterMethod.Invoke(collision);
+        if (cacheObjsOnDisable)
+        {
+            cachedCollisions.Add(collision);
+        }
+
     }
 
     private void OnCollisionExit(Collision collision)
     {
-        if (BoxDisabled) { return; }
-        onColliderExitMethod?.Invoke(collision);
+        if (BoxDisabled || onColliderExitMethod == null) { return; }
+
+        onColliderExitMethod.Invoke(collision);
+        if (cacheObjsOnDisable)
+        {
+            cachedCollisions.Remove(collision);
+        }
     }
 }

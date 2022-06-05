@@ -8,13 +8,13 @@ using static HelperUtil;
 public class Projectile : MovingNode
 {
     [SerializeField]
-    private Vector3PropertySO hitBoxDimEdgePerc = null;
+    protected Vector3PropertySO hitBoxDimEdgePerc = null;
 
     [SerializeField]
     private PSO_TerrainTreadmillNodes terrTreadmillNodesPSO = null;
 
     [SerializeField]
-    private Vector2Int widthHeightDims = new Vector2Int(1, 1);
+    protected Vector2Int widthHeightDims = new Vector2Int(1, 1);
 
     [SerializeField]
     private TREADMILL_ATTACHMENT treadmillAttachment = TREADMILL_ATTACHMENT.NONE;
@@ -22,10 +22,10 @@ public class Projectile : MovingNode
     private enum TREADMILL_ATTACHMENT { NONE = 0, HORIZONTAL = 1, HORIZ_VERT = 2 }
 
     [SerializeField]
-    private BoxColliderSP hitBox = null;
+    protected BoxColliderSP hitBox = null;
 
     [SerializeField]
-    private SpriteAnim spriteAnim = null;
+    protected SpriteAnim spriteAnim = null;
 
     [SerializeField]
     private WeaponEnum weaponType;
@@ -36,8 +36,6 @@ public class Projectile : MovingNode
     [SerializeField]
     private float spriteYPosPercFloorHeight = 0.5f;
 
-    [SerializeField]
-    private GameObject OnImpactPrefab = null;
 
     [SerializeField]
     private Vector3 posOffset = default;
@@ -46,10 +44,18 @@ public class Projectile : MovingNode
     private bool autoAlignToNearestLane = true;
 
     [SerializeField]
+    private bool alsoAutoAlignSprite = true;
+
+    [SerializeField]
     private float timeSprite2Align2NearestLane = 0.5f;
 
     [SerializeField]
     private bool destroyOnImpact = true;
+
+    //TODO: eventually handle the object being destroyed to have its own
+    //on destruction aside from the projectile's destruction (ie. explosion)
+    //[SerializeField]
+    //private GameObject onImpactPrefab = null;
 
     [SerializeField]
     private DestructionSprite destructionSpritePrefab = null;
@@ -61,7 +67,7 @@ public class Projectile : MovingNode
     private AAudioWrapperV2 impactAudio = null;
 
     [SerializeField]
-    private bool isAlienProjectile = false;
+    protected bool isAlienProjectile = false;
 
     [SerializeField]
     private bool destroyTerrHazards = true;
@@ -77,7 +83,7 @@ public class Projectile : MovingNode
 
     private AudioWrapperSource audioSource;
 
-    private Transform mzTrans;
+    protected Transform mzTrans;
 
     private BoxColliderSP sourceHitBox = null;
 
@@ -109,7 +115,7 @@ public class Projectile : MovingNode
         SetSpawnPosition();
     }
 
-    private void ConfigHitBox()
+    protected virtual void ConfigHitBox()
     {
         //TODO: is this too jank or can I just resort to using on collision or on trigger and return
         //depending on the isAlienProjectile flag?
@@ -125,7 +131,7 @@ public class Projectile : MovingNode
         hitBox.SetOnTriggerEnterMethod(OnTriggerEnter);
     }
 
-    private void SetSpawnPosition()
+    protected virtual void SetSpawnPosition()
     {
         if (treadmillAttachment == TREADMILL_ATTACHMENT.HORIZONTAL)
         {
@@ -148,10 +154,17 @@ public class Projectile : MovingNode
 
         Vector3 originalSpriteLocalPos = mzTrans.position - transform.position;
 
-        float spriteFinalYLocalPos = terrSettings.FloorHeight * spriteYPosPercFloorHeight + yPos;
-        Vector3 finalLocalPos = new Vector3(0, spriteFinalYLocalPos, 0);
+        if (alsoAutoAlignSprite)
+        {
+            float spriteFinalYLocalPos = terrSettings.FloorHeight * spriteYPosPercFloorHeight + yPos;
+            Vector3 finalLocalPos = new Vector3(0, spriteFinalYLocalPos, 0);
 
-        StartCoroutine(SpritePosTween(originalSpriteLocalPos, finalLocalPos));
+            StartCoroutine(SpritePosTween(originalSpriteLocalPos, finalLocalPos));
+        }
+        else
+        {
+            spriteAnim.transform.localPosition = originalSpriteLocalPos;
+        }
 
         if (!autoAlignToNearestLane)
         {
@@ -171,10 +184,10 @@ public class Projectile : MovingNode
         }
     }
 
-    public void OnEnteredHazard(TerrHazard hazard, BoxColliderSP hitBox)
+    public void OnEnteredHazard(TerrHazard hazard, BoxColliderSP hazardhb)
     {
         //Null check on the sourceHitBox for bullets instanced from player
-        if (hitBox.RootParent == sourceHitBox?.RootParent) { return; }
+        if (hazardhb.RootParent == sourceHitBox?.RootParent) { return; }
 
         //TODO: handle aliens being stunned by grapple differently in
         if (hazard is HazardAlien alien)
@@ -190,7 +203,7 @@ public class Projectile : MovingNode
         if (!destroyTerrHazards) { return; }
 
         SafeDestroy(hazard.gameObject);
-        MadeImpact();
+        MadeImpact(hazardhb.transform.position.z);
     }
 
     public void OnEnteredBoss(AAlienBossBase boss)
@@ -199,10 +212,10 @@ public class Projectile : MovingNode
         if (boss.HitBox().RootParent == sourceHitBox?.RootParent) { return; }
 
         boss.TakeDamage(damageSettings.GetWeaponDamage(weaponType, damage2PlayerOrAlien: false));
-        MadeImpact();
+        MadeImpact(boss.HitBox().transform.position.z);
     }
 
-    private void OnTriggerEnter(Collider other)
+    protected void OnTriggerEnter(Collider other)
     {
         if (!isAlienProjectile) { return; }
 
@@ -220,26 +233,27 @@ public class Projectile : MovingNode
                 out bool dodged,
                 out bool _);
 
-            if (!dodged) { MadeImpact(); }
+            if (!dodged) { MadeImpact(hb.transform.position.z); }
             return;
         }
     }
 
-    private void MadeImpact()
+    private void MadeImpact(float impactSpawnZPos)
     {
+        //to insure that we don't spawn the destruct prefab in
+        //say the middle of a hazard instead where the bullet was in xy space
+        Vector3 impactSpawnPos = new Vector3(
+            spriteAnim.transform.position.x,
+            spriteAnim.transform.position.y,
+            impactSpawnZPos);
+
         impactAudio?.PlayAudioWrapper(audioSource);
 
-        if (OnImpactPrefab != null)
-        {
-            GameObject instance = Instantiate(OnImpactPrefab, transform.parent);
-            instance.transform.position = transform.position;
-        }
+        destructionSpritePrefab?.InstantiateDestruction(impactSpawnPos);
 
         if (destroyOnImpact)
         {
             SafeDestroy(gameObject);
         }
-
-        destructionSpritePrefab?.InstantiateDestruction(transform.parent, spriteAnim.transform);
     }
 }

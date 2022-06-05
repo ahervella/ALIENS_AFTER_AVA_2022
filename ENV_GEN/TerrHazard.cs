@@ -34,7 +34,6 @@ public class TerrHazard : TerrAddon
 
     [SerializeField]
     private BoxColliderSP hitBox = null;
-    public BoxColliderSP HitBox => hitBox;
 
     //[SerializeField]
     //private bool useCustomHitBoxes = false;
@@ -77,7 +76,7 @@ public class TerrHazard : TerrAddon
 
         foreach (HitBoxWrapper hbw in customHitBoxes)
         {
-            ApplyHitBoxSizeErrorFix(hbw.InstancedHB);
+            ApplyHitBoxSizeErrorFix(hbw.InstancedHB, towardsOrAwayFromPlayer: true);
             hbw.InstancedHB.SetOnTriggerEnterMethod(
                 coll => OnTriggerEnterDamageHitBox(coll, hbw.InstancedHB));
         }
