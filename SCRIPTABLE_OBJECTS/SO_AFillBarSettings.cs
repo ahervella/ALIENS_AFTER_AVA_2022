@@ -51,4 +51,8 @@ public abstract class SO_AFillBarSettings : ScriptableObject
     [SerializeField]
     private int startingQuant = default;
     public virtual int StartingQuant => startingQuant;
+
+    [SerializeField]
+    private float startingTransTime = default;
+    public float StartingTransTime => startingTransTime;
 }

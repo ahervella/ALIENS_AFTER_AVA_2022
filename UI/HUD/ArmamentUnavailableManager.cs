@@ -11,7 +11,7 @@ public class ArmamentUnavailableManager : MonoBehaviour
     private PSO_CurrentEnergy currEnergy = null;
 
     [SerializeField]
-    private IntPropertySO currTimer = null;
+    private PSO_FillBarQuant currTimer = null;
 
     [SerializeField]
     private GameObject availableMask = null;
@@ -22,10 +22,10 @@ public class ArmamentUnavailableManager : MonoBehaviour
         currTimer.RegisterForPropertyChanged(OnValuesChange);
     }
 
-    private void OnValuesChange(int _, int __)
+    private void OnValuesChange(FillBarQuant _, FillBarQuant __)
     {
         availableMask.SetActive(
-            !(currTimer.Value == 0
-            && currEnergy.Value >= armamentEnergyReq.Value));
+            !(currTimer.Value.TransReached && currTimer.Value.Quant == 0 
+            && currEnergy.Value.TransReached && currEnergy.Value.Quant >= armamentEnergyReq.Value));
     }
 }

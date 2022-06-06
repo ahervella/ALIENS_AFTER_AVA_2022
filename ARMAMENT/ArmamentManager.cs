@@ -5,9 +5,6 @@ using UnityEngine;
 
 public class ArmamentManager : MonoBehaviour
 {
-    //[SerializeField]
-    //private SO_ArmamentSettings settings = null;
-
     [SerializeField]
     private PSO_CurrentEnergy currEnergy = null;
 
@@ -29,12 +26,9 @@ public class ArmamentManager : MonoBehaviour
     [SerializeField]
     private Transform playerCenterSpawnPoint = null;
 
-    private Dictionary<AArmament, Tuple<Coroutine, IntPropertySO>> coolDownCRDict = new Dictionary<AArmament, Tuple<Coroutine, IntPropertySO>>();
-
     private void Awake()
     {
         CacheArmaments();
-        InitCoolDownDict();
         useArmamentDelegate.RegisterForDelegateInvoked(TryUseArmament);
 
         //TODO: I know we aren't suppose to use PSOs in Awake in case
@@ -56,21 +50,6 @@ public class ArmamentManager : MonoBehaviour
         }
     }
 
-    private void InitCoolDownDict()
-    {
-        foreach (Weapon w in currLoadout.Value.OrderedWeapons)
-        {
-            if (w == null) { continue; }
-            coolDownCRDict.Add(w, new Tuple<Coroutine, IntPropertySO>(null, w.ArmamentCoolDownPSO));
-        }
-
-        foreach (Equipment e in currLoadout.Value.OrderedEquipments)
-        {
-            if (e == null) { continue; }
-            coolDownCRDict.Add(e, new Tuple<Coroutine, IntPropertySO>(null, e.ArmamentCoolDownPSO));
-        }
-    }
-
     private bool TryUseArmament(AArmament armament)
     {
         if (armament == null) { return false; }
@@ -85,7 +64,7 @@ public class ArmamentManager : MonoBehaviour
             return false;
         }
 
-        if (coolDownCRDict[armament].Item1 != null)
+        if (!armament.ArmamentCoolDownPSO.Value.TransReached || armament.ArmamentCoolDownPSO.Value.Quant != 0)
         {
             return false;
         }
@@ -95,9 +74,7 @@ public class ArmamentManager : MonoBehaviour
             return false;
         }
 
-        coolDownCRDict[armament] = new Tuple<Coroutine, IntPropertySO>(
-            StartCoroutine(CoolDownCoroutine(armament, coolDownCRDict[armament].Item2)),
-            coolDownCRDict[armament].Item2);
+        StartCoolDown(armament);
 
         Transform spawnPoint = armament is Weapon ? projectileSpawnPoint : playerCenterSpawnPoint;
         armament.UseArmament(spawnPoint);
@@ -106,31 +83,19 @@ public class ArmamentManager : MonoBehaviour
 
     private bool Try2ConsumeEnergyReq(int energyRequest)
     {
-        if (currEnergy.Value < energyRequest)
+        if (!currEnergy.Value.TransReached || currEnergy.Value.Quant < energyRequest)
         {
             return false;
         }
 
-        currEnergy.ModifyValue(-energyRequest);
+        currEnergy.ModifyEnergyVal(-energyRequest);
         return true;
     }
 
-    private IEnumerator CoolDownCoroutine(AArmament armament, IntPropertySO coolDownPSO)
+    private void StartCoolDown(AArmament armament)
     {
-        coolDownPSO.ModifyValue(-coolDownPSO.Value);
-
-        float coolDownTime = armament.GetRequirements().CoolDownTime;
-        float currTime = 0;
-        while (currTime < coolDownTime)
-        {
-            currTime += Time.deltaTime;
-            coolDownPSO.ModifyValueNoInvoke((int)Mathf.Floor(Time.deltaTime / coolDownTime * 100f));
-            yield return null;
-        }
-
-        coolDownPSO.ModifyValue(-coolDownPSO.Value + 100);
-
-        coolDownCRDict[armament] = new Tuple<Coroutine, IntPropertySO>(null, armament.ArmamentCoolDownPSO);
+        armament.ArmamentCoolDownPSO.ModifyValue(1, false, 0);
+        armament.ArmamentCoolDownPSO.ModifyValue(0, false, armament.GetRequirements().CoolDownTime);
     }
 }
 

@@ -343,7 +343,7 @@ public class PlayerRunner : MonoBehaviour
     {
         if (!currAction.IsPlayingHurtAnim())
         {
-            currEnergy.ModifyValue(energySettings.GetEnergyReward(currAction.Value));
+            currEnergy.ModifyEnergyVal(energySettings.GetEnergyReward(currAction.Value));
         }
     }
 

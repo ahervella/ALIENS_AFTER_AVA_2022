@@ -35,7 +35,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     private AnimationEventExtender removeBossAEExtender = null;
 
     [SerializeField]
-    protected IntPropertySO currHealth = null;
+    protected PSO_FillBarQuant currHealth = null;
 
     [SerializeField]
     protected PSO_CurrentZonePhase currZonePhase = null;
@@ -96,7 +96,10 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
 
         currHealth.RegisterForPropertyChanged(OnHealthChanged);
-        currHealth.ModifyValue(settings.StartingHealth - currHealth.Value);
+        currHealth.ModifyValue(
+            settings.StartingHealth,
+            false,
+            currHealth.Value.TransTime);
 
         currZonePhase.RegisterForPropertyChanged(OnZonePhaseChange);
 
@@ -136,9 +139,9 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         InitDeath();
     }
 
-    private void OnHealthChanged(int oldHealth, int newHealth)
+    private void OnHealthChanged(FillBarQuant oldHealth, FillBarQuant newHealth)
     {
-        if (newHealth <= 0)
+        if (newHealth.Quant <= 0)
         {
             InitDeath();
             currHealth.DeRegisterForPropertyChanged(OnHealthChanged);
@@ -146,11 +149,11 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         }
 
         //in case boss gains health
-        if (newHealth >= oldHealth) { return; }
+        if (newHealth.Quant >= oldHealth.Quant) { return; }
 
         damageFlash.Flash();
 
-        if (newHealth <= settings.RageHealthThreshold && !Rage)
+        if (newHealth.Quant <= settings.RageHealthThreshold && !Rage)
         {
             Debug.Log($"Activated Rage mode for boss {name}");
             Rage = true;
@@ -255,7 +258,10 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     public override void TakeDamage(int damage)
     {
         if (invincible) { return; }
-        currHealth.ModifyValue(-damage);
+        currHealth.ModifyValue(
+            currHealth.Value.Quant - damage,
+            false,
+            currHealth.Value.TransTime);
     }
 
     protected abstract void InitDeath();

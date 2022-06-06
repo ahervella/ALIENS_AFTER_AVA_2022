@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(AudioWrapperSource))]
-public class ArmamentEnergyBarManager : AFillBarManager<IntPropertySO, SO_ArmamentHUDIconSettings>
+public class ArmamentEnergyBarManager : AFillBarManager<PSO_FillBarQuant, SO_ArmamentHUDIconSettings>
 {
     [SerializeField]
     private List<UISpriteFlasher> spriteFlashers = new List<UISpriteFlasher>();

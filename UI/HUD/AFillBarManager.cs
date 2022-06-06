@@ -8,7 +8,7 @@ using static HelperUtil;
 //TODO: make the PSO quants modify every frame instead of faking it, and use the new ModifyNoInvoke to only trigger
 //when we want to?
 [RequireComponent(typeof(RectTransform))]
-public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFillBarManagerBase where PSO_CURR_QUANT : IntPropertySO where FILL_BAR_SETTINGS : SO_AFillBarSettings
+public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFillBarManagerBase where PSO_CURR_QUANT : PSO_FillBarQuant where FILL_BAR_SETTINGS : SO_AFillBarSettings
 {
     //TODO move non generic based args to base class  and set in base prefab
     [SerializeField]
@@ -102,9 +102,6 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
     private void Awake()
     {
-        //energyBarDisplayDelegate.RegisterForDelegateInvoked(SetVisibility);
-        //currEnergy.RegisterForPropertyChanged(OnEnergyChanged);
-        //currAction.RegisterForPropertyChanged(OnActionChanged);
         optionalCurrGameMode?.RegisterForPropertyChanged(OnCurrGameModeChange);
         currQuant.RegisterForPropertyChanged(OnCurrQuantChanged);
         blockFractionPerc = 0;
@@ -120,20 +117,28 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
         cachedGamePaused = newMode == GameModeEnum.PAUSE;
     }
 
-    private void OnCurrQuantChanged(int oldQuant, int newQuant)
+    private void OnCurrQuantChanged(FillBarQuant oldQuant, FillBarQuant newQuant)
     {
+        //TODO: for UI armament icons, seperate the energy pso from a new result energy pso so we
+        //can independantly when each of the icons has reached its transition
+        //(if we want it to truly be so that the player can only use the energy
+        //once the icon has filled even though its already reached the req amount
+        //of energy in the backend) other wise no worries
+
+        if (newQuant.Quant == oldQuant.Quant && newQuant.TransReached) { return; }
+
         //Multiple bars share the energy PSO, so this is necessary for now
         MakeSureMaxQuantityCached();
 
-        targetFillAmount = currQuant.Value / (float)cachedMaxQuant;
+        targetFillAmount = currQuant.Value.Quant / (float)cachedMaxQuant;
 
-        if (optionalFilledDelegate != null && targetFillAmount == 1 && newQuant > oldQuant)
+        if (optionalFilledDelegate != null && targetFillAmount == 1 && newQuant.Quant > oldQuant.Quant)
         {
             optionalFilledDelegate.InvokeDelegateMethod(true);
         }
 
-        if ((NoTransitionOnDecrease && oldQuant > newQuant)
-            || (NoTransitionOnIncrease && newQuant > oldQuant))
+        if ((NoTransitionOnDecrease && oldQuant.Quant > newQuant.Quant)
+            || (NoTransitionOnIncrease && newQuant.Quant > oldQuant.Quant))
         {
             ImmediatelySetBarQuant();
         }
@@ -148,7 +153,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
             currTweenPerc = 0;
         }
 
-        AfterModifyCurrQuant(oldQuant, newQuant);
+        AfterModifyCurrQuant(oldQuant.Quant, newQuant.Quant);
     }
 
     private void MakeSureMaxQuantityCached()
@@ -163,6 +168,7 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     {
         currTweenPerc = 1;
         SetFillAmount();
+        currQuant.BarTransReached();
     }
 
     private void SetFillAmount()
@@ -188,7 +194,10 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     {
         if (!settings.SetStartingQuant) { return; }
 
-        currQuant.ModifyValue(settings.StartingQuant - currQuant.Value);
+        currQuant.ModifyValue(
+            settings.StartingQuant,
+            false,
+            settings.StartingTransTime);
         ImmediatelySetBarQuant();
     }
 
@@ -258,41 +267,6 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
         }
     }
 
-    private IEnumerator MoveBarToFinalSpawnPos(bool reverse = false)
-    {
-        finalSpawnPos = barDisplayContainer.transform.position;
-        float barHeight = barDisplayContainer.rect.height;
-        float screenHeight = GetComponent<RectTransform>().rect.height;
-
-        //assuming anchor is top center
-        float tweenStartYPos = barHeight / 2f + screenHeight;
-
-        float dir = reverse ? -1 : 1;
-
-        float perc = reverse ? 1 : 0;
-        while (perc <= 1 && perc >= 0)
-        {
-            perc += customDeltaTime / settings.SpawnFromTopTime * dir;
-
-            float yPos = Mathf.Lerp(tweenStartYPos, finalSpawnPos.y, EasedPercent(perc));
-
-            barDisplayContainer.position = new Vector3(
-                barDisplayContainer.position.x,
-                yPos,
-                barDisplayContainer.position.z);
-
-            yield return null;
-        }
-
-        barDisplayContainer.transform.position = reverse ? barDisplayContainer.position = new Vector3(
-                barDisplayContainer.position.x,
-                tweenStartYPos,
-                barDisplayContainer.position.z)
-            : finalSpawnPos;
-
-        
-    }
-
     private IEnumerator SpawnPositionTween(bool reverse = false)
     {
         Vector3 finalPos = barDisplayContainer.position;
@@ -355,9 +329,14 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     {
         if (currTweenPerc >= 1) { return; }
 
-        currTweenPerc += customDeltaTime;
+        currTweenPerc += customDeltaTime / currQuant.Value.TransTime;
 
         SetFillAmount();
+
+        if (currTweenPerc >= 1)
+        {
+            currQuant.BarTransReached();
+        }
     }
 
     private void RechargeTick()
@@ -381,7 +360,10 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
             int delta = (int)Mathf.Floor(blockPerc);
             blockPerc -= delta;
             blockFractionPerc = blockPerc / cachedMaxQuant;
-            currQuant.ModifyValue(delta);
+            currQuant.ModifyValue(
+                delta + currQuant.Value.Quant,
+                true,
+                currQuant.Value.TransTime);
         }
     }
 

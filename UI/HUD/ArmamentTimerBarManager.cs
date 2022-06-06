@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ArmamentTimerBarManager : AFillBarManager<IntPropertySO, SO_ArmamentHUDIconSettings>
+public class ArmamentTimerBarManager : AFillBarManager<PSO_FillBarQuant, SO_ArmamentHUDIconSettings>
 {
     protected override void AfterAwake()
     {

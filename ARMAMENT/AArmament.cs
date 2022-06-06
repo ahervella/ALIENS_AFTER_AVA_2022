@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+//TODO: rename to SO_AArmament
 public abstract class AArmament : ScriptableObject
 {
     [SerializeField]
@@ -12,8 +13,8 @@ public abstract class AArmament : ScriptableObject
     private IntPropertySO armamentLvl = null;
 
     [SerializeField]
-    private IntPropertySO armamentCoolDownPSO = null;
-    public IntPropertySO ArmamentCoolDownPSO => armamentCoolDownPSO;
+    private PSO_FillBarQuant armamentCoolDownPSO = null;
+    public PSO_FillBarQuant ArmamentCoolDownPSO => armamentCoolDownPSO;
 
     [SerializeField]
     private IntPropertySO energyReqPSO = null;
