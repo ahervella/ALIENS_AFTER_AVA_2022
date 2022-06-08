@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 using static HelperUtil;
 
 public class Shooter : MonoBehaviour
@@ -16,7 +17,7 @@ public class Shooter : MonoBehaviour
 
     [SerializeField]
     private Transform projectileSpawnPosRef = null;
-    private Vector3 projectileSpawnPos;
+    private Func<Vector3> projectileSpawnPosFunc;
 
     [SerializeField]
     private BoxColliderSP shooterHitBox = null;
@@ -33,7 +34,7 @@ public class Shooter : MonoBehaviour
     public static Shooter InstantiateShooterObject(
         Transform shooterParentRef,
         Transform muzzleFlashPosRef,
-        Vector3 projectilePos,
+        Func<Vector3> projectilePosFunc,
         BoxColliderSP shooterHitBox,
         ShooterWrapper customShooterWrapper)
     {
@@ -41,7 +42,7 @@ public class Shooter : MonoBehaviour
         instance.transform.parent = shooterParentRef;
 
         instance.muzzleFlashSpawnPosRef = muzzleFlashPosRef;
-        instance.projectileSpawnPos = projectilePos;
+        instance.projectileSpawnPosFunc = projectilePosFunc;
         instance.shooterHitBox = shooterHitBox;
         instance.usingCustomShooterWrapper = true;
         instance.cachedShooterWrapper = customShooterWrapper;
@@ -71,7 +72,19 @@ public class Shooter : MonoBehaviour
                 cachedShooterWrapper.WeaponFirePrefab,
                 transform,
                 muzzleFlashSpawnPosRef,
-                projectileSpawnPosRef?.position?? projectileSpawnPos,
+
+                //Find a way around having to feed it a relative position (maybe instead
+                //give it a relative lane?) to be able to auto align when the prefab fires
+                //And to stop getting that bug of when a shooter class starts multiple shots
+                //it can adapt based on the local position of the muzzle flash (maybe fire the
+                //projectile and use the position relative to the muzzle flash?)
+
+                //1) make a method for designating that lane moved
+                //2) automatically move lanes  
+
+
+
+                projectileSpawnPosRef?.position?? projectileSpawnPosFunc(),
                 shooterHitBox);
             yield return new WaitForSeconds(cachedShooterWrapper.DelayTime);
         }

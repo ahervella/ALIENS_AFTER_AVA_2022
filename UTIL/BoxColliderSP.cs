@@ -19,6 +19,10 @@ public class BoxColliderSP : MonoBehaviour
     [SerializeField]
     private bool cacheObjsOnDisable = false;
 
+    [SerializeField]
+    private bool useLocalPos = false;
+    public bool UseLocalPos => useLocalPos;
+
     private List<Collider> cachedColliders = new List<Collider>();
     private List<Collision> cachedCollisions = new List<Collision>();
 

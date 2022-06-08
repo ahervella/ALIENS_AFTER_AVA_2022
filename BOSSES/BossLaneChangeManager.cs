@@ -20,9 +20,14 @@ public class BossLaneChangeManager : MonoBehaviour
     [SerializeField]
     private float laneChangeDelay = 0f;
 
+    [SerializeField]
+    private float manualLaneChangeTime = 1f;
+
     private Coroutine laneChangeCR = null;
 
-    private int currLane = 0;
+    public int CurrLane { private set; get; } = 0;
+
+    public bool EnableAutoLaneChanging { set; get; } = true;
 
     private void Awake()
     {
@@ -31,20 +36,21 @@ public class BossLaneChangeManager : MonoBehaviour
 
     private int OnLaneChangeDelegate(LaneChange lc)
     {
-        if (Mathf.Abs(currLane + lc.Dir) > maxLaneDeviation) { return 0; }
+        if (!EnableAutoLaneChanging) { return 0; }
+        if (Mathf.Abs(CurrLane - lc.Dir) > maxLaneDeviation) { return 0; }
         SafeStartCoroutine(ref laneChangeCR, ChangeLane(lc.Dir, lc.Time), this);
         return 0;
     }
 
-    private IEnumerator ChangeLane(int dir, float time)
+    private IEnumerator ChangeLane(int dirMag, float time)
     {
         yield return new WaitForSeconds(laneChangeDelay);
 
-        currLane += dir;
+        CurrLane -= dirMag;
 
         float perc = 0;
         float startXPos = transform.localPosition.x;
-        float endXPos = GetLaneXPosition(dir, terrSettings);
+        float endXPos = GetLaneXPosition(CurrLane, terrSettings);
 
         while (perc < 1)
         {
@@ -56,5 +62,14 @@ public class BossLaneChangeManager : MonoBehaviour
                 targetTrans.localPosition.z);
             yield return null;
         }
+    }
+
+    public void MoveToLane(int laneIndex)
+    {
+        if (Mathf.Abs(laneIndex) > maxLaneDeviation) { return; }
+        SafeStartCoroutine(ref laneChangeCR,ChangeLane(
+            CurrLane - laneIndex,
+            manualLaneChangeTime),
+            this);
     }
 }

@@ -56,21 +56,25 @@ public class ArmamentManager : MonoBehaviour
 
         if (grappleOnFlag.Value)
         {
+            Debug.Log("tried to use armament '" + armament.name + "' but grapple was activated!");
             return false;
         }
 
         if (armament.ApplicableActions.Count > 0 && !armament.ApplicableActions.Contains(currAction.Value))
         {
+            Debug.Log("tried to use armament '" + armament.name + "' but was incorrect action!");
             return false;
         }
 
         if (!armament.ArmamentCoolDownPSO.Value.TransReached || armament.ArmamentCoolDownPSO.Value.Quant != 0)
         {
+            Debug.Log("tried to use armament '" + armament.name + "' but cool down not reached!");
             return false;
         }
 
         if (!Try2ConsumeEnergyReq(armament.GetRequirements().EnergyBlocks))
         {
+            Debug.Log("tried to use armament '" + armament.name + "' but not enough energy!");
             return false;
         }
 
@@ -83,7 +87,8 @@ public class ArmamentManager : MonoBehaviour
 
     private bool Try2ConsumeEnergyReq(int energyRequest)
     {
-        if (!currEnergy.Value.TransReached || currEnergy.Value.Quant < energyRequest)
+        if (currEnergy.Value.Quant < energyRequest
+            || (currEnergy.Value.Quant == energyRequest && !currEnergy.Value.TransReached))
         {
             return false;
         }

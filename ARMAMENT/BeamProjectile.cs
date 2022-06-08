@@ -35,7 +35,7 @@ public class BeamProjectile : Projectile
     {
         hitBox.Box().isTrigger = true;
         SetHitBoxDimensionsAndPos(
-            hitBox.Box(),
+            hitBox,
             //TODO: not sure why the hit box is still a wee bit longer than
             //the beam but whatever lol
             new Vector2(widthHeightDims.x, tileDistLong),

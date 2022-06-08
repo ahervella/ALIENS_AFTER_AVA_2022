@@ -121,7 +121,7 @@ public class Projectile : MovingNode
         //depending on the isAlienProjectile flag?
         hitBox.Box().isTrigger = true;//!isAlienProjectile;
         SetHitBoxDimensionsAndPos(
-            hitBox.Box(),
+            hitBox,
             new Vector2(widthHeightDims.x, 1),
             widthHeightDims.y,
             terrSettings,

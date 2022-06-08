@@ -123,7 +123,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     //bosses a base class of a terr hazard...
     protected virtual void InitHitBoxes()
     {
-        SetHitBoxDimensions(
+        SetHitBoxDimensionsAndPos(
             hitBox,
             new Vector2(settings.HitBoxTileWidth, 1),
             hitBoxHeight,

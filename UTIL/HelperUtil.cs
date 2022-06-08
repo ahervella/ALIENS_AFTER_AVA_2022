@@ -112,27 +112,26 @@ public static class HelperUtil
     /// <summary>
     /// Set the hit box dimensions using the terr settings
     /// </summary>
-    public static void SetHitBoxDimensions(
+    public static void SetHitBoxDimensionsAndPos(
         BoxColliderSP hitBox,
         Vector2 objTileDims,
         int height,
         SO_TerrSettings terrSettings,
-        Vector3PropertySO hitBoxDimEdgePercents,
-        bool setHitBoxDefaultLocalPos = true)
+        Vector3PropertySO hitBoxDimEdgePercents)
     {
-        SetHitBoxDimensionsAndPos(hitBox.Box(), objTileDims, height, terrSettings, hitBoxDimEdgePercents, setHitBoxDefaultLocalPos);
+        SetHitBoxDimensionsAndPos(hitBox, objTileDims, height, terrSettings, hitBoxDimEdgePercents, !hitBox.UseLocalPos);
     }
 
     /// <summary>
     /// Set the hit box dimensions using the terr settings
     /// </summary>
     public static void SetHitBoxDimensionsAndPos(
-        BoxCollider hitBox,
+        BoxColliderSP hitBox,
         Vector2 objTileDims,
         int height,
         SO_TerrSettings terrSettings,
         Vector3PropertySO hitBoxDimEdgePercents,
-        bool setHitBoxDefaultLocalPos = true)
+        bool setHitBoxDefaultLocalPos)
     {
         Vector3 hitBoxDimensions = new Vector3(
             objTileDims.x * terrSettings.TileDims.x,
@@ -144,8 +143,8 @@ public static class HelperUtil
             terrSettings.FloorHeight * (1 - hitBoxDimEdgePercents.Value.y),
             terrSettings.TileDims.y * (1 - hitBoxDimEdgePercents.Value.z));
 
-        hitBox.size = hitBoxDimensions;
-        hitBox.center = new Vector3(0, hitBoxDimensions.y / 2f, 0);
+        hitBox.Box().size = hitBoxDimensions;
+        hitBox.Box().center = new Vector3(0, hitBoxDimensions.y / 2f, 0);
         if (setHitBoxDefaultLocalPos)
         {
             hitBox.transform.localPosition = Vector3.zero;
@@ -171,8 +170,8 @@ public static class HelperUtil
         Vector3PropertySO hitBoxDimEdgePercents
         )
     {
-        SetHitBoxDimensions(
-            hitBoxSP, objTileDims, height, terrSettings, hitBoxDimEdgePercents);
+        SetHitBoxDimensionsAndPos(
+            hitBoxSP, objTileDims, height, terrSettings, hitBoxDimEdgePercents, true);
 
         SetRewardBoxDimensionsFromHB(hitBoxSP.Box(), energyRewardBox, terrSettings);
     }
@@ -271,7 +270,7 @@ public static class HelperUtil
             int width = hbw.MaxXRange - hbw.MinXRange;
             Vector2Int dims = new Vector2Int(width, hazardDims.y);
 
-            SetHitBoxDimensions(instance, dims, hbw.FloorHeight, terrSettings, hitBoxDimEdgePercents);
+            SetHitBoxDimensionsAndPos(instance, dims, hbw.FloorHeight, terrSettings, hitBoxDimEdgePercents);
 
             float centerOffset = (width - hazardDims.x) / 2f + hbw.MinXRange;
             centerOffset *= terrSettings.TileDims.x;

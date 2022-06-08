@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static HelperUtil;
+using Random = UnityEngine.Random;
 
+[RequireComponent(typeof(BossLaneChangeManager))]
 public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 {
     [SerializeField]
@@ -15,12 +17,15 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
     [SerializeField]
     private List<Transform> orderedMuzzleFlashSpawnRefs = new List<Transform>();
 
+
     private List<Shooter> spawnedBulletShooters = new List<Shooter>();
 
     private Coroutine idleFloatCR = null;
     private Coroutine shootCR = null;
 
     private List<Coroutine> randFireDelayCR = new List<Coroutine>();
+
+    private BossLaneChangeManager laneChangeManager = null;
 
     protected override void InitDeath()
     {
@@ -54,10 +59,11 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
     protected override void OnBossAwake()
     {
+        laneChangeManager = GetComponent<BossLaneChangeManager>();
+        
         currState.RegisterForPropertyChanged(OnStateChanged);
         laneChangeDelegate.RegisterForDelegateInvoked(OnLaneChange);
         SpawnSequence();
-        //currState.ModifyValue(BOSS1_ACTION.START);
     }
 
     private void OnStateChanged(Boss1State oldState, Boss1State newState)
@@ -81,6 +87,8 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
     private IEnumerator IdleFloatCR()
     {
+        laneChangeManager.MoveToLane(0);
+        laneChangeManager.EnableAutoLaneChanging = false;
         yield return new WaitForSeconds(settings.GetRandRangeIdlePhaseTime(Rage));
         currState.ModifyValue(Boss1State.SHOOT);
     }
@@ -92,13 +100,15 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
     private IEnumerator ShootCR()
     {
+        laneChangeManager.EnableAutoLaneChanging = true;
+
         //TODO: maybe in the future can randomize the guns / types of bullets
         //the boss can shoot with this!
         ShooterWrapper sw = settings.ShootWrapper(Rage);
 
         yield return new WaitForSeconds(sw.DelayTime);
 
-        StartFiringBullets(sw);
+        StartFiringBullets();
 
         yield return new WaitForSeconds(sw.DelayTime * settings.BulletsPerShot(Rage) * 0.95f);
 
@@ -121,7 +131,7 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
         }
     }
 
-    private void StartFiringBullets(ShooterWrapper sw)
+    private void StartFiringBullets()
     {
         int totalBullets = settings.BulletsPerShot(Rage);
 
@@ -134,11 +144,13 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
         randFireDelayCR.Clear();
 
+        
+
         for (int i = 0; i < totalBullets; i++)
         {
-            int laneIndex = (i - totalBullets / 2);
+            int relativeLaneIndex = (i - totalBullets / 2);
             Transform muzzleFlashPosRef = randList[i];
-            randFireDelayCR.Add(StartCoroutine(RandFireDelay(laneIndex, muzzleFlashPosRef)));
+            randFireDelayCR.Add(StartCoroutine(RandFireDelay(relativeLaneIndex, muzzleFlashPosRef)));
         }
 
         Debug.Log("Boss 1 bullets fired!");
@@ -146,17 +158,18 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
     private IEnumerator RandFireDelay(int laneIndex, Transform muzzleFlashPosRef)
     {
-        Vector3 projectilePos = new Vector3(
-            GetLaneXPosition(laneIndex, terrSettings),
+        float randDelay =  Random.Range(0, settings.GetRandDelayRangeBetweenFires(Rage));
+        yield return new WaitForSeconds(randDelay);
+
+
+        Vector3 projectilePos() => new Vector3(
+            GetLaneXPosition(laneIndex + laneChangeManager.CurrLane, terrSettings),
             0,
             muzzleFlashPosRef.position.z);
 
         //TODO: is there any way to siplify the logic flow
         //of having to place the projectile in a relative location
         //so that it can auto align to the lane?
-        float randDelay =  Random.Range(0, settings.GetRandDelayRangeBetweenFires(Rage));
-
-        yield return new WaitForSeconds(randDelay);
 
         //spawn on horiz terrain transform so lane changing works with fired bullets
         Shooter instance = Shooter.InstantiateShooterObject(
