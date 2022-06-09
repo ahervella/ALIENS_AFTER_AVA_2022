@@ -16,6 +16,30 @@ public class SO_Boss3Settings : SO_ABossSettings
     [SerializeField]
     private float cannonSpawnTransitionDelay = default;
     public float CannonSpawnTransitionDelay => cannonSpawnTransitionDelay;
+
+    [SerializeField]
+    private RageValue<float> idlePhaseTime = default;
+
+    [SerializeField]
+    private RageValue<float> idlePhaseTimeOffsetRange = default;
+
+    public float GetRandRangeIdlePhaseTime(bool rage)
+    {
+        float randOffset = Random.Range(
+            -idlePhaseTimeOffsetRange.GetVal(rage),
+            idlePhaseTimeOffsetRange.GetVal(rage));
+
+        return randOffset + idlePhaseTime.GetVal(rage);
+    }
+
+    [SerializeField]
+    private RageValue<float> shootPhaseTime = default;
+    public float ShootPhaseTime(bool rage) => shootPhaseTime.GetVal(rage);
+
+    [SerializeField]
+    private RageValue<ShooterWrapper> beamShooterWrapper = null;
+
+    public ShooterWrapper BeamShooterWrapper(bool rage) { return beamShooterWrapper.GetVal(rage); }
 }
 
 public enum Boss3State

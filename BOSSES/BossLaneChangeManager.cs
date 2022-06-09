@@ -25,7 +25,7 @@ public class BossLaneChangeManager : MonoBehaviour
 
     private Coroutine laneChangeCR = null;
 
-    public int CurrLane { private set; get; } = 0;
+    public int CurrLaneDeviation { private set; get; } = 0;
 
     public bool EnableAutoLaneChanging { set; get; } = true;
 
@@ -37,7 +37,7 @@ public class BossLaneChangeManager : MonoBehaviour
     private int OnLaneChangeDelegate(LaneChange lc)
     {
         if (!EnableAutoLaneChanging) { return 0; }
-        if (Mathf.Abs(CurrLane - lc.Dir) > maxLaneDeviation) { return 0; }
+        if (Mathf.Abs(CurrLaneDeviation - lc.Dir) > maxLaneDeviation) { return 0; }
         SafeStartCoroutine(ref laneChangeCR, ChangeLane(lc.Dir, lc.Time), this);
         return 0;
     }
@@ -46,11 +46,11 @@ public class BossLaneChangeManager : MonoBehaviour
     {
         yield return new WaitForSeconds(laneChangeDelay);
 
-        CurrLane -= dirMag;
+        CurrLaneDeviation -= dirMag;
 
         float perc = 0;
         float startXPos = transform.localPosition.x;
-        float endXPos = GetLaneXPosition(CurrLane, terrSettings);
+        float endXPos = GetLaneXPosition(CurrLaneDeviation, terrSettings);
 
         while (perc < 1)
         {
@@ -68,7 +68,7 @@ public class BossLaneChangeManager : MonoBehaviour
     {
         if (Mathf.Abs(laneIndex) > maxLaneDeviation) { return; }
         SafeStartCoroutine(ref laneChangeCR,ChangeLane(
-            CurrLane - laneIndex,
+            CurrLaneDeviation - laneIndex,
             manualLaneChangeTime),
             this);
     }

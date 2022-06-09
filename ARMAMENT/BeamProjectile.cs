@@ -56,7 +56,7 @@ public class BeamProjectile : Projectile
         //to face from the muzzle to the end point
         float xEndPoint = GetLaneXPosition(GetLaneIndexFromPosition(transform.position.x, terrSettings), terrSettings);
         float yEndPoint = terrSettings.FloorHeight / 2f;
-        float zEndPoint = tileDistLong * terrSettings.TileDims.y;
+        float zEndPoint = tileDistLong * terrSettings.TileDims.y * (isAlienProjectile ? -1 : 1);
 
         Vector3 endPoint = new Vector3(xEndPoint, yEndPoint, zEndPoint);
         Vector3 startPoint = mzTrans.position;

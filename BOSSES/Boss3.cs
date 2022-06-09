@@ -3,19 +3,23 @@ using System.Collections.Generic;
 using UnityEngine;
 using static HelperUtil;
 
+[RequireComponent(typeof(BossLaneChangeManager))]
 public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 {
     [SerializeField]
     private GameObject bossNode = null;
 
     [SerializeField]
-    private List<GameObject> cannonDrones = new List<GameObject>();
+    private List<Boss3CannonDrone> cannonDrones = new List<Boss3CannonDrone>();
+    
+    [SerializeField]
+    private float rawSpawnHeight = default;
 
     private Vector3 cachedBossNodeFinalLocalPos;
     private List<Vector3> cachedDroneFinalLocalPos;
 
-    [SerializeField]
-    private float rawSpawnHeight = default;
+    private BossLaneChangeManager laneChangeManager = null;
+
 
     protected override void ExtraRemoveBoss()
     {
@@ -23,6 +27,7 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 
     protected override void InitDeath()
     {
+        
     }
 
     protected override void InitRage()
@@ -31,6 +36,8 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 
     protected override void OnBossAwake()
     {
+        laneChangeManager = GetComponent<BossLaneChangeManager>();
+        StartCoroutine(SpawnSequenceCR());
     }
 
     private IEnumerator SpawnSequenceCR()
@@ -39,11 +46,12 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 
         for (int i = 0; i < cannonDrones.Count; i++)
         {
-            yield return MoveToSpawnPos(cannonDrones[i], cachedDroneFinalLocalPos[i]);
+            StartCoroutine(MoveToSpawnPos(cannonDrones[i].gameObject, cachedDroneFinalLocalPos[i]));
             yield return new WaitForSeconds(settings.CannonSpawnTransitionDelay);
         }
 
         yield return MoveToSpawnPos(bossNode, cachedBossNodeFinalLocalPos);
+        StartCoroutine(IdlePhaseCR());
     }
 
     private IEnumerator MoveToSpawnPos(GameObject node, Vector3 finalLocalPos)
@@ -60,21 +68,60 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
         }
     }
 
+    private IEnumerator IdlePhaseCR()
+    {
+        foreach(Boss3CannonDrone bcd in cannonDrones)
+        {
+            bcd.CleanUpShooter();
+        }
+        yield return new WaitForSeconds(settings.GetRandRangeIdlePhaseTime(Rage));
+        
+        //put instead in action change
+        StartCoroutine(ShootPhaseCR());
+    }
+
+    private IEnumerator ShootPhaseCR()
+    {
+        ShooterWrapper sw = settings.BeamShooterWrapper(Rage);
+
+        foreach(Boss3CannonDrone bcd in cannonDrones)
+        {
+            bcd.InstanceShooter(
+                terrainNode.HorizTransform,
+                laneChangeManager.CurrLaneDeviation,
+                terrSettings,
+                HitBox(),
+                sw);
+        }
+
+        yield return new WaitForSeconds(settings.ShootPhaseTime(Rage));
+
+        //put instead in action change
+        StartCoroutine(IdlePhaseCR());
+    }
+
     protected override void SetStartingPosition()
     {
         float x = GetLaneXPosition(0, terrSettings);
         float z = settings.SpawnTileRowsAway * terrSettings.TileDims.y;
         transform.position = new Vector3(x, 0, z);
 
-        bossNode.transform.localPosition = new Vector3(0, rawSpawnHeight, 0);
+        cachedBossNodeFinalLocalPos = bossNode.transform.localPosition;
+
+        bossNode.transform.localPosition = new Vector3(
+            cachedBossNodeFinalLocalPos.x,
+            rawSpawnHeight,
+            cachedBossNodeFinalLocalPos.z);
 
         cachedDroneFinalLocalPos = new List<Vector3>();
 
-        foreach (GameObject cannon in cannonDrones)
+        foreach (Boss3CannonDrone cannon in cannonDrones)
         {
             cachedDroneFinalLocalPos.Add(cannon.transform.localPosition);
             cannon.transform.localPosition = new Vector3(
-                cannon.transform.position.x, rawSpawnHeight, 0);
+                cannon.transform.localPosition.x,
+                rawSpawnHeight,
+                cannon.transform.localPosition.z);
         }
     }
 }

@@ -163,7 +163,7 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
 
 
         Vector3 projectilePos() => new Vector3(
-            GetLaneXPosition(laneIndex + laneChangeManager.CurrLane, terrSettings),
+            GetLaneXPosition(laneIndex + laneChangeManager.CurrLaneDeviation, terrSettings),
             0,
             muzzleFlashPosRef.position.z);
 

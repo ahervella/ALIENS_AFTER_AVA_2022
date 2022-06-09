@@ -8,6 +8,10 @@ public class Boss3Animation : BaseAnimation<Boss3State, SO_Boss3AnimationSetting
     [SerializeField]
     private SO_TerrSettings terrSettings = null;
 
+    [SerializeField]
+    private List<BossOscillationManager> cannonDroneOscillators = new List<BossOscillationManager>();
+
+
     private BossOscillationManager oscillationManager;
 
     protected override void OnActionChange(Boss3State prevAction, Boss3State newAction)
@@ -21,7 +25,17 @@ public class Boss3Animation : BaseAnimation<Boss3State, SO_Boss3AnimationSetting
 
     private void Start()
     {
-        oscillationManager.InitOscillation(
+        StartOscillation(oscillationManager);
+
+        foreach(BossOscillationManager bom in cannonDroneOscillators)
+        {
+            StartOscillation(bom);
+        }
+    }
+
+    private void StartOscillation(BossOscillationManager bom)
+    {
+        bom.InitOscillation(
             settings.XOscillationTime,
             settings.XOscillationTileAmnt * terrSettings.TileDims.x,
             settings.YOscillationTime,

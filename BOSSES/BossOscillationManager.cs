@@ -60,7 +60,7 @@ public class BossOscillationManager : MonoBehaviour
             targetTrans);
 
 
-        RestartOscillationAxis(xOrYAxis: true, randOffset: false);
+        RestartOscillationAxis(xOrYAxis: true, randOffset: true);
         RestartOscillationAxis(xOrYAxis: false, randOffset: true);
     }
 
