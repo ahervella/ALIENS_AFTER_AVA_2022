@@ -19,28 +19,33 @@ public class Boss3CannonDrone : MonoBehaviour
     private int cannonLaneIndex = 0;
 
     [SerializeField]
+    private Transform bossLaneChangeManagerTrans;
+
+    [SerializeField]
     private int rawHeightPos = default;
 
     private Shooter shooterInstance = null;
+
+    private float cachedCannonLaneIndexPos;
+
+    private float cachedCenterLanePos;
 
     private Vector3 cachedTarget;
 
     private void Awake()
     {
-        ConfigurNextFireSeq(0);    
-    }
-
-    public void ConfigurNextFireSeq(int bossCenterLaneOffset)
-    {
-        cachedTarget = new Vector3(
-            GetLaneXPosition(bossCenterLaneOffset + cannonLaneIndex, terrSettings),
-            rawHeightPos,
-            1.5f * terrSettings.TileDims.y
-        );
+        cachedCannonLaneIndexPos = GetLaneXPosition(cannonLaneIndex, terrSettings);
+        cachedCenterLanePos = GetLaneXPosition(0, terrSettings);
     }
 
     private void Update()
     {
+        cachedTarget = new Vector3(
+            cachedCannonLaneIndexPos + bossLaneChangeManagerTrans.position.x - cachedCenterLanePos,
+            rawHeightPos,
+            1.5f * terrSettings.TileDims.y
+        );
+
         shootSpawnRef.LookAt(cachedTarget);
     }
 
