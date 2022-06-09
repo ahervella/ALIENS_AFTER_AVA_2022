@@ -41,7 +41,7 @@ public class Projectile : MovingNode
     private Vector3 posOffset = default;
 
     [SerializeField]
-    private bool autoAlignToNearestLane = true;
+    protected bool autoAlignToNearestLane = true;
 
     [SerializeField]
     private bool alsoAutoAlignSprite = true;
@@ -111,8 +111,13 @@ public class Projectile : MovingNode
     //had use HelperUtil.InstantiateAndSetPosition
     private void Start()
     {
-        ConfigHitBox();
+        //this order is important for beam projectiles
+        //due to how the hitbox reattaches itself to the proper
+        //parent and when it resets its local position
+
+        //TODO: make it less jank somehow?
         SetSpawnPosition();
+        ConfigHitBox();
     }
 
     protected virtual void ConfigHitBox()
@@ -133,14 +138,7 @@ public class Projectile : MovingNode
 
     protected virtual void SetSpawnPosition()
     {
-        if (treadmillAttachment == TREADMILL_ATTACHMENT.HORIZONTAL)
-        {
-            terrTreadmillNodesPSO.Value.AttachTransform(transform, horizOrVert: true);
-        }
-        else if (treadmillAttachment == TREADMILL_ATTACHMENT.HORIZ_VERT)
-        {
-            terrTreadmillNodesPSO.Value.AttachTransform(transform, horizOrVert: false);
-        }
+        Attach2TreadmillNodes();
 
         float xPos = autoAlignToNearestLane ?
             GetLaneXPosition(GetLaneIndexFromPosition(transform.position.x, terrSettings), terrSettings)
@@ -169,6 +167,18 @@ public class Projectile : MovingNode
         if (!autoAlignToNearestLane)
         {
             transform.position += posOffset;
+        }
+    }
+
+    protected void Attach2TreadmillNodes()
+    {
+        if (treadmillAttachment == TREADMILL_ATTACHMENT.HORIZONTAL)
+        {
+            terrTreadmillNodesPSO.Value.AttachTransform(transform, horizOrVert: true);
+        }
+        else if (treadmillAttachment == TREADMILL_ATTACHMENT.HORIZ_VERT)
+        {
+            terrTreadmillNodesPSO.Value.AttachTransform(transform, horizOrVert: false);
         }
     }
 

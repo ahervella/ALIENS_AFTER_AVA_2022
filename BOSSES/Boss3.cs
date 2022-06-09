@@ -82,16 +82,14 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 
     private IEnumerator ShootPhaseCR()
     {
-        ShooterWrapper sw = settings.BeamShooterWrapper(Rage);
+        int CurrLaneDeviation() => laneChangeManager.CurrLaneDeviation;
 
         foreach(Boss3CannonDrone bcd in cannonDrones)
         {
             bcd.InstanceShooter(
-                terrainNode.HorizTransform,
-                laneChangeManager.CurrLaneDeviation,
-                terrSettings,
+                CurrLaneDeviation,
                 HitBox(),
-                sw);
+                Rage);
         }
 
         yield return new WaitForSeconds(settings.ShootPhaseTime(Rage));

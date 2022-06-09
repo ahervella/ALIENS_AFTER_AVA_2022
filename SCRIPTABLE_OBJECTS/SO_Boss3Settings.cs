@@ -39,7 +39,8 @@ public class SO_Boss3Settings : SO_ABossSettings
     [SerializeField]
     private RageValue<ShooterWrapper> beamShooterWrapper = null;
 
-    public ShooterWrapper BeamShooterWrapper(bool rage) { return beamShooterWrapper.GetVal(rage); }
+    public ShooterWrapper BeamShooterWrapper(bool rage)
+        => beamShooterWrapper.GetVal(rage);
 }
 
 public enum Boss3State

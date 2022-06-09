@@ -31,12 +31,15 @@ public class Shooter : MonoBehaviour
 
     private bool usingCustomShooterWrapper = false;
 
+    private int numberOfShots = -1;
+
     public static Shooter InstantiateShooterObject(
         Transform shooterParentRef,
         Transform muzzleFlashPosRef,
         Func<Vector3> projectilePosFunc,
         BoxColliderSP shooterHitBox,
-        ShooterWrapper customShooterWrapper)
+        ShooterWrapper customShooterWrapper,
+        int numberOfShots = -1)
     {
         Shooter instance = new GameObject("INSTANCED_SHOOTER").AddComponent<Shooter>();
         instance.transform.parent = shooterParentRef;
@@ -46,6 +49,7 @@ public class Shooter : MonoBehaviour
         instance.shooterHitBox = shooterHitBox;
         instance.usingCustomShooterWrapper = true;
         instance.cachedShooterWrapper = customShooterWrapper;
+        instance.numberOfShots = numberOfShots;
         instance.AE_StartFiring();
         return instance;
     }
@@ -66,7 +70,7 @@ public class Shooter : MonoBehaviour
 
     public IEnumerator FireCoroutine()
     {
-        while (true)
+        while (numberOfShots == -1 || numberOfShots > 0)
         {
             WeaponFire.InstantiateWithCustomPositions(
                 cachedShooterWrapper.WeaponFirePrefab,
@@ -86,6 +90,8 @@ public class Shooter : MonoBehaviour
 
                 projectileSpawnPosRef?.position?? projectileSpawnPosFunc(),
                 shooterHitBox);
+
+            if (numberOfShots != -1) { numberOfShots--; }
             yield return new WaitForSeconds(cachedShooterWrapper.DelayTime);
         }
     }
