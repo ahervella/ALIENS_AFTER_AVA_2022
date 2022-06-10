@@ -7,6 +7,9 @@ using static HelperUtil;
 public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 {
     [SerializeField]
+    private SO_Boss3PatterSettings patternSettings = null;
+
+    [SerializeField]
     private GameObject bossNode = null;
 
     [SerializeField]
@@ -51,6 +54,9 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
         }
 
         yield return MoveToSpawnPos(bossNode, cachedBossNodeFinalLocalPos);
+        
+        currZonePhase.ModifyValue(ZonePhaseEnum.BOSS);
+
         StartCoroutine(IdlePhaseCR());
     }
 
@@ -74,6 +80,9 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
         {
             bcd.CleanUpShooter();
         }
+
+        laneChangeManager.MoveToLane(0);
+
         yield return new WaitForSeconds(settings.GetRandRangeIdlePhaseTime(Rage));
         
         //put instead in action change
@@ -82,17 +91,23 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 
     private IEnumerator ShootPhaseCR()
     {
-        int CurrLaneDeviation() => laneChangeManager.CurrLaneDeviation;
+        SO_Boss3PatternWrapper pw = patternSettings.GetRandPatternWrapper(currZonePhase.Value);
+        
+        float timePassed = 0f;
+        int i = 0;
 
-        foreach(Boss3CannonDrone bcd in cannonDrones)
+        Vector2Int gridSize = pw.PatternSteps.GridSize;
+        while (timePassed < pw.PatterDuration)
         {
-            bcd.InstanceShooter(
-                CurrLaneDeviation,
-                HitBox(),
-                Rage);
+            for (int k = 0; k < gridSize.x; k++)
+            {
+                if (!pw.PatternSteps.GetCell(k, i)) { continue; }
+                cannonDrones[k].InstanceShooter(HitBox(), Rage);
+            }
+            yield return new WaitForSeconds(pw.NextStepDelay);
+            timePassed += pw.NextStepDelay;
+            i = (i + 1) % gridSize.y;
         }
-
-        yield return new WaitForSeconds(settings.ShootPhaseTime(Rage));
 
         //put instead in action change
         StartCoroutine(IdlePhaseCR());

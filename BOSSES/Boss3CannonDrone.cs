@@ -50,9 +50,9 @@ public class Boss3CannonDrone : MonoBehaviour
     }
 
     public void InstanceShooter(
-        Func<int> laneChangeManagerCurrLane,
         BoxColliderSP hb,
-        bool rage)
+        bool rage,
+        int shotCount = 1)
     {
         ShooterWrapper sw = settings.BeamShooterWrapper(rage);
         Vector3 projectilePos() => shootSpawnRef.position;
@@ -62,7 +62,8 @@ public class Boss3CannonDrone : MonoBehaviour
             shootSpawnRef,
             projectilePos,
             hb,
-            sw);
+            sw,
+            shotCount);
         shooterInstance.transform.localPosition = Vector3.zero;
         shooterInstance.transform.localRotation = Quaternion.Euler(0, 0, 0);
     }

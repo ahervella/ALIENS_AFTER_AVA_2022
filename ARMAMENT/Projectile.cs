@@ -227,8 +227,7 @@ public class Projectile : MovingNode
 
     protected void OnTriggerEnter(Collider other)
     {
-        if (!isAlienProjectile) { return; }
-
+        if (!isAlienProjectile || other == null) { return; }
         BoxColliderSP hb = other.gameObject.GetComponent<BoxColliderSP>();
         PlayerRunner player = hb?.RootParent?.GetComponent<PlayerRunner>();
 

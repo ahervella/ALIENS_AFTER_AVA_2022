@@ -74,7 +74,7 @@ public class Shooter : MonoBehaviour
         {
             WeaponFire.InstantiateWithCustomPositions(
                 cachedShooterWrapper.WeaponFirePrefab,
-                transform,
+                transform.parent,
                 muzzleFlashSpawnPosRef,
 
                 //Find a way around having to feed it a relative position (maybe instead
@@ -94,13 +94,6 @@ public class Shooter : MonoBehaviour
             if (numberOfShots != -1) { numberOfShots--; }
             yield return new WaitForSeconds(cachedShooterWrapper.DelayTime);
         }
-    }
-
-    private void OnDestroy()
-    {
-        if (fireCR != null)
-        {
-            StopCoroutine(fireCR);
-        }
+        SafeDestroy(gameObject);
     }
 }

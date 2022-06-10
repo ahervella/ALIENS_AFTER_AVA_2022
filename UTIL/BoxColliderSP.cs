@@ -49,43 +49,40 @@ public class BoxColliderSP : MonoBehaviour
     public void OnBoxDisabledChange(bool boxEnabled)
     {
         if (!cacheObjsOnDisable) { return; }
-        if (enabled)
+        if (boxEnabled)
         {
-            if (onTriggerEnterMethod != null)
-            {
-                foreach (Collider c in cachedColliders)
-                {
-                    onTriggerEnterMethod.Invoke(c);
-                }
-            }
-
-            if (onColliderEnterMethod != null)
-            {
-                foreach (Collision c in cachedCollisions)
-                {
-                    onColliderEnterMethod.Invoke(c);
-                }
-            }
+            ProeccessCachedCollisions(ref cachedColliders, onTriggerEnterMethod);
+            ProeccessCachedCollisions(ref cachedCollisions, onColliderEnterMethod);
         }
 
         else
         {
-            if (onTriggerExitMethod != null)
+            ProeccessCachedCollisions(ref cachedColliders, onTriggerExitMethod);
+            ProeccessCachedCollisions(ref cachedCollisions, onColliderExitMethod);
+        }
+    }
+
+    private void ProeccessCachedCollisions<T>(ref List<T> cachedList, Action<T> method)
+    {
+        if (method == null) { return; }
+
+        List<T> nullRefs = new List<T>();
+            foreach (T c in cachedList)
             {
-                foreach (Collider c in cachedColliders)
+                //if it was removed by the time we change the enabled,
+                //then remove from cache list cause no longer exists
+                if (c == null)
                 {
-                    onTriggerExitMethod.Invoke(c);
+                    nullRefs.Add(c);
+                    continue;
                 }
+                method.Invoke(c);
             }
 
-            if (onColliderExitMethod != null)
+            foreach (T c in nullRefs)
             {
-                foreach (Collision c in cachedCollisions)
-                {
-                    onColliderExitMethod.Invoke(c);
-                }
-            }
-        }
+                cachedList.Remove(c);
+            } 
     }
 
     public void SetReqAvoidAction(PlayerActionEnum action)
