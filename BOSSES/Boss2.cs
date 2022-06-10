@@ -429,4 +429,8 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
 
         terrNodes.Value.DettachTransform(transform, null, usedContainer: true);
     }
+
+    protected override void OnBossTakeNonLethalHit()
+    {
+    }
 }

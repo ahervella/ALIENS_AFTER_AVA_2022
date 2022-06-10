@@ -223,4 +223,8 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
     protected override void ExtraRemoveBoss()
     {
     }
+    
+    protected override void OnBossTakeNonLethalHit()
+    {
+    }
 }

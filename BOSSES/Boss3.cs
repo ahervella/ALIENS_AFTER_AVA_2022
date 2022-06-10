@@ -23,6 +23,9 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 
     private BossLaneChangeManager laneChangeManager = null;
 
+    private Coroutine moveBossLocalLaneCR = null;
+
+    private bool currBossRightOrLeftLocalLane;
 
     protected override void ExtraRemoveBoss()
     {
@@ -35,6 +38,12 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 
     protected override void InitRage()
     {
+    }
+
+    protected override void OnBossTakeNonLethalHit()
+    {
+        currBossRightOrLeftLocalLane = !currBossRightOrLeftLocalLane;
+        MoveBossToLocalLane(currBossRightOrLeftLocalLane);
     }
 
     protected override void OnBossAwake()
@@ -76,6 +85,7 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 
     private IEnumerator IdlePhaseCR()
     {
+        MoveBossToLocalLane(0);
         foreach(Boss3CannonDrone bcd in cannonDrones)
         {
             bcd.CleanUpShooter();
@@ -93,6 +103,10 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
     {
         SO_Boss3PatternWrapper pw = patternSettings.GetRandPatternWrapper(currZonePhase.Value);
         
+        currBossRightOrLeftLocalLane = Random.value > 0.5f;
+
+        MoveBossToLocalLane(currBossRightOrLeftLocalLane);
+
         float timePassed = 0f;
         int i = 0;
 
@@ -111,6 +125,38 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 
         //put instead in action change
         StartCoroutine(IdlePhaseCR());
+    }
+
+    private void MoveBossToLocalLane(bool fullRightOrLeftSide)
+    {
+        MoveBossToLocalLane((fullRightOrLeftSide ? cannonDrones.Count - 1 : 0) - cannonDrones.Count / 2);
+    }
+
+    private void MoveBossToLocalLane(int localLaneIndex)
+    {
+        SafeStartCoroutine(ref moveBossLocalLaneCR, MoveBossToLocalLaneCR(localLaneIndex), this);
+    }
+
+    private IEnumerator MoveBossToLocalLaneCR(int localLaneIndex)
+    {
+        moveBossLocalLaneCR = null;
+        float localStartXPos = bossNode.transform.localPosition.x;
+        float localEndXPos = GetLaneXPosition(
+            localLaneIndex + laneChangeManager.CurrLaneDeviation, terrSettings) - transform.position.x;
+
+        float perc = 0;
+        while (perc < 1)
+        {
+            perc += Time.deltaTime / settings.BossLocalLaneChangeTime;
+            float xLocalPos = Mathf.Lerp(localStartXPos, localEndXPos, EasedPercent(perc));
+            bossNode.transform.localPosition = new Vector3(
+                xLocalPos,
+                bossNode.transform.localPosition.y,
+                bossNode.transform.localPosition.z
+            );
+            yield return null;
+        }
+        moveBossLocalLaneCR = null;
     }
 
     protected override void SetStartingPosition()

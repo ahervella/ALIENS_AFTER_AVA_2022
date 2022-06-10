@@ -18,6 +18,10 @@ public class SO_Boss3Settings : SO_ABossSettings
     public float CannonSpawnTransitionDelay => cannonSpawnTransitionDelay;
 
     [SerializeField]
+    private float bossLocalLaneChangeTime = 1f;
+    public float BossLocalLaneChangeTime => bossLocalLaneChangeTime;
+
+    [SerializeField]
     private RageValue<float> idlePhaseTime = default;
 
     [SerializeField]

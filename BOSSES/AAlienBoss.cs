@@ -152,6 +152,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         if (newHealth.Quant >= oldHealth.Quant) { return; }
 
         damageFlash.Flash();
+        OnBossTakeNonLethalHit();
 
         if (newHealth.Quant <= settings.RageHealthThreshold && !Rage)
         {
@@ -166,8 +167,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         }
     }
 
-
-    
+    protected abstract void OnBossTakeNonLethalHit();
 
     private void OnZonePhaseChange(ZonePhaseEnum oldPhase, ZonePhaseEnum newPhase)
     {
