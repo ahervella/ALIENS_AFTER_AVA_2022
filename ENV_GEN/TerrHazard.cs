@@ -162,9 +162,7 @@ public class TerrHazard : TerrAddon
             return;
         }
 
-        //TODO use a recursive search in case we structure prefabs differently
-        //(also change for boss script)
-        Projectile projectile = other.transform.parent.gameObject.GetComponent<Projectile>();
+        Projectile projectile = hb.RootParent.GetComponent<Projectile>();
         if (projectile != null)
         {
             projectile.OnEnteredHazard(this, hazardHb);

@@ -24,6 +24,12 @@ public class BeamProjectile : Projectile
     private float beamDuration = 3f;
 
     [SerializeField]
+    private float cachedTargetTweenTime = 1f;
+
+    [SerializeField]
+    private float highShotExtraRawHeight = 10f;
+
+    [SerializeField]
     private SpriteRenderer spriteRend = null;
 
     [SerializeField]
@@ -36,12 +42,56 @@ public class BeamProjectile : Projectile
 
     private Coroutine beamEndCR = null;
 
+    private Coroutine targetTweenCR = null;
+
     protected override void OnAwake()
     {
         base.OnAwake();
         hitBox.BoxDisabled = true;
         aee.AssignAnimationEvent(AE_DestroyBeam, 0);
         aee.AssignAnimationEvent(AE_ActivateBeamHitBox, 1);
+        if (!isAlienProjectile)
+        {
+            currPlayerAction.RegisterForPropertyChanged(OnPlayerActionChange);
+        }
+    }
+
+    private void OnPlayerActionChange(PlayerActionEnum oldAction, PlayerActionEnum newAction)
+    {
+        if (oldAction == PlayerActionEnum.JUMP || newAction == PlayerActionEnum.JUMP)
+        {
+            UpdateCachedTarget();
+        }
+    }
+
+    private void UpdateCachedTarget(bool skipTween = false)
+    {
+        Vector3 newTargetPos = new Vector3(
+        transform.position.x,
+        beamTargetFloorHeightPos * terrSettings.FloorHeight + (HighOrLowShot ? highShotExtraRawHeight : 0),
+        beamTileDistLong * terrSettings.TileDims.y
+        );
+        if (skipTween)
+        {
+            cachedTargetPos = newTargetPos;
+            return;
+        }
+
+        SafeStartCoroutine(ref targetTweenCR, TweenNewCachedTarget(newTargetPos), this);
+    }
+
+    private IEnumerator TweenNewCachedTarget(Vector3 newTargetPos)
+    {
+        float perc = 0;
+        Vector3 oldTargetPos = cachedTargetPos;
+
+        while (perc < 1)
+        {
+            perc += Time.deltaTime / cachedTargetTweenTime;
+            cachedTargetPos = Vector3.Lerp(oldTargetPos, newTargetPos, EasedPercent(perc));
+            yield return null;
+        }
+        targetTweenCR = null;
     }
 
     protected override void ConfigHitBox()
@@ -49,17 +99,6 @@ public class BeamProjectile : Projectile
         //TODO: better way to clarify this with prefab setup or here? Especially given that
         //programmer might not notice the local position of the hitbox is set in the SetHitBoxDimensionsAndPos
         //via the hb UseLocalPos field?
-
-        //alien projectiles (aka only the boss), will need to rotate with the beam
-        //otherwise the hitbox stays static down the player lane
-        if (!autoAlignToNearestLane)
-        {
-            hitBox.transform.parent = beamRotTrans;
-        }
-        else
-        {
-            hitBox.transform.parent = transform;
-        }
 
         hitBox.Box().isTrigger = true;
         SetHitBoxDimensionsAndPos(
@@ -94,11 +133,7 @@ public class BeamProjectile : Projectile
             beamRotTrans.position = rotOriginalPos;
         }
 
-        cachedTargetPos = new Vector3(
-        transform.position.x,
-        beamTargetFloorHeightPos * terrSettings.FloorHeight,
-        beamTileDistLong * terrSettings.TileDims.y
-        );
+        UpdateCachedTarget(skipTween: true);
 
         if(autoAlignToNearestLane)
         {
@@ -140,6 +175,7 @@ public class BeamProjectile : Projectile
         spriteAnim.Play(beamEndAnim);
         hitBox.BoxDisabled = true;
         mzRef.OnBeamDone();
+        beamEndCR = null;
     }
 
     private void AE_DestroyBeam()
@@ -149,6 +185,7 @@ public class BeamProjectile : Projectile
 
     private void OnDestroy()
     {
+        currPlayerAction.DeRegisterForPropertyChanged(OnPlayerActionChange);
         SafeStopCoroutine(ref beamEndCR, this);
     }
 }

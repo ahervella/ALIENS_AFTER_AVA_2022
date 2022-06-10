@@ -73,12 +73,12 @@ public class Projectile : MovingNode
     private bool destroyTerrHazards = true;
 
     [SerializeField]
-    private PSO_CurrentPlayerAction currPlayerAction = null;
+    protected PSO_CurrentPlayerAction currPlayerAction = null;
 
     [SerializeField]
     private SO_DamageQuantSettings damageSettings = null;
 
-    private bool highOrLowShot =>
+    protected bool HighOrLowShot =>
         !isAlienProjectile && currPlayerAction.Value == PlayerActionEnum.JUMP;
 
     private AudioWrapperSource audioSource;
@@ -144,7 +144,7 @@ public class Projectile : MovingNode
             GetLaneXPosition(GetLaneIndexFromPosition(transform.position.x, terrSettings), terrSettings)
             : transform.position.x;
 
-        float yPos = highOrLowShot ? terrSettings.FloorHeight : 0;//0;// GetFloorYPosition(FloorIndex, terrSettings);
+        float yPos = HighOrLowShot ? terrSettings.FloorHeight : 0;//0;// GetFloorYPosition(FloorIndex, terrSettings);
 
 
 
