@@ -61,6 +61,9 @@ public class Projectile : MovingNode
     private DestructionSprite destructionSpritePrefab = null;
 
     [SerializeField]
+    private bool hazardCenterForDestructionSprite = false;
+
+    [SerializeField]
     private AAudioWrapperV2 travelAudio = null;
 
     [SerializeField]
@@ -213,7 +216,7 @@ public class Projectile : MovingNode
         if (!destroyTerrHazards) { return; }
 
         SafeDestroy(hazard.gameObject);
-        MadeImpact(hazardhb.transform.position.z);
+        MadeImpact(hazardhb.Box().center + hazardhb.Box().transform.position);
     }
 
     public void OnEnteredBoss(AAlienBossBase boss)
@@ -222,7 +225,7 @@ public class Projectile : MovingNode
         if (boss.HitBox().RootParent == sourceHitBox?.RootParent) { return; }
 
         boss.TakeDamage(damageSettings.GetWeaponDamage(weaponType, damage2PlayerOrAlien: false));
-        MadeImpact(boss.HitBox().transform.position.z);
+        MadeImpact(boss.HitBox().Box().center + boss.HitBox().Box().transform.position);
     }
 
     protected void OnTriggerEnter(Collider other)
@@ -242,19 +245,24 @@ public class Projectile : MovingNode
                 out bool dodged,
                 out bool _);
 
-            if (!dodged) { MadeImpact(hb.transform.position.z); }
+            if (!dodged) { MadeImpact(hb.Box().center + hb.Box().transform.position); }
             return;
         }
     }
 
-    private void MadeImpact(float impactSpawnZPos)
+    private void MadeImpact(Vector3 impactSpawnPos)
     {
         //to insure that we don't spawn the destruct prefab in
         //say the middle of a hazard instead where the bullet was in xy space
-        Vector3 impactSpawnPos = new Vector3(
+        
+        if (!hazardCenterForDestructionSprite)
+        {
+            impactSpawnPos = new Vector3(
             spriteAnim.transform.position.x,
             spriteAnim.transform.position.y,
-            impactSpawnZPos);
+            impactSpawnPos.z);
+        }
+        
 
         impactAudio?.PlayAudioWrapper(audioSource);
 
