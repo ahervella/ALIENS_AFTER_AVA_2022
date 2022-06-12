@@ -7,9 +7,6 @@ using static HelperUtil;
 public class Shooter : MonoBehaviour
 {
     [SerializeField]
-    private SO_TerrSettings terrSettings = null;
-
-    [SerializeField]
     private SO_ShooterSettings settings = null;
 
     [SerializeField]
@@ -24,8 +21,6 @@ public class Shooter : MonoBehaviour
 
     [SerializeField]
     private AnimationEventExtender aeExtender = null;
-
-    private Coroutine fireCR = null;
 
     private ShooterWrapper cachedShooterWrapper;
 
@@ -65,7 +60,7 @@ public class Shooter : MonoBehaviour
         {
             cachedShooterWrapper = settings.GetRandShooterWrapper();
         }
-        fireCR = StartCoroutine(FireCoroutine());
+        StartCoroutine(FireCoroutine());
     }
 
     public IEnumerator FireCoroutine()

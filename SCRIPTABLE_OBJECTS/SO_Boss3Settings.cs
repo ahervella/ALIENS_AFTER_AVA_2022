@@ -45,9 +45,17 @@ public class SO_Boss3Settings : SO_ABossSettings
 
     public ShooterWrapper BeamShooterWrapper(bool rage)
         => beamShooterWrapper.GetVal(rage);
+
+    [SerializeField]
+    private float deathFallTime = default;
+    public float DeathFallTime => deathFallTime;
+
+    [SerializeField]
+    private float droneDeathFallRandDelayRange = default;
+    public float DroneDeathFallRandDelayRange => droneDeathFallRandDelayRange;
 }
 
 public enum Boss3State
 {
-    IDLE = 0
+    IDLE = 0, SHOOT = 1, DEATH = 2, START = 3
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static HelperUtil;
 using System;
+using Random = UnityEngine.Random;
 
 public class Boss3CannonDrone : MonoBehaviour
 {
@@ -23,6 +24,12 @@ public class Boss3CannonDrone : MonoBehaviour
 
     [SerializeField]
     private int rawHeightPos = default;
+
+    [SerializeField]
+    private float rawEndDeathHeightPos = default;
+
+    [SerializeField]
+    private float deathRotQuant = 180f;
 
     private Shooter shooterInstance = null;
 
@@ -72,5 +79,37 @@ public class Boss3CannonDrone : MonoBehaviour
     {
         if (shooterInstance == null) { return; }
         SafeDestroy(shooterInstance.gameObject);
+    }
+
+    public void InitDeath()
+    {
+        CleanUpShooter();
+        StartCoroutine(DeathSpinFallCR());
+    }
+
+    private IEnumerator DeathSpinFallCR()
+    {
+        yield return new WaitForSeconds(Random.value * settings.DroneDeathFallRandDelayRange);
+
+        Quaternion startRot = transform.localRotation;
+        Quaternion endRot = Quaternion.Euler(0, 0, deathRotQuant);
+
+        float startYPos = transform.localPosition.y;
+
+        float perc = 0;
+        while (perc < 1)
+        {
+            perc += Time.deltaTime / settings.DeathFallTime;
+
+            float yPos = Mathf.Lerp(startYPos, rawEndDeathHeightPos, EasedPercent(perc));
+            transform.localPosition = new Vector3(
+                transform.localPosition.x, yPos, transform.localPosition.z);
+
+            transform.localRotation = Quaternion.Lerp(startRot, endRot, EasedPercent(perc));
+
+            yield return null;
+        }
+
+        SafeDestroy(gameObject);
     }
 }

@@ -18,11 +18,16 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
     [SerializeField]
     private float rawSpawnHeight = default;
 
+    [SerializeField]
+    private float rawEndDeathHeightPos = default;
+
     private Vector3 cachedBossNodeFinalLocalPos;
     private List<Vector3> cachedDroneFinalLocalPos;
 
     private BossLaneChangeManager laneChangeManager = null;
 
+    private Coroutine idlePhaseCR = null;
+    private Coroutine shootPhaseCR = null;
     private Coroutine moveBossLocalLaneCR = null;
 
     private bool currBossRightOrLeftLocalLane;
@@ -33,7 +38,36 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 
     protected override void InitDeath()
     {
+        SafeStopCoroutine(ref moveBossLocalLaneCR, this);
+        SafeStopCoroutine(ref idlePhaseCR, this);
+        SafeStopCoroutine(ref shootPhaseCR, this);
+
+       foreach(Boss3CannonDrone drone in cannonDrones)
+       {
+            drone.InitDeath();
+       }
+
+        StartCoroutine(DeathFallCR());
+    }
+
+    private IEnumerator DeathFallCR()
+    {
+        yield return new WaitForSeconds(settings.DroneDeathFallRandDelayRange);
+
+        Vector3 startPos = bossNode.transform.localPosition;
         
+        float perc = 0;
+        while (perc < 1)
+        {
+            perc += Time.deltaTime / settings.DeathFallTime;
+
+            float yPos = Mathf.Lerp(startPos.y, rawEndDeathHeightPos, EasedPercent(perc));
+            bossNode.transform.localPosition = new Vector3(startPos.x, yPos, startPos.z);
+
+            yield return null;
+        }
+
+        AE_RemoveBoss();
     }
 
     protected override void InitRage()
@@ -66,7 +100,22 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
         
         currZonePhase.ModifyValue(ZonePhaseEnum.BOSS);
 
-        StartCoroutine(IdlePhaseCR());
+        currState.RegisterForPropertyChanged(OnStateChange);
+        currState.ModifyValue(Boss3State.SHOOT);
+    }
+
+    private void OnStateChange(Boss3State _, Boss3State newState)
+    {
+        switch (newState)
+        {
+            case Boss3State.IDLE:
+                SafeStartCoroutine(ref idlePhaseCR, IdlePhaseCR(), this);
+                return;
+
+            case Boss3State.SHOOT:
+                SafeStartCoroutine(ref shootPhaseCR, ShootPhaseCR(), this);
+                return;
+        }
     }
 
     private IEnumerator MoveToSpawnPos(GameObject node, Vector3 finalLocalPos)
@@ -94,9 +143,6 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
         laneChangeManager.MoveToLane(0);
 
         yield return new WaitForSeconds(settings.GetRandRangeIdlePhaseTime(Rage));
-        
-        //put instead in action change
-        StartCoroutine(ShootPhaseCR());
     }
 
     private IEnumerator ShootPhaseCR()
@@ -122,9 +168,6 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
             timePassed += pw.NextStepDelay;
             i = (i + 1) % gridSize.y;
         }
-
-        //put instead in action change
-        StartCoroutine(IdlePhaseCR());
     }
 
     private void MoveBossToLocalLane(bool fullRightOrLeftSide)
@@ -156,7 +199,6 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
             );
             yield return null;
         }
-        moveBossLocalLaneCR = null;
     }
 
     protected override void SetStartingPosition()
