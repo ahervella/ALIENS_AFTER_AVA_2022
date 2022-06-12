@@ -28,6 +28,9 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
     private PSO_CurrentGameMode currGameMode = null;
 
     [SerializeField]
+    private PSO_CurrentTutorialMode currTutMode = null;
+
+    [SerializeField]
     private PSO_CurrentZonePhase currZonePhase = null;
 
     [SerializeField]
@@ -70,6 +73,7 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
     {
         if (firstTimePlayingPSO.Value)
         {
+            currTutMode.ModifyValue(TutorialModeEnum.FIRST_RUN);
             currGameMode.ModifyValue(GameModeEnum.TUTORIAL);
             return;
         }

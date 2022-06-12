@@ -264,8 +264,8 @@ public class TussleManager : MonoBehaviour
 
     private int ResolveDebug(bool successful)
     {
-        StopCoroutine(startCR);
-        StopCoroutine(loopCR);
+        SafeStopCoroutine(ref startCR, this);
+        SafeStopCoroutine(ref loopCR, this);
         currSequence?.ResolveSequence(successful);
         return 0;
     }

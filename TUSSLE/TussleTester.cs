@@ -9,7 +9,7 @@ public class TussleTester : MonoBehaviour
     private SO_InputManager inputManager = null;
 
     [SerializeField]
-    private BoolDelegateSO tussleInitDelegate = null;
+    private PSO_CurrentTussle currTussle = null;
 
     [SerializeField]
     private BoolDelegateSO tussleResolveDebugDelegate = null;
@@ -24,12 +24,12 @@ public class TussleTester : MonoBehaviour
 
     private void InputManager_StartDis(CallbackContext ctx)
     {
-        tussleInitDelegate.InvokeDelegateMethod(false);
+        currTussle.ModifyValue(new TussleWrapper(false, false));
     }
 
     private void InputManager_StartAdv(CallbackContext ctx)
     {
-        tussleInitDelegate.InvokeDelegateMethod(true);
+        currTussle.ModifyValue(new TussleWrapper(true, false));
     }
 
     private void InputManager_WinTussle(CallbackContext ctx)

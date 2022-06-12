@@ -15,7 +15,36 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
     private PSO_CurrentGameMode currGameMode = null;
 
     [SerializeField]
-    List<RectTransform> orderedSlides = new List<RectTransform>();
+    private PSO_CurrentTutorialMode currTutMode = null;
+
+    [SerializeField]
+    List<TutorialModeWrapper> tutorialWrappers = new List<TutorialModeWrapper>();
+
+    //TODO: move this wrapper stuff to the settings SO and switch to instancing
+    //prefabs instead of having to populate the manager and inspector
+    [Serializable]
+    private class TutorialModeWrapper
+    {
+        [SerializeField]
+        private TutorialModeEnum mode = default;
+        public TutorialModeEnum Mode => mode;
+
+        [SerializeField]
+        private BoolPropertySO oneShotPSO = null;
+        public BoolPropertySO OneShotPSO => oneShotPSO;
+
+        [SerializeField]
+        private List<RectTransform> orderedSlides = new List<RectTransform>();
+        public List<RectTransform> OrderedSlides => orderedSlides;
+
+        [SerializeField]
+        private string lastSlideButtonText = string.Empty;
+        public string LastSlideButtonText => lastSlideButtonText;
+
+        [SerializeField]
+        private GameModeEnum lastSlideButtonGameMode = default;
+        public GameModeEnum LastSlideButtonGameMode => lastSlideButtonGameMode;
+    }
 
     [SerializeField]
     private Image slidesBlackFade = null;
@@ -26,9 +55,6 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
     [SerializeField]
     private TextMeshProUGUI lastWords = null;
 
-    [SerializeField]
-    private BoolPropertySO firstTimePlayingPSO = null;
-
     private Coroutine slidesFadeCR = null;
 
     private int currSlideIndex = 0;
@@ -38,14 +64,26 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
     private MenuButton backButton;
     private MenuButton nextButton;
 
+    private TutorialModeWrapper cachedTutWrapper;
+    private int TotalSlides => cachedTutWrapper.OrderedSlides.Count;
+
 
     protected override void OnMenuAwake()
     {
+        cachedTutWrapper = GetWrapperFromFunc(
+            tutorialWrappers,
+            tw => tw.Mode,
+            currTutMode.Value,
+            LogEnum.ERROR,
+            null);
+
         nextButton = buttonGroup.GetButton(TutorialMenuEnum.NEXT);
         ogNextButtonText = nextButton.GetText();
 
         backButton = buttonGroup.GetButton(TutorialMenuEnum.BACK);
-        backButton.ButtonEnabled = false;
+
+        SetBackButton();
+        SetNextButton();
 
         AssignOnButtonPressedMethod(TutorialMenuEnum.BACK, OnBackButton);
         AssignOnButtonPressedMethod(TutorialMenuEnum.NEXT, OnNextButton);
@@ -63,19 +101,30 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
 
     protected override void OnMenuStart()
     {
-        firstTimePlayingPSO.ModifyValue(false);
+        cachedTutWrapper.OneShotPSO.ModifyValue(false);
     }
 
     private void OnBackButton()
     {
         currSlideIndex--;
         SafeStartCoroutine(ref slidesFadeCR, NewSlideTransition(), this);
+        SetBackButton();
+    }
+
+    private void SetBackButton()
+    {
+        if (TotalSlides == 1)
+        {
+            backButton.gameObject.SetActive(false);
+            return;
+        }
+
         if (currSlideIndex == 0)
         {
             backButton.ButtonEnabled = false;
         }
 
-        else if (currSlideIndex == orderedSlides.Count - 2)
+        else if (currSlideIndex == TotalSlides - 2)
         {
             nextButton.SetText(ogNextButtonText);
         }
@@ -85,17 +134,22 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
     {
         currSlideIndex++;
         SafeStartCoroutine(ref slidesFadeCR, NewSlideTransition(), this);
+        SetNextButton();
+    }
+
+    private void SetNextButton()
+    {
         if (currSlideIndex == 1)
         {
             backButton.ButtonEnabled = true;
         }
 
-        else if (currSlideIndex == orderedSlides.Count - 1)
+        if (currSlideIndex == TotalSlides - 1)
         {
-            nextButton.SetText(settings.LastSlideButtonText);
+            nextButton.SetText(cachedTutWrapper.LastSlideButtonText);
         }
 
-        else if (currSlideIndex == orderedSlides.Count)
+        else if (currSlideIndex == TotalSlides)
         {
             MenuEnabled = false;
             StartCoroutine(BlackFade(
@@ -110,7 +164,7 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
 
         SetSlide();
 
-        if (currSlideIndex == orderedSlides.Count)
+        if (currSlideIndex == TotalSlides)
         {
             slidesFadeCR = null;
             yield break;
@@ -138,27 +192,34 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
 
     private void SetSlide()
     {
-        for (int i = 0; i < orderedSlides.Count; i++)
+        for (int i = 0; i < TotalSlides; i++)
         {
             if (i == currSlideIndex)
             {
-                orderedSlides[i].gameObject.SetActive(true);
+                cachedTutWrapper.OrderedSlides[i].gameObject.SetActive(true);
                 continue;
             }
 
-            orderedSlides[i].gameObject.SetActive(false);
+            cachedTutWrapper.OrderedSlides[i].gameObject.SetActive(false);
         }
     }
 
     private IEnumerator LastWordsCR()
     {
-        yield return new WaitForSeconds(settings.LastWordsDelay);
-        lastWords.gameObject.SetActive(true);
-        yield return new WaitForSeconds(settings.LastWordsTime);
-        lastWords.gameObject.SetActive(false);
+        if (cachedTutWrapper.Mode == TutorialModeEnum.FIRST_RUN)
+        {
+            yield return new WaitForSeconds(settings.LastWordsDelay);
+            lastWords.gameObject.SetActive(true);
+            yield return new WaitForSeconds(settings.LastWordsTime);
+            lastWords.gameObject.SetActive(false);
+        }
+
         yield return new WaitForSeconds(settings.LastWordsAfterDelay);
-        currGameMode.ModifyValue(GameModeEnum.PLAY);
+
+        currGameMode.ModifyValue(cachedTutWrapper.LastSlideButtonGameMode);
     }
 }
 
 public enum TutorialMenuEnum { BACK = 0, NEXT = 1 }
+
+public enum TutorialModeEnum { FIRST_RUN = 0, GRAPPLE_TUSSLE = 1, ATOM_CANNON = 2, LVL_SELECT }

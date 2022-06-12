@@ -10,10 +10,6 @@ public class SO_TutorialMenuSettings : ScriptableObject
     public float TotalFadeTime => totalFadeTime;
 
     [SerializeField]
-    private string lastSlideButtonText = string.Empty;
-    public string LastSlideButtonText => lastSlideButtonText;
-
-    [SerializeField]
     private List<string> lastWordsTexts = new List<string>();
     public string LastWordsText => lastWordsTexts[Random.Range(0, lastWordsTexts.Count)];
 
