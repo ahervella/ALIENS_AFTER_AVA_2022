@@ -72,4 +72,9 @@ public class BossLaneChangeManager : MonoBehaviour
             manualLaneChangeTime),
             this);
     }
+
+    private void OnDestroy()
+    {
+        laneChangeDSO.DeRegisterFromDelegateInvoked(OnLaneChangeDelegate);
+    }
 }

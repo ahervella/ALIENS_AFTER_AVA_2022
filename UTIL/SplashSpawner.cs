@@ -27,10 +27,10 @@ public class SplashSpawner : MonoBehaviour
         if (currZone.Value < zoneForSplash || currZone.Value > zoneForSplash + 1) { return; }
 
         if (currZone.Value == zoneForSplash + 1
-            && currZonePhase.Value != ZonePhaseEnum.ZONE_TRANS) { return; }
+            && currZonePhase.Value != ZonePhaseEnum.ZONE_INTRO_TRANS) { return; }
 
         if (currZone.Value == zoneForSplash
-            && currZonePhase.Value == ZonePhaseEnum.ZONE_TRANS) { return; }
+            && currZonePhase.Value == ZonePhaseEnum.ZONE_INTRO_TRANS) { return; }
 
 
         GameObject instance = Instantiate(splashPrefab);
