@@ -143,6 +143,8 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
         laneChangeManager.MoveToLane(0);
 
         yield return new WaitForSeconds(settings.GetRandRangeIdlePhaseTime(Rage));
+
+        currState.ModifyValue(Boss3State.SHOOT);
     }
 
     private IEnumerator ShootPhaseCR()
@@ -168,6 +170,8 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
             timePassed += pw.NextStepDelay;
             i = (i + 1) % gridSize.y;
         }
+
+        currState.ModifyValue(Boss3State.IDLE);
     }
 
     private void MoveBossToLocalLane(bool fullRightOrLeftSide)
