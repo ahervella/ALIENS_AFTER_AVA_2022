@@ -86,8 +86,7 @@ public class EnvTreadmill : MonoBehaviour
 
     private float newRowThreshold;
 
-    private LaneChange targetLaneChange;
-    private float colShiftPerc;
+    private Coroutine treadmillHorzWrapCR = null;
 
     //Total distance is for any future achievement we want
     private float totalDistTraveled = 0;
@@ -95,11 +94,6 @@ public class EnvTreadmill : MonoBehaviour
     private float? dist2NextZonePhase = 0;
 
     private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
-
-    //TODO: HACK for now to get the transforms to shift properly
-    //for the horiz transform children without having to cache their initial
-    //positions
-    float prevHorizWrapPos = 0;
 
     private void Start()
     {
@@ -122,8 +116,6 @@ public class EnvTreadmill : MonoBehaviour
         vertTransform.localPosition = Vector3.zero;
 
         newRowThreshold = settings.TileDims.y;
-
-        targetLaneChange = null;
 
         SetCurrZonePhaseDistances();
 
@@ -149,22 +141,52 @@ public class EnvTreadmill : MonoBehaviour
 
     private int OnLaneChange(LaneChange lc)
     {
+        SafeStartCoroutine(ref treadmillHorzWrapCR, TreadmillHorzWrapCR(lc), this);
+        return 0;
+    }
+    
+    private IEnumerator TreadmillHorzWrapCR(LaneChange lc)
+    {
         //-1 because direction is the player movement direction,
         //environment shifts in opposite direction
         ShiftTerrainColumns(-1 * lc.Dir);
 
-        //immediately offset the x delta of the grid
-        float deltaX = lc.Dir * settings.TileDims.x;
-        LocalPositionChange(terrNodesTransform, deltaX, 0, 0);
-        //TODO move all children instead of transform going in crazy values space wise
-        //LocalPositionChange(horizTransform, deltaX, 0, 0);
+        float startLocalXPos = lc.Dir * settings.TileDims.x + terrNodesTransform.localPosition.x;
+        float endLocalXPos = 0f;
+        float colShiftPerc = 0f;
 
-        //Start the treadmill horizontal tween to default x position
-        colShiftPerc = 0;
-        targetLaneChange = lc;
-        prevHorizWrapPos = targetLaneChange.Dir * settings.TileDims.x;
+        while (colShiftPerc < 1)
+        {
+            colShiftPerc += Time.deltaTime / lc.Time;
+            
+            float localXPos = Mathf.Lerp(startLocalXPos, endLocalXPos, EasedPercent(colShiftPerc));
+            
+            terrNodesTransform.localPosition = new Vector3(
+                localXPos,
+                terrNodesTransform.localPosition.y,
+                terrNodesTransform.localPosition.z
+            );
 
-        return 0;
+            ForEachTransformChild(horizTransform, child =>
+            {
+                child.position = new Vector3(
+                    localXPos,
+                    child.position.y,
+                    child.position.z
+                );
+            });
+
+            ForEachTransformChild(vertTransform, child =>
+            {
+                child.position = new Vector3(
+                    localXPos,
+                    child.position.y,
+                    child.position.z
+                );
+            });
+
+            yield return null;
+        }
     }
 
     private int OnTreadmillSpeedChange(TreadmillSpeedChange tsc)
@@ -386,7 +408,6 @@ public class EnvTreadmill : MonoBehaviour
     {
         if (gamePaused) { return; }
         TickTreadmillVertMove();
-        TickTreadmillHorzWrap();
     }
 
     private void TickTreadmillVertMove()
@@ -506,33 +527,5 @@ public class EnvTreadmill : MonoBehaviour
         //duplicate the terrAddon onto the other side
     }
 
-    private void TickTreadmillHorzWrap()
-    {
-        if (targetLaneChange == null) { return; }
-
-        colShiftPerc += Time.deltaTime / targetLaneChange.Time;
-
-        float easedColShiftPerc = EasedPercent(colShiftPerc);
-        float startXPos = targetLaneChange.Dir * settings.TileDims.x;
-        float horizPos = Mathf.Lerp(startXPos, 0, easedColShiftPerc);
-
-        LocalPositionChange(terrNodesTransform, horizPos - terrNodesTransform.localPosition.x, 0, 0);
-        
-        ForEachTransformChild(horizTransform, child =>
-        {
-            PositionChange(child, horizPos - prevHorizWrapPos, 0, 0);
-        });
-
-        ForEachTransformChild(vertTransform, child =>
-        {
-            PositionChange(child, horizPos - prevHorizWrapPos, 0, 0);
-        });
-
-        prevHorizWrapPos = horizPos;
-
-        if (horizPos == 0)
-        {
-            targetLaneChange = null;
-        }
-    }
+    
 }
