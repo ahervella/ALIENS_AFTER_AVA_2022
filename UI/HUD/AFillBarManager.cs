@@ -360,13 +360,13 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
                 currQuant.Value.TransTime);
         }
     }
+    
+    public override void TearDown(float delay)
+    {
+        StartCoroutine(TearDownCR(delay));
+    }
 
-    // public override void TearDown(float delay)
-    // {
-    //     StartCoroutine(TearDownDelayCR(delay));
-    // }
-
-    public override IEnumerator TearDownCR(float delay)
+    private IEnumerator TearDownCR(float delay)
     {
         yield return new WaitForSeconds(delay);
         StartCoroutine(SpawnPositionTween(reverse: true));

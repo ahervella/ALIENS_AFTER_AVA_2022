@@ -4,5 +4,5 @@ using UnityEngine;
 
 public abstract class AFillBarManagerBase : MonoBehaviour
 {
-    public abstract IEnumerator TearDownCR(float delay);
+    public abstract void TearDown(float delay);
 }
