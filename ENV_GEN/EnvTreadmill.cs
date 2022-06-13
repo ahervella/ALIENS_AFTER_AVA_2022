@@ -95,6 +95,16 @@ public class EnvTreadmill : MonoBehaviour
 
     private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
 
+    private void Awake()
+    {
+        //Normally we do not want to modify PSOs in awake in case things have not
+        //subbed to it yet in their own awakes, but this is a one time set and nothing
+        //should ever have to sub to this. Having in awake here allows for others to use
+        //in start() (also make sure we are not triggering a default value in inspector)
+        terrTreadmillNodesPSO.ModifyValue(
+            new TerrainTreadmillNodesWrapper(horizTransform, vertTransform));
+    }
+
     private void Start()
     {
         mesh = new Mesh();
@@ -105,8 +115,6 @@ public class EnvTreadmill : MonoBehaviour
 
         laneChangeDelegate.RegisterForDelegateInvoked(OnLaneChange);
         treadmillToggleDelegate.RegisterForDelegateInvoked(OnTreadmillSpeedChange);
-        terrTreadmillNodesPSO.ModifyValue(
-            new TerrainTreadmillNodesWrapper(horizTransform, vertTransform));
 
         InitData2D();
 

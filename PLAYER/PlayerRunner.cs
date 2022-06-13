@@ -102,6 +102,10 @@ public class PlayerRunner : MonoBehaviour
 
     private bool tempDodgeInvincibility = false;
 
+    private bool zoneTransitionInvincibility = false;
+
+    private bool Invincible => tempDodgeInvincibility || zoneTransitionInvincibility || developerSettings.Invincibility;
+
     private void Awake()
     {
         SetPlayerStartPosition();
@@ -403,6 +407,7 @@ public class PlayerRunner : MonoBehaviour
 
         if (tussleOnAttack)
         {
+            if (Invincible) { return; }
             StartTussle(false, obstacleType == TerrAddonEnum.BOSS);
             dodged = false;
             return;
@@ -475,7 +480,10 @@ public class PlayerRunner : MonoBehaviour
                 PlayerActionEnum.TAKE_DAMAGE_AIR : PlayerActionEnum.TAKE_DAMAGE_GROUND;
         }
         */
-        if (tempDodgeInvincibility || developerSettings.Invincibility) { return false; }
+        if (Invincible)
+        {
+            return false;
+        }
 
         //TODO: seperate sounds of player getting hurt due to hurt action,
         //and impact of specific objects
@@ -517,6 +525,8 @@ public class PlayerRunner : MonoBehaviour
         {
             pausedControls = false;
         }
+
+        zoneTransitionInvincibility = newPhase == ZonePhaseEnum.ZONE_INTRO_TRANS;
     }
 
     private int OnTerrainChangeDelegate(TerrainChangeWrapper tcw)
