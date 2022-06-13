@@ -154,6 +154,7 @@ public class EnvTreadmill : MonoBehaviour
         float startLocalXPos = lc.Dir * settings.TileDims.x + terrNodesTransform.localPosition.x;
         float endLocalXPos = 0f;
         float colShiftPerc = 0f;
+        float prevLocalXPos = startLocalXPos;
 
         while (colShiftPerc < 1)
         {
@@ -169,21 +170,16 @@ public class EnvTreadmill : MonoBehaviour
 
             ForEachTransformChild(horizTransform, child =>
             {
-                child.position = new Vector3(
-                    localXPos,
-                    child.position.y,
-                    child.position.z
-                );
+                //TODO: do we even need to differentiate position change and local pos change?
+                PositionChange(child, localXPos - prevLocalXPos, 0, 0);
             });
 
             ForEachTransformChild(vertTransform, child =>
             {
-                child.position = new Vector3(
-                    localXPos,
-                    child.position.y,
-                    child.position.z
-                );
+                PositionChange(child, localXPos - prevLocalXPos, 0, 0);
             });
+
+            prevLocalXPos = localXPos;
 
             yield return null;
         }
