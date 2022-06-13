@@ -234,7 +234,8 @@ public class SO_TerrZoneWrapper : ScriptableObject
 }
 
 public enum ZonePhaseEnum {
-    ZONE_TRANS = 7,
+    ZONE_INTRO_TRANS = 7,
+    END_OF_ZONE = 8,
     NO_BOSS_SUB1 = 0,
     NO_BOSS_SUB2 = 5,
     NO_BOSS_SUB3 = 6,
