@@ -15,12 +15,6 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
     protected FILL_BAR_SETTINGS settings = null;
 
     [SerializeField]
-    private IntPropertySO currZone = null;
-
-    [SerializeField]
-    private bool advanceZoneOnTearDown = false;
-
-    [SerializeField]
     private Image maskImg = null;
 
     [SerializeField]
@@ -367,20 +361,15 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
         }
     }
 
-    public override void TearDown(float delay)
-    {
-        StartCoroutine(TearDownDelayCR(delay));
-    }
+    // public override void TearDown(float delay)
+    // {
+    //     StartCoroutine(TearDownDelayCR(delay));
+    // }
 
-    public IEnumerator TearDownDelayCR(float delay)
+    public override IEnumerator TearDownCR(float delay)
     {
         yield return new WaitForSeconds(delay);
         StartCoroutine(SpawnPositionTween(reverse: true));
         StartCoroutine(SpawnFadeIn(reverse: true));
-
-        if (advanceZoneOnTearDown)
-        {
-            currZone.ModifyValue(1);
-        }
     }
 }

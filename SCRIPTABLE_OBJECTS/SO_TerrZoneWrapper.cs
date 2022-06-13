@@ -15,6 +15,16 @@ public class SO_TerrZoneWrapper : ScriptableObject
     private int zone;
     public int Zone => zone;
 
+    //make a tutorial wrapper for the mode and the one shot to be shared here
+    //and on the tutorial manager
+    [SerializeField]
+    private TutorialModeEnum tutorialOnFinish = TutorialModeEnum.NONE;
+    public TutorialModeEnum TutorialOnFinish => tutorialOnFinish;
+
+    [SerializeField]
+    private BoolPropertySO tutorialOneShotPSO = null;
+    public BoolPropertySO TutorialOneShotPSO => tutorialOneShotPSO;
+
     //[SerializeField]
     //private int floorCount;
 
@@ -129,6 +139,9 @@ public class SO_TerrZoneWrapper : ScriptableObject
 
     public float? TryGetZonePhaseTileDist(ZonePhaseEnum phase )
     {
+        //TODO: add validation here for being infinite if the
+        //phase is a transition and there is a tutorial for this wrapper
+        //AND the one shot has not been activated
         return GetZonePhaseWrapper(phase).TileDistanceOfPhase;
     }
 

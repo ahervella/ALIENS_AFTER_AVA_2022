@@ -24,7 +24,7 @@ public class EnvNodeGenerator : MonoBehaviour
     private BoolPropertySO spawnOnlyFoleyPSO = null;
 
     [SerializeField]
-    private List<SO_TerrZoneWrapper> zoneWrappers = null;
+    private SO_TerrZoneWrapperSettings zoneWrapperSettings = null;
 
     private SO_TerrZoneWrapper cachedZoneWrapper;
 
@@ -55,7 +55,7 @@ public class EnvNodeGenerator : MonoBehaviour
     private void OnZoneChange(int prevZone, int newZone)
     {
         QueueTerrainChangeDelegate(new TerrainChangeWrapper(true));
-        cachedZoneWrapper = GetWrapperFromFunc(zoneWrappers, zw => zw.Zone, newZone, LogEnum.ERROR, null);
+        cachedZoneWrapper = zoneWrapperSettings.GetZoneWrapper(newZone);
         cachedZoneWrapper.InitAndCacheTerrAddonData();
     }
 

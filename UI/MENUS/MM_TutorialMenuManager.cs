@@ -222,4 +222,11 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
 
 public enum TutorialMenuEnum { BACK = 0, NEXT = 1 }
 
-public enum TutorialModeEnum { FIRST_RUN = 0, GRAPPLE_TUSSLE = 1, ATOM_CANNON = 2, LVL_SELECT }
+public enum TutorialModeEnum
+{
+    FIRST_RUN = 0,
+    GRAPPLE_TUSSLE = 1,
+    ATOM_CANNON = 2,
+    LVL_SELECT = 3,
+    NONE = 4
+}

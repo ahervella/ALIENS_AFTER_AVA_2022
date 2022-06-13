@@ -14,6 +14,9 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     protected SO_TerrSettings terrSettings = null;
 
     [SerializeField]
+    private SO_TerrZoneWrapperSettings zoneWrapperSettings = null;
+
+    [SerializeField]
     protected PropertySO<BOSS_STATE> currState = null;
 
     [SerializeField]
@@ -39,6 +42,15 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     [SerializeField]
     protected PSO_CurrentZonePhase currZonePhase = null;
+
+    [SerializeField]
+    private IntPropertySO currZone = null;
+
+    [SerializeField]
+    private PSO_CurrentGameMode currGameMode = null;
+
+    [SerializeField]
+    private PSO_CurrentTutorialMode currTutMode = null;
 
     [SerializeField]
     private SO_InputManager inputManager = null;
@@ -237,15 +249,34 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     protected void AE_RemoveBoss()
     {
+        StartCoroutine(BossTearDownAndZoneTransCR());
+    }
+
+
+    //TODO: Should this functionality live in the boss or in its own script attached to boss?
+    private IEnumerator BossTearDownAndZoneTransCR()
+    {
         currHealth.DeRegisterForPropertyChanged(OnHealthChanged);
         currZonePhase.DeRegisterForPropertyChanged(OnZonePhaseChange);
-
-        //TODO: Do elimination sequence for one sprite has fallen?
-        healthBarPrefab.TearDown(settings.TearDownDelayPostDeath);
-
+        
         currZonePhase.ModifyValue(ZonePhaseEnum.ZONE_TRANS);
 
         ExtraRemoveBoss();
+
+        //TODO: Do elimination sequence for one sprite has fallen?
+        yield return healthBarPrefab.TearDownCR(settings.TearDownDelayPostDeath);
+        
+        SO_TerrZoneWrapper zw = zoneWrapperSettings.GetZoneWrapper(currZone.Value);
+
+        if (zw.TutorialOnFinish != TutorialModeEnum.NONE && zw.TutorialOneShotPSO.Value)
+        {
+            currTutMode.ModifyValue(zw.TutorialOnFinish);
+            currGameMode.ModifyValue(GameModeEnum.TUTORIAL);
+        }
+        else
+        {
+            currZone.ModifyValue(1);
+        }
 
         SafeDestroy(gameObject);
     }
@@ -269,10 +300,4 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
     protected abstract void ExtraRemoveBoss();
 
     protected abstract void InitRage();
-
-    //Health
-    //Hitbox
-    //Anim
-    //Switch to rage mode
-
 }

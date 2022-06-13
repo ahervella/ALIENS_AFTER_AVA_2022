@@ -43,7 +43,7 @@ public class EnvTreadmill : MonoBehaviour
     public Transform VertTransform => vertTransform;
 
     [SerializeField]
-    private List<SO_TerrZoneWrapper> zoneWrappers;
+    private SO_TerrZoneWrapperSettings zoneWrapperSettings = null;
 
     private SO_TerrZoneWrapper currZoneWrapper;
     private float cachedDefaultZoneSpeed;
@@ -136,7 +136,7 @@ public class EnvTreadmill : MonoBehaviour
 
     private void OnZoneWrapperChange(int oldValue, int newValue)
     {
-        currZoneWrapper = zoneWrappers.Find(x => x.Zone == newValue);
+        currZoneWrapper = zoneWrapperSettings.GetZoneWrapper(newValue);
         cachedDefaultZoneSpeed = GetDefaultZoneSpeed();
         OnTreadmillSpeedChange(new TreadmillSpeedChange(1, 0));
     }
