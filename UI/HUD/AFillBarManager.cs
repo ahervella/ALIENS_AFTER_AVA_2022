@@ -126,9 +126,16 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
         targetFillAmount = currQuant.Value.Quant / (float)cachedMaxQuant;
 
-        if (optionalFilledDelegate != null && targetFillAmount == 1 && newQuant.Quant > oldQuant.Quant)
+        if (optionalFilledDelegate != null)
         {
-            optionalFilledDelegate.InvokeDelegateMethod(true);
+            if (newQuant.Quant == cachedMaxQuant)
+            {
+                optionalFilledDelegate.InvokeDelegateMethod(true);
+            }
+            else
+            {
+                optionalFilledDelegate.InvokeDelegateMethod(false);
+            }
         }
 
         if ((NoTransitionOnDecrease && oldQuant.Quant > newQuant.Quant)

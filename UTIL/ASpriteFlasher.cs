@@ -16,7 +16,7 @@ public abstract class ASpriteFlasher : MonoBehaviour
     private Coroutine flashCR = null;
     private Color startClearColor;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         CacheSpriteComponentRef();
 
@@ -24,10 +24,7 @@ public abstract class ASpriteFlasher : MonoBehaviour
             settings.FlashColor.r, settings.FlashColor.g, settings.FlashColor.b, 0);
         SetFlashColor(startClearColor);
 
-        if (optionalFlashDelegate != null)
-        {
-            optionalFlashDelegate.RegisterForDelegateInvoked(OnFlashDelegate);
-        }
+        optionalFlashDelegate?.RegisterForDelegateInvoked(OnFlashDelegate);
     }
 
     protected abstract void CacheSpriteComponentRef();
@@ -36,7 +33,7 @@ public abstract class ASpriteFlasher : MonoBehaviour
 
     protected abstract Color GetFlashColor();
 
-    private int OnFlashDelegate(bool _)
+    protected virtual int OnFlashDelegate(bool _)
     {
         Flash();
         return 0;

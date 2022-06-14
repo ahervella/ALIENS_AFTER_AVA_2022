@@ -93,6 +93,9 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private SO_DamageQuantSettings damageSettings = null;
 
+    [SerializeField]
+    private BoolDelegateSO energyRewardedDSO = null;
+
     private Coroutine sprintCR = null;
 
     private bool pausedControls = false;
@@ -345,10 +348,18 @@ public class PlayerRunner : MonoBehaviour
 
     public void OnExitHazardRewardArea()
     {
-        if (!currAction.IsPlayingHurtAnim())
+        //Reward boxes are only to trigger dodging reward at right time
+        if (currAction.Value == PlayerActionEnum.DODGE_L ||
+            currAction.Value == PlayerActionEnum.DODGE_R)
         {
-            currEnergy.ModifyEnergyVal(energySettings.GetEnergyReward(currAction.Value));
+            RewardPlayerEnergy();
         }
+    }
+
+    public void RewardPlayerEnergy()
+    {
+        currEnergy.ModifyEnergyVal(energySettings.GetEnergyReward(currAction.Value));
+        energyRewardedDSO.InvokeDelegateMethod(true);
     }
 
     public void OnEnterHazard(
@@ -380,7 +391,7 @@ public class PlayerRunner : MonoBehaviour
 
         if (avoidAction == currAction.Value)
         {
-            currEnergy.RewardPlayerEnergy(currAction.Value);
+            RewardPlayerEnergy();
             return;
         }
 

@@ -81,10 +81,11 @@ public class TerrHazard : TerrAddon
                 coll => OnTriggerEnterDamageHitBox(coll, hbw.InstancedHB));
         }
 
-        //if its only one hit box, can save time and use the one hit box for the reward hitbox
+        //if its only one damage hit box, can save time and use the one hit box for the reward hitbox
         //assuming it should take up the full specified dimensions
         if (customHitBoxes.Count == 1)
         {
+            //TODO: make a size error fix for rewards in case we ever dodge right behind one
             SetRewardBoxDimensionsFromHB(
                 customHitBoxes[0].InstancedHB.Box(), energyRewardBox, terrSettings);
             
