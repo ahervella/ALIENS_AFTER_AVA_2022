@@ -74,9 +74,7 @@ public class PlayerRunner : MonoBehaviour
 
     [SerializeField]
     private SO_DeveloperToolsSettings developerSettings = null;
-
-    [SerializeField]
-    private SO_EnergySettings energySettings = null;
+    
 
     [SerializeField]
     private SO_LayerSettings layerSettings = null;
@@ -92,9 +90,6 @@ public class PlayerRunner : MonoBehaviour
 
     [SerializeField]
     private SO_DamageQuantSettings damageSettings = null;
-
-    [SerializeField]
-    private BoolDelegateSO energyRewardedDSO = null;
 
     private Coroutine sprintCR = null;
 
@@ -358,8 +353,7 @@ public class PlayerRunner : MonoBehaviour
 
     public void RewardPlayerEnergy()
     {
-        currEnergy.ModifyEnergyVal(energySettings.GetEnergyReward(currAction.Value));
-        energyRewardedDSO.InvokeDelegateMethod(true);
+        currEnergy.RewardPlayerEnergy(currAction.Value);
     }
 
     public void OnEnterHazard(

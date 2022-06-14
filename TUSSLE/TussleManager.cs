@@ -54,6 +54,9 @@ public class TussleManager : MonoBehaviour
     [SerializeField]
     private SO_DamageQuantSettings damageSettings = null;
 
+    [SerializeField]
+    private PSO_CurrentEnergy currEnergy = null;
+
     private bool playerAdv => currTussle.Value.PlayerAdvantage;
     private bool bossTussle => currTussle.Value.BossTussle;
 
@@ -259,7 +262,7 @@ public class TussleManager : MonoBehaviour
 
         SafeStopCoroutine(ref waitForCurrVideoAndPlayCR, this);
 
-        StartCoroutine(PlayVideo(wrapper, EndTussle));
+        StartCoroutine(PlayVideo(wrapper, () => EndTussle(successful)));
     }
 
     private int ResolveDebug(bool successful)
@@ -270,7 +273,7 @@ public class TussleManager : MonoBehaviour
         return 0;
     }
 
-    public void EndTussle()
+    public void EndTussle(bool successful)
     {
         currGameMode.DeRegisterForPropertyChanged(OnGameModeChange);
         Time.timeScale = 1;
@@ -288,11 +291,15 @@ public class TussleManager : MonoBehaviour
         videoPlayer.clip = null;
         videoPlayer2.clip = null;
 
-        
-
         treadmillSpeedDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(1, 0));
         energyBarDisplayDelegate.InvokeDelegateMethod(true);
 
         currAction.ModifyValue(PlayerActionEnum.RUN);
+        
+        if (successful)
+        {
+            currEnergy.RewardPlayerEnergy(PlayerActionEnum.TUSSLE);
+        }
+        
     }
 }

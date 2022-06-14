@@ -8,6 +8,9 @@ public class PSO_CurrentEnergy : PSO_FillBarQuant
     [SerializeField]
     private SO_EnergySettings settings = null;
 
+    [SerializeField]
+    private BoolDelegateSO energyRewardedDSO = null;
+
     public override void ModifyValue(FillBarQuant mod)
     {
         int min = 0;
@@ -27,7 +30,7 @@ public class PSO_CurrentEnergy : PSO_FillBarQuant
 
     public void RewardPlayerEnergy(PlayerActionEnum action)
     {
-        int energyReward = settings.GetEnergyReward(action);
-        ModifyEnergyVal(energyReward);
+        ModifyEnergyVal(settings.GetEnergyReward(action));
+        energyRewardedDSO.InvokeDelegateMethod(true);
     }
 }
