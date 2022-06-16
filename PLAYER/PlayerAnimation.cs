@@ -42,6 +42,16 @@ public class PlayerAnimation : BaseAnimation<PlayerActionEnum, SO_PlayerAnimatio
         spriteAnimator.Play(animClip);
     }
 
+    public override void AE_OnAnimFinished()
+    {
+        base.AE_OnAnimFinished();
+
+        if (((PSO_CurrentPlayerAction)currAction).TryToUseBufferAction(Time.time))
+        {
+            spriteAnimator.SetTime(0);
+        }
+    }
+
     public void AE_ActionChangedAllowed()
     {
         Debug.Log("premature change true");

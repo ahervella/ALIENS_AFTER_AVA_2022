@@ -1,10 +1,20 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 [CreateAssetMenu(fileName = "PSO_CurrentPlayerAction", menuName = "ScriptableObjects/Property/PSO_CurrentPlayerAction")]
 public class PSO_CurrentPlayerAction : PropertySO<PlayerActionEnum>
 {
+    [SerializeField]
+    private float bufferTimeThreshold = 0.5f;
+    
+    [NonSerialized]
+    private PlayerActionEnum bufferedAction = PlayerActionEnum.NULL;
+
+    [NonSerialized]
+    private float bufferCachedTime = -1f;
+
     public override void ModifyValue(PlayerActionEnum mod)
     {
         if (Value != mod)
@@ -44,7 +54,27 @@ public class PSO_CurrentPlayerAction : PropertySO<PlayerActionEnum>
                 }
                 break;
         }
+
+        CacheBuffer(action);
         return false;
+    }
+
+    private void CacheBuffer(PlayerActionEnum action)
+    {
+        bufferCachedTime = Time.time;
+        bufferedAction = action;
+    }
+
+    public bool TryToUseBufferAction(float gameTime)
+    {
+        if (gameTime - bufferCachedTime > bufferTimeThreshold)
+        {
+            return false;
+        }
+        TryPerform(bufferedAction, false); 
+        bufferedAction = PlayerActionEnum.NULL;
+        bufferCachedTime = -1;
+        return true;
     }
 
     public void PerformCorrespondingHurt(PlayerActionEnum actionRequired)
