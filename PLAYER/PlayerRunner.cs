@@ -511,11 +511,11 @@ public class PlayerRunner : MonoBehaviour
 
         if (isWeapon)
         {
-            return useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedWeapons[loadoutIndex]);
+            return useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedWeapons[loadoutIndex].Armament);
         }
         else
         {
-            return useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedEquipments[loadoutIndex]);
+            return useArmament.InvokeDelegateMethod(currLoadout.Value.OrderedEquipments[loadoutIndex].Armament);
         }
     }
 

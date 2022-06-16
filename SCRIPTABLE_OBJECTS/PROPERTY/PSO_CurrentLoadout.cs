@@ -15,17 +15,29 @@ public class PSO_CurrentLoadout : PropertySO<Loadout>
 [Serializable]
 public class Loadout : AGameSaveData
 {
-    public Loadout(List<Weapon> orderedWeapons, List<Equipment> orderedEquipments)
+    public Loadout(List<LoadoutWrapper<Weapon>> orderedWeapons, List<LoadoutWrapper<Equipment>> orderedEquipments)
     {
         this.orderedWeapons = orderedWeapons;
         this.orderedEquipments = orderedEquipments;
     }
 
     [SerializeField]
-    private List<Weapon> orderedWeapons = new List<Weapon>();
-    public List<Weapon> OrderedWeapons => orderedWeapons;
+    private List<LoadoutWrapper<Weapon>> orderedWeapons = new List<LoadoutWrapper<Weapon>>();
+    public List<LoadoutWrapper<Weapon>> OrderedWeapons => orderedWeapons;
 
     [SerializeField]
-    private List<Equipment> orderedEquipments = new List<Equipment>();
-    public List<Equipment> OrderedEquipments => orderedEquipments;
+    private List<LoadoutWrapper<Equipment>> orderedEquipments = new List<LoadoutWrapper<Equipment>>();
+    public List<LoadoutWrapper<Equipment>> OrderedEquipments => orderedEquipments;
+}
+
+[Serializable]
+public class LoadoutWrapper<T> where T : AArmament
+{
+    [SerializeField]
+    private T armament = null;
+    public T Armament => armament;
+
+    [SerializeField]
+    private BoolPropertySO lockedPSO = null;
+    public BoolPropertySO LockedPSO => lockedPSO;
 }

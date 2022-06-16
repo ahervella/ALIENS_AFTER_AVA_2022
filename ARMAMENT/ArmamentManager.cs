@@ -42,14 +42,14 @@ public class ArmamentManager : MonoBehaviour
 
     private void CacheArmaments()
     {
-        foreach (Weapon w in currLoadout.Value.OrderedWeapons)
+        foreach (LoadoutWrapper<Weapon> w in currLoadout.Value.OrderedWeapons)
         {
-            w?.CacheArmamentLevelRequirements();
+            w.Armament.CacheArmamentLevelRequirements();
         }
 
-        foreach(Equipment e in currLoadout.Value.OrderedEquipments)
+        foreach(LoadoutWrapper<Equipment> e in currLoadout.Value.OrderedEquipments)
         {
-            e?.CacheArmamentLevelRequirements();
+            e.Armament.CacheArmamentLevelRequirements();
         }
     }
 

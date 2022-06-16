@@ -5,6 +5,9 @@ using UnityEngine;
 public class ArmamentHUDSlotManager : MonoBehaviour
 {
     [SerializeField]
+    private SO_DeveloperToolsSettings devTools = null;
+
+    [SerializeField]
     private PSO_CurrentLoadout currLoadout = null;
 
     [SerializeField]
@@ -15,22 +18,28 @@ public class ArmamentHUDSlotManager : MonoBehaviour
 
     private void Start()
     {
-        List<AArmament> weapons = currLoadout.Value.OrderedWeapons.ConvertAll(w => (AArmament)w);
-        List<AArmament> equipments = currLoadout.Value.OrderedEquipments.ConvertAll(e => (AArmament)e);
-
-        PopulateArmamentIconSlots(orderedWeaponSlots, weapons);
-        PopulateArmamentIconSlots(orderedEquipmentSlots, equipments);
+        PopulateArmamentIconSlots(orderedWeaponSlots, currLoadout.Value.OrderedWeapons);
+        PopulateArmamentIconSlots(orderedEquipmentSlots, currLoadout.Value.OrderedEquipments);
     }
 
-    private void PopulateArmamentIconSlots(List<RectTransform> slotList, List<AArmament> armamentLoadout)
+    private void PopulateArmamentIconSlots<T>(List<RectTransform> slotList, List<LoadoutWrapper<T>> armamentLoadout) where T : AArmament
     {
         for (int i = 0; i < slotList.Count; i++)
         {
-            if (i >= armamentLoadout.Count) { continue; }
+            if (i >= armamentLoadout.Count)
+            {
+                continue;
+            }
 
-            AArmament armament = armamentLoadout[i];
+            bool armamentLocked = !devTools.AllArmamentsAvailable
+            && (armamentLoadout[i].LockedPSO?.Value ?? false);
 
-            if (armament == null) { continue; }
+            if (armamentLocked)
+            {
+                continue;
+            }
+
+            AArmament armament = armamentLoadout[i].Armament;
 
             Destroy(slotList[i].GetChild(0).gameObject);
 

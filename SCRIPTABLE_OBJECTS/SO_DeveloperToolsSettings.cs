@@ -22,6 +22,10 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     public bool NoReqsForArmaments => noReqsForArmaments;
 
     [SerializeField]
+    private bool allArmamentsAvailable = false;
+    public bool AllArmamentsAvailable => allArmamentsAvailable;
+
+    [SerializeField]
     private bool instantMainMenuIntro = false;
     public bool InstantMainMenuIntro => instantMainMenuIntro;
 
