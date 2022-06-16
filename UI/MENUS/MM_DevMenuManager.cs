@@ -128,6 +128,7 @@ public enum DevMenuButtonEnum
     TERR_MODE1 = 0,
     TERR_MODE2 = 1,
     TERR_MODE3 = 2,
+    TERR_MODE4 = 3,
     BOSS1_MODE1 = 11,
     BOSS1_MODE2 = 12,
     BOSS1_MODE3 = 13

@@ -6,6 +6,9 @@ using UnityEngine;
 public class ArmamentManager : MonoBehaviour
 {
     [SerializeField]
+    private SO_DeveloperToolsSettings devTools = null;
+
+    [SerializeField]
     private PSO_CurrentEnergy currEnergy = null;
 
     [SerializeField]
@@ -52,33 +55,36 @@ public class ArmamentManager : MonoBehaviour
 
     private bool TryUseArmament(AArmament armament)
     {
-        if (armament == null) { return false; }
-
-        if (grappleOnFlag.Value)
+        if (!devTools.NoReqsForArmaments)
         {
-            Debug.Log("tried to use armament '" + armament.name + "' but grapple was activated!");
-            return false;
-        }
+            if (armament == null) { return false; }
 
-        if (armament.ApplicableActions.Count > 0 && !armament.ApplicableActions.Contains(currAction.Value))
-        {
-            Debug.Log("tried to use armament '" + armament.name + "' but was incorrect action!");
-            return false;
-        }
+            if (grappleOnFlag.Value)
+            {
+                Debug.Log("tried to use armament '" + armament.name + "' but grapple was activated!");
+                return false;
+            }
 
-        if (!armament.ArmamentCoolDownPSO.Value.TransReached || armament.ArmamentCoolDownPSO.Value.Quant != 0)
-        {
-            Debug.Log("tried to use armament '" + armament.name + "' but cool down not reached!");
-            return false;
-        }
+            if (armament.ApplicableActions.Count > 0 && !armament.ApplicableActions.Contains(currAction.Value))
+            {
+                Debug.Log("tried to use armament '" + armament.name + "' but was incorrect action!");
+                return false;
+            }
 
-        if (!Try2ConsumeEnergyReq(armament.GetRequirements().EnergyBlocks))
-        {
-            Debug.Log("tried to use armament '" + armament.name + "' but not enough energy!");
-            return false;
-        }
+            if (!armament.ArmamentCoolDownPSO.Value.TransReached || armament.ArmamentCoolDownPSO.Value.Quant != 0)
+            {
+                Debug.Log("tried to use armament '" + armament.name + "' but cool down not reached!");
+                return false;
+            }
 
-        StartCoolDown(armament);
+            if (!Try2ConsumeEnergyReq(armament.GetRequirements().EnergyBlocks))
+            {
+                Debug.Log("tried to use armament '" + armament.name + "' but not enough energy!");
+                return false;
+            }
+
+            StartCoolDown(armament);
+        }
 
         Transform spawnPoint = armament is Weapon ? projectileSpawnPoint : playerCenterSpawnPoint;
         armament.UseArmament(spawnPoint);

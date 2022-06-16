@@ -18,6 +18,10 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     public bool Invincibility => invincibility;
 
     [SerializeField]
+    private bool noReqsForArmaments = false;
+    public bool NoReqsForArmaments => noReqsForArmaments;
+
+    [SerializeField]
     private bool instantMainMenuIntro = false;
     public bool InstantMainMenuIntro => instantMainMenuIntro;
 
