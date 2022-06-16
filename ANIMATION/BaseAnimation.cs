@@ -35,7 +35,7 @@ public abstract class BaseAnimation<STATE, ANIM_SETTINGS> : MonoBehaviour where 
 
     protected abstract void OnActionChange(STATE prevAction, STATE newAction);
 
-    public void AE_OnAnimFinished()
+    public virtual void AE_OnAnimFinished()
     {
         AnimationWrapper<STATE> aw = settings.GetAnimationWrapper(currAction.Value);
         if (aw != null)

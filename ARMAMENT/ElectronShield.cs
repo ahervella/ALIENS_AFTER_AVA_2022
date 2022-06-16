@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static HelperUtil;
+using PowerTools;
 
 [RequireComponent(typeof(FaceCamera))]
 [RequireComponent(typeof(SafeAudioWrapperSource))]
@@ -15,6 +16,15 @@ public class ElectronShield : MonoBehaviour
 
     [SerializeField]
     private DestructionSprite destructionSpritePrefab = null;
+
+    [SerializeField]
+    private SpriteAnim sprite = null;
+
+    [SerializeField]
+    private AnimationClip endAnim = null;
+
+    [SerializeField]
+    private float timeBeforeEndAnim = 1f;
 
     private Coroutine timerCR = null;
 
@@ -36,7 +46,10 @@ public class ElectronShield : MonoBehaviour
 
     private IEnumerator ShieldCoroutine()
     {
-        yield return new WaitForSeconds(shieldTime);
+        yield return new WaitForSeconds(shieldTime - timeBeforeEndAnim);
+        sprite.Play(endAnim);
+        sprite.SetTime(0);
+        yield return new WaitForSeconds(timeBeforeEndAnim);
         shieldOnFlag.ModifyValue(false);
     }
 
