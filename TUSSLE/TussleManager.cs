@@ -57,6 +57,9 @@ public class TussleManager : MonoBehaviour
     [SerializeField]
     private PSO_CurrentEnergy currEnergy = null;
 
+    [SerializeField]
+    private PSO_FillBarQuant grappleCoolDown = null;
+
     private bool playerAdv => currTussle.Value.PlayerAdvantage;
     private bool bossTussle => currTussle.Value.BossTussle;
 
@@ -296,9 +299,15 @@ public class TussleManager : MonoBehaviour
 
         currAction.ModifyValue(PlayerActionEnum.RUN);
         
-        if (successful)
+        if (playerAdv)
         {
-            currEnergy.RewardPlayerEnergy(PlayerActionEnum.TUSSLE);
+            if (successful)
+            {
+                currEnergy.RewardPlayerEnergy(PlayerActionEnum.TUSSLE);
+            }
+
+            //In case there is more than one enemy incoming and need to grapple fast
+            grappleCoolDown.ModifyValue(new FillBarQuant(0, false, 0.001f));
         }
         
     }
