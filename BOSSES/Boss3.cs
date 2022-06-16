@@ -101,6 +101,7 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
         currZonePhase.ModifyValue(ZonePhaseEnum.BOSS);
 
         currState.RegisterForPropertyChanged(OnStateChange);
+        yield return new WaitForSeconds(settings.FirstShootFromSpawnDelay);
         currState.ModifyValue(Boss3State.SHOOT);
     }
 

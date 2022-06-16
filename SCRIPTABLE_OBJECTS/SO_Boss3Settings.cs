@@ -22,6 +22,10 @@ public class SO_Boss3Settings : SO_ABossSettings
     public float BossLocalLaneChangeTime => bossLocalLaneChangeTime;
 
     [SerializeField]
+    private float firstShootFromSpawnDelay = 1f;
+    public float FirstShootFromSpawnDelay => firstShootFromSpawnDelay;
+
+    [SerializeField]
     private RageValue<float> idlePhaseTime = default;
 
     [SerializeField]
