@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using static HelperUtil;
 using PowerTools;
+using static AudioUtil;
 
 public class BeamProjectile : Projectile
 {
@@ -33,10 +34,22 @@ public class BeamProjectile : Projectile
     private SpriteRenderer spriteRend = null;
 
     [SerializeField]
+    private SpriteRenderer beamTipSprite = null;
+
+    [SerializeField]
     private AnimationClip beamEndAnim = null;
 
     [SerializeField]
     private AnimationEventExtender aee = null;
+
+    [SerializeField]
+    private AAudioWrapperV2 chargeAudio = null;
+
+    [SerializeField]
+    private AAudioWrapperV2 fireAudio = null;
+
+    [SerializeField]
+    private AAudioWrapperV2 beamDoneAudio = null;
 
     private BeamMuzzleFlash mzRef;
 
@@ -48,12 +61,14 @@ public class BeamProjectile : Projectile
     {
         base.OnAwake();
         hitBox.BoxDisabled = true;
+        beamTipSprite.enabled = false;
         aee.AssignAnimationEvent(AE_DestroyBeam, 0);
         aee.AssignAnimationEvent(AE_ActivateBeamHitBox, 1);
         if (!isAlienProjectile)
         {
             currPlayerAction.RegisterForPropertyChanged(OnPlayerActionChange);
         }
+        chargeAudio.PlayAudioWrapper(audioSource);
     }
 
     private void OnPlayerActionChange(PlayerActionEnum oldAction, PlayerActionEnum newAction)
@@ -155,7 +170,12 @@ public class BeamProjectile : Projectile
     private void UpdateBeamRotation()
     {
         beamRotTrans.LookAt(cachedTargetPos);
-        spriteRend.size = new Vector2(Vector3.Distance(mzTrans.position, cachedTargetPos), spriteRend.size.y);
+        float beamDist = Vector3.Distance(mzTrans.position, cachedTargetPos);
+        spriteRend.size = new Vector2(beamDist, spriteRend.size.y);
+        beamTipSprite.transform.localPosition = new Vector3(
+            -beamDist,
+            beamTipSprite.transform.localPosition.y,
+            beamTipSprite.transform.localPosition.z);
     }
 
     public void SetBeamMuzzleFlashRef(BeamMuzzleFlash mzRef)
@@ -166,6 +186,8 @@ public class BeamProjectile : Projectile
     private void AE_ActivateBeamHitBox()
     {
         hitBox.BoxDisabled = false;
+        beamTipSprite.enabled = true;
+        fireAudio.PlayAudioWrapper(audioSource);
         SafeStartCoroutine(ref beamEndCR, BeamEndCR(), this);
     }
 
@@ -175,6 +197,12 @@ public class BeamProjectile : Projectile
         spriteAnim.Play(beamEndAnim);
         hitBox.BoxDisabled = true;
         mzRef.OnBeamDone();
+        
+        //TODO: for what ever reason, if the beamDoneAudio was not
+        //in an audio event wrapper (ie. just the audio clip wrapper)
+        //it would not play here....
+        StopAllAudioSourceSounds(audioSource);
+        beamDoneAudio.PlayAudioWrapper(audioSource);
         beamEndCR = null;
     }
 

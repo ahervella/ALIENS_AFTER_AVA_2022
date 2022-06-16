@@ -84,7 +84,7 @@ public class Projectile : MovingNode
     protected bool HighOrLowShot =>
         !isAlienProjectile && currPlayerAction.Value == PlayerActionEnum.JUMP;
 
-    private AudioWrapperSource audioSource;
+    protected AudioWrapperSource audioSource;
 
     protected Transform mzTrans;
 
