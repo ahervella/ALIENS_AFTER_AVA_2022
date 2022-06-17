@@ -104,6 +104,14 @@ public class PlayerRunner : MonoBehaviour
 
     private bool Invincible => tempDodgeInvincibility || zoneTransitionInvincibility || developerSettings.Invincibility;
 
+    private bool rollDodgedOnce = false;
+
+    private bool jumpDodgedOnce = false;
+
+    private bool rollCanceled = false;
+
+    private bool jumpCanceled = false;
+
     private void Awake()
     {
         SetPlayerStartPosition();
@@ -206,28 +214,63 @@ public class PlayerRunner : MonoBehaviour
         UnregisterFromInputs();
     }
 
-    private void TryPerformAction(PlayerActionEnum action)
+    private bool TryPerformAction(PlayerActionEnum action, bool overrideFlag = false)
     {
         Debug.Log("InputAttempt " + action.ToString());
-        if (pausedControls) { return; }
-        currAction.TryPerform(action, playerAnimmator.PrematureActionChangeAllowed);
+        if (pausedControls) { return false; }
+        return currAction.TryPerform(action, playerAnimmator.PrematureActionChangeAllowed || overrideFlag);
     }
 
     //TODO: take out dev testing for health and energy bar from here eventually!
     private void InputManager_DodgeLeft(CallbackContext ctx)
     {
-
-        TryPerformAction(PlayerActionEnum.DODGE_L);
+        if (!TryPerformAction(PlayerActionEnum.DODGE_L))
+        {
+             TryJumpOrRollDodge(false);
+        }
     }
 
     private void InputManager_DodgeRight(CallbackContext ctx)
     {
-        TryPerformAction(PlayerActionEnum.DODGE_R);
+        if (!TryPerformAction(PlayerActionEnum.DODGE_R))
+        {
+             TryJumpOrRollDodge(true);
+        }
+    }
+
+    private bool TryJumpOrRollDodge(bool movingRightOrLeft)
+    {
+        if (!rollDodgedOnce && currAction.Value == PlayerActionEnum.ROLL)
+        {
+            laneChangeDelegate.InvokeDelegateMethod(new LaneChange(movingRightOrLeft, settings.LaneChangeTime));
+            rollDodgedOnce = true;
+            return true;
+        }
+        
+        if (!jumpDodgedOnce && currAction.Value == PlayerActionEnum.JUMP)
+        {
+            laneChangeDelegate.InvokeDelegateMethod(new LaneChange(movingRightOrLeft, settings.LaneChangeTime));
+            jumpDodgedOnce = true;
+            return true;
+        }
+
+        return false;
     }
 
     private void InputManager_Jump(CallbackContext ctx)
     {
-        TryPerformAction(PlayerActionEnum.JUMP);
+        if  (TryPerformAction(PlayerActionEnum.JUMP))
+        {
+            return;
+        }
+
+        bool overrideFlag = !rollCanceled && !jumpCanceled && currAction.Value == PlayerActionEnum.ROLL;
+        if (overrideFlag)
+        {
+            rollCanceled = true;
+        }
+
+        TryPerformAction(PlayerActionEnum.JUMP, overrideFlag);
     }
 
     private void InputManager_Sprint(CallbackContext ctx)
@@ -237,7 +280,18 @@ public class PlayerRunner : MonoBehaviour
 
     private void InputManager_Roll(CallbackContext ctx)
     {
-        TryPerformAction(PlayerActionEnum.ROLL);
+        if  (TryPerformAction(PlayerActionEnum.ROLL))
+        {
+            return;
+        }
+
+        bool overrideFlag = !rollCanceled && !jumpCanceled && currAction.Value == PlayerActionEnum.JUMP;
+        if (overrideFlag)
+        {
+            jumpCanceled = true;
+        }
+
+        TryPerformAction(PlayerActionEnum.ROLL, overrideFlag);
     }
 
     private void InputManager_Weapon1(CallbackContext ctx)
@@ -302,6 +356,21 @@ public class PlayerRunner : MonoBehaviour
 
     private void OnActionChange(PlayerActionEnum oldAction, PlayerActionEnum newAction)
     {
+        if (newAction != PlayerActionEnum.JUMP && newAction != PlayerActionEnum.ROLL)
+        {
+            rollCanceled = false;
+            jumpCanceled = false;
+        }
+
+        if (newAction != PlayerActionEnum.ROLL)
+        {
+            rollDodgedOnce = false;
+        }
+        
+        if (newAction != PlayerActionEnum.JUMP)
+        {
+            jumpDodgedOnce = false;
+        }
         StopSprintCR();
     }
 

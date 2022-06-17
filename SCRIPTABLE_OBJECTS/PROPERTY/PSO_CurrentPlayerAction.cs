@@ -55,7 +55,7 @@ public class PSO_CurrentPlayerAction : PropertySO<PlayerActionEnum>
                 break;
         }
 
-        CacheBuffer(action);
+        //CacheBuffer(action);
         return false;
     }
 
