@@ -163,8 +163,8 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
 
     private void OnBossStateChange(Boss2State oldState, Boss2State newState)
     {
-        leftHBW.InstancedHB.BoxDisabled = true;
-        rightHBW.InstancedHB.BoxDisabled = true;
+        leftHBW.InstancedHB.BoxDisabled = false;
+        rightHBW.InstancedHB.BoxDisabled = false;
 
         switch (newState)
         {
@@ -182,8 +182,8 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
                 break;
 
             default:
-                leftHBW.InstancedHB.BoxDisabled = false;
-                rightHBW.InstancedHB.BoxDisabled = false;
+                leftHBW.InstancedHB.BoxDisabled = true;
+                rightHBW.InstancedHB.BoxDisabled = true;
                 centerHBW.InstancedHB.SetReqAvoidAction(PlayerActionEnum.NONE);
                 break;
                 //TODO: finish up with left and right leaning wings?
