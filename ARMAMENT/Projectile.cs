@@ -81,6 +81,15 @@ public class Projectile : MovingNode
     [SerializeField]
     private SO_DamageQuantSettings damageSettings = null;
 
+    [SerializeField]
+    private float highShotStartFloorHeight = 1f;
+
+    [SerializeField]
+    private float highShotFinalFloorHeight = 1f;
+
+    [SerializeField]
+    private float highShotTransTime = 1f;
+
     protected bool HighOrLowShot =>
         !isAlienProjectile && currPlayerAction.Value == PlayerActionEnum.JUMP;
 
@@ -137,6 +146,30 @@ public class Projectile : MovingNode
 
 
         hitBox.SetOnTriggerEnterMethod(OnTriggerEnter);
+
+        if (HighOrLowShot)
+        {
+            StartCoroutine(HitBoxPosTween());
+        }
+    }
+
+    private IEnumerator HitBoxPosTween()
+    {
+        float startLocalYPos = highShotStartFloorHeight * terrSettings.FloorHeight;
+        float finalLocalYPos = highShotFinalFloorHeight * terrSettings.FloorHeight;
+
+        float perc = 0;
+        while (perc < 1)
+        {
+            perc += Time.deltaTime / highShotTransTime;
+            float localYPos = Mathf.Lerp(startLocalYPos, finalLocalYPos, EasedPercent(perc));
+            hitBox.transform.localPosition = new Vector3(
+                hitBox.transform.localPosition.x,
+                localYPos,
+                hitBox.transform.localPosition.z
+            );
+            yield return null;
+        }
     }
 
     protected virtual void SetSpawnPosition()
@@ -147,17 +180,14 @@ public class Projectile : MovingNode
             GetLaneXPosition(GetLaneIndexFromPosition(transform.position.x, terrSettings), terrSettings)
             : transform.position.x;
 
-        float yPos = HighOrLowShot ? terrSettings.FloorHeight : 0;//0;// GetFloorYPosition(FloorIndex, terrSettings);
-
-
-
-        transform.position = new Vector3(xPos, yPos, transform.position.z);
+        transform.position = new Vector3(xPos, 0, transform.position.z);
 
         Vector3 originalSpriteLocalPos = mzTrans.position - transform.position;
 
         if (alsoAutoAlignSprite)
         {
-            float spriteFinalYLocalPos = terrSettings.FloorHeight * spriteYPosPercFloorHeight + yPos;
+            float highShotYPosDelta = HighOrLowShot ? highShotFinalFloorHeight : 0;
+            float spriteFinalYLocalPos = terrSettings.FloorHeight * (highShotYPosDelta + spriteYPosPercFloorHeight);
             Vector3 finalLocalPos = new Vector3(0, spriteFinalYLocalPos, 0);
 
             StartCoroutine(SpritePosTween(originalSpriteLocalPos, finalLocalPos));
@@ -173,6 +203,20 @@ public class Projectile : MovingNode
         }
     }
 
+    private IEnumerator SpritePosTween(Vector3 originalSpriteLocalPos, Vector3 finalLocalPos)
+    {
+        float perc = 0;
+        while (perc < 1)
+        {
+            perc += Time.deltaTime / highShotTransTime;
+            Vector3 currLocalPos = Vector3.Lerp(originalSpriteLocalPos, finalLocalPos, EasedPercent(perc));
+            spriteAnim.transform.localPosition = currLocalPos;
+            yield return null;
+        }
+    }
+
+    
+
     protected void Attach2TreadmillNodes()
     {
         if (treadmillAttachment == TREADMILL_ATTACHMENT.HORIZONTAL)
@@ -182,18 +226,6 @@ public class Projectile : MovingNode
         else if (treadmillAttachment == TREADMILL_ATTACHMENT.HORIZ_VERT)
         {
             terrTreadmillNodesPSO.Value.AttachTransform(transform, horizOrVert: false);
-        }
-    }
-
-    private IEnumerator SpritePosTween(Vector3 originalSpriteLocalPos, Vector3 finalLocalPos)
-    {
-        float perc = 0;
-        while (perc < 1)
-        {
-            perc += Time.deltaTime;
-            Vector3 currLocalPos = Vector3.Lerp(originalSpriteLocalPos, finalLocalPos, EasedPercent(perc));
-            spriteAnim.transform.localPosition = currLocalPos;
-            yield return null;
         }
     }
 
