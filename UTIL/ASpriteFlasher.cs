@@ -33,6 +33,8 @@ public abstract class ASpriteFlasher : MonoBehaviour
 
     protected abstract Color GetFlashColor();
 
+    private bool infFlashing = false;
+
     protected virtual int OnFlashDelegate(bool _)
     {
         Flash();
@@ -41,8 +43,14 @@ public abstract class ASpriteFlasher : MonoBehaviour
 
     public void Flash(FlashType flashType = FlashType.FLASH_LOOP)
     {
+        StopInfFlashing();
         if (!isActiveAndEnabled) { return; }
             SafeStartCoroutine(ref flashCR, FlashCR(flashType), this);
+    }
+
+    public void StopInfFlashing()
+    {
+        infFlashing = false;
     }
 
     private IEnumerator FlashCR(FlashType flashType)
@@ -52,6 +60,14 @@ public abstract class ASpriteFlasher : MonoBehaviour
             case FlashType.FLASH_LOOP:
                 yield return FlashHalfCR(true);
                 yield return FlashHalfCR(false);
+                break;
+            case FlashType.INF_FLASH_LOOP:
+                infFlashing = true;
+                while(infFlashing)
+                {
+                    yield return FlashHalfCR(true);
+                    yield return FlashHalfCR(false);
+                }
                 break;
 
             case FlashType.FLASH_ON:
@@ -103,4 +119,4 @@ public abstract class ASpriteFlasher : MonoBehaviour
     }
 }
 
-public enum FlashType { FLASH_LOOP, FLASH_ON, FLASH_OFF, INSTANT_OFF, INSTANT_ON }
+public enum FlashType { FLASH_LOOP = 0, FLASH_ON = 1, FLASH_OFF = 2, INSTANT_OFF = 3, INSTANT_ON = 4, INF_FLASH_LOOP = 5 }

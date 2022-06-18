@@ -91,6 +91,9 @@ public class PlayerRunner : MonoBehaviour
     [SerializeField]
     private SO_DamageQuantSettings damageSettings = null;
 
+    [SerializeField]
+    private SpriteFlasher damageWhiteFlasher = null;
+
     private Coroutine sprintCR = null;
 
     private bool pausedControls = false;
@@ -102,7 +105,12 @@ public class PlayerRunner : MonoBehaviour
 
     private bool zoneTransitionInvincibility = false;
 
-    private bool Invincible => tempDodgeInvincibility || zoneTransitionInvincibility || developerSettings.Invincibility;
+    private bool damageInvincibility = false;
+
+    private bool Invincible => tempDodgeInvincibility
+    || zoneTransitionInvincibility
+    || damageInvincibility
+    || developerSettings.Invincibility;
 
     private bool rollDodgedOnce = false;
 
@@ -143,7 +151,6 @@ public class PlayerRunner : MonoBehaviour
 
     private IEnumerator LaneChangeCR(float time, int dir)
     {
-        tempDodgeInvincibility = true;
         PositionChange(hitBox.transform, dir * terrSettings.TileDims.x, 0, 0);
         yield return new WaitForSeconds(time);
         hitBox.transform.position =
@@ -224,17 +231,25 @@ public class PlayerRunner : MonoBehaviour
     //TODO: take out dev testing for health and energy bar from here eventually!
     private void InputManager_DodgeLeft(CallbackContext ctx)
     {
-        if (!TryPerformAction(PlayerActionEnum.DODGE_L))
+        if (TryPerformAction(PlayerActionEnum.DODGE_L))
         {
-             TryJumpOrRollDodge(false);
+            tempDodgeInvincibility = true;
+        }
+        else
+        {
+            TryJumpOrRollDodge(false);
         }
     }
 
     private void InputManager_DodgeRight(CallbackContext ctx)
     {
-        if (!TryPerformAction(PlayerActionEnum.DODGE_R))
+        if (TryPerformAction(PlayerActionEnum.DODGE_R))
         {
-             TryJumpOrRollDodge(true);
+            tempDodgeInvincibility = true;
+        }
+        else
+        {
+            TryJumpOrRollDodge(true);
         }
     }
 
@@ -371,7 +386,20 @@ public class PlayerRunner : MonoBehaviour
         {
             jumpDodgedOnce = false;
         }
+
+        if (currAction.IsHurtAnim(oldAction))
+        {
+            StartCoroutine(DamageInvincibilityCR());
+        }
+
         StopSprintCR();
+    }
+
+    private IEnumerator DamageInvincibilityCR()
+    {
+        yield return new WaitForSeconds(settings.PostHurtInvincibilityTime);
+        damageWhiteFlasher.StopInfFlashing();
+        damageInvincibility = false;
     }
 
     private void OnGameModeChange(GameModeEnum oldMode, GameModeEnum newMode)
@@ -562,6 +590,8 @@ public class PlayerRunner : MonoBehaviour
         //TODO: seperate sounds of player getting hurt due to hurt action,
         //and impact of specific objects
         currAction.PerformCorrespondingHurt(requiredAction);
+        damageInvincibility = true;
+        damageWhiteFlasher.Flash(FlashType.INF_FLASH_LOOP);
 
         int damage = weaponType == WeaponEnum.NONE ?
             damageSettings.GetDefaultHazardDamage()

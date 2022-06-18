@@ -31,4 +31,8 @@ public class SO_PlayerRunnerSettings : ScriptableObject
     [SerializeField]
     private Vector3 startPosOffset = default;
     public Vector3 StartPosOffset => startPosOffset;
+
+    [SerializeField]
+    private float postHurtInvincibilityTime = 1f;
+    public float PostHurtInvincibilityTime => postHurtInvincibilityTime;
 }
