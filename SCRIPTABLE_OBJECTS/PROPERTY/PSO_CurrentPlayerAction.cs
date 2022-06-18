@@ -99,9 +99,14 @@ public class PSO_CurrentPlayerAction : PropertySO<PlayerActionEnum>
 
     public bool IsPlayingHurtAnim()
     {
-        return Value == PlayerActionEnum.HURT_AIR
-            || Value == PlayerActionEnum.HURT_CENTER
-            || Value == PlayerActionEnum.HURT_LOWER
-            || Value == PlayerActionEnum.HURT_UPPER;
+        return IsHurtAnim(Value);
+    }
+
+    public bool IsHurtAnim(PlayerActionEnum anim)
+    {
+        return anim == PlayerActionEnum.HURT_AIR
+            || anim == PlayerActionEnum.HURT_CENTER
+            || anim == PlayerActionEnum.HURT_LOWER
+            || anim == PlayerActionEnum.HURT_UPPER;
     }
 }

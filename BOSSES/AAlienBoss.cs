@@ -145,6 +145,8 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         {
             InitDeath();
             currHealth.DeRegisterForPropertyChanged(OnHealthChanged);
+            currZonePhase.DeRegisterForPropertyChanged(OnZonePhaseChange);
+            currZonePhase.ModifyValue(ZonePhaseEnum.END_OF_ZONE);
             return;
         }
 
@@ -237,11 +239,6 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     protected void AE_RemoveBoss()
     {
-        currHealth.DeRegisterForPropertyChanged(OnHealthChanged);
-        currZonePhase.DeRegisterForPropertyChanged(OnZonePhaseChange);
-        
-        currZonePhase.ModifyValue(ZonePhaseEnum.END_OF_ZONE);
-
         ExtraRemoveBoss();
 
         //TODO: Do elimination sequence for one sprite has fallen?

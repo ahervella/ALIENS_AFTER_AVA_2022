@@ -630,7 +630,7 @@ public class PlayerRunner : MonoBehaviour
             pausedControls = false;
         }
 
-        zoneTransitionInvincibility = newPhase == ZonePhaseEnum.ZONE_INTRO_TRANS;
+        zoneTransitionInvincibility = newPhase == ZonePhaseEnum.END_OF_ZONE;
     }
 
     private int OnTerrainChangeDelegate(TerrainChangeWrapper tcw)
