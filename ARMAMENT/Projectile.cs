@@ -260,6 +260,13 @@ public class Projectile : MovingNode
         MadeImpact(boss.HitBox().Box().center + boss.HitBox().Box().transform.position);
     }
 
+    public void OnEnterBoss3CannonDrone(Boss3CannonDrone drone)
+    {
+        if (drone.HitBox.RootParent == sourceHitBox?.RootParent) { return; }
+        drone.TempDisableCannon();
+        MadeImpact(drone.HitBox.Box().center + drone.HitBox.Box().transform.position);
+    }
+
     protected void OnTriggerEnter(Collider other)
     {
         if (!isAlienProjectile || other == null) { return; }

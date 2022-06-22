@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using static HelperUtil;
 
-[RequireComponent(typeof(BossLaneChangeManager))]
 public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 {
     [SerializeField]
@@ -21,14 +20,30 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
     [SerializeField]
     private float rawEndDeathHeightPos = default;
 
+    [SerializeField]
+    private PSO_LaneChange boss3LaneChangePSO = null;
+
+    [SerializeField]
+    private BossLaneChangeManager cannonDronesLaneChangeRef = null;
+
+    [SerializeField]
+    private Transform cannonDronesContainer = null;
+
+    [SerializeField]
+    private Transform leftMostEmptyDroneRef = null;
+
+    [SerializeField]
+    private Transform rightMostEmptyDroneRef = null;
+
     private Vector3 cachedBossNodeFinalLocalPos;
     private List<Vector3> cachedDroneFinalLocalPos;
 
-    private BossLaneChangeManager laneChangeManager = null;
 
     private Coroutine idlePhaseCR = null;
     private Coroutine shootPhaseCR = null;
     private Coroutine moveBossLocalLaneCR = null;
+
+    private Coroutine cannonDronesLaneChangeCR = null;
 
     private bool currBossRightOrLeftLocalLane;
 
@@ -82,8 +97,46 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 
     protected override void OnBossAwake()
     {
-        laneChangeManager = GetComponent<BossLaneChangeManager>();
+        boss3LaneChangePSO.RegisterForPropertyChanged(OnBoss3LaneChange);
         StartCoroutine(SpawnSequenceCR());
+    }
+
+    private void OnBoss3LaneChange(LaneChange _, LaneChange newLC)
+    {
+        SafeStartCoroutine(ref cannonDronesLaneChangeCR, CannonDronesLaneChangeCR(newLC), this);
+    }
+
+    private IEnumerator CannonDronesLaneChangeCR(LaneChange lc)
+    {
+        int centerDroneIndex = cannonDrones.Count / 2 + cannonDronesLaneChangeRef.CurrLaneDeviation;
+
+        float startLocalXPos = cannonDronesContainer.localPosition.x;
+        float finalLocalXPos;
+        
+        if (centerDroneIndex >= cannonDrones.Count)
+        {
+            finalLocalXPos = rightMostEmptyDroneRef.localPosition.x; 
+        }
+        else if (centerDroneIndex < 0)
+        {
+            finalLocalXPos = leftMostEmptyDroneRef.localPosition.x;
+        }
+        else
+        {
+            finalLocalXPos = cachedDroneFinalLocalPos[centerDroneIndex].x;
+        }
+
+        float perc = 0;
+        while (perc < 1)
+        {
+            perc += Time.deltaTime / lc.Time;
+            float localXPos = Mathf.Lerp(startLocalXPos, finalLocalXPos, EasedPercent(perc));
+            cannonDronesContainer.localPosition = new Vector3(
+                localXPos,
+                cannonDronesContainer.localPosition.y,
+                cannonDronesContainer.localPosition.z);
+            yield return null;
+        }
     }
 
     private IEnumerator SpawnSequenceCR()
@@ -135,13 +188,13 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 
     private IEnumerator IdlePhaseCR()
     {
-        MoveBossToLocalLane(0);
+        MoveBossToLocalLane(cannonDrones.Count / 2);
+        cannonDronesLaneChangeRef.MoveToLane(0, interruptable: false);
+
         foreach(Boss3CannonDrone bcd in cannonDrones)
         {
             bcd.CleanUpShooter();
         }
-
-        laneChangeManager.MoveToLane(0);
 
         yield return new WaitForSeconds(settings.GetRandRangeIdlePhaseTime(Rage));
 
@@ -165,7 +218,7 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
             for (int k = 0; k < gridSize.x; k++)
             {
                 if (!pw.PatternSteps.GetCell(k, i)) { continue; }
-                cannonDrones[k].InstanceShooter(HitBox(), Rage);
+                cannonDrones[k].InstanceShooter(Rage);
             }
             yield return new WaitForSeconds(pw.NextStepDelay);
             timePassed += pw.NextStepDelay;
@@ -177,20 +230,19 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
 
     private void MoveBossToLocalLane(bool fullRightOrLeftSide)
     {
-        MoveBossToLocalLane((fullRightOrLeftSide ? cannonDrones.Count - 1 : 0) - cannonDrones.Count / 2);
+        MoveBossToLocalLane(fullRightOrLeftSide ? cannonDrones.Count - 1 : 0);
     }
 
-    private void MoveBossToLocalLane(int localLaneIndex)
+    private void MoveBossToLocalLane(int cannonIndex)
     {
-        SafeStartCoroutine(ref moveBossLocalLaneCR, MoveBossToLocalLaneCR(localLaneIndex), this);
+        SafeStartCoroutine(ref moveBossLocalLaneCR, MoveBossToCannonCR(cannonIndex), this);
     }
 
-    private IEnumerator MoveBossToLocalLaneCR(int localLaneIndex)
+    private IEnumerator MoveBossToCannonCR(int cannonIndex)
     {
         moveBossLocalLaneCR = null;
         float localStartXPos = bossNode.transform.localPosition.x;
-        float localEndXPos = GetLaneXPosition(
-            localLaneIndex + laneChangeManager.CurrLaneDeviation, terrSettings) - transform.position.x;
+        float localEndXPos = cachedDroneFinalLocalPos[cannonIndex].x;
 
         float perc = 0;
         while (perc < 1)
