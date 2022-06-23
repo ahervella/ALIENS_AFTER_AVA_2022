@@ -13,6 +13,13 @@ public abstract class ASpriteFlasher : MonoBehaviour
     [SerializeField]
     private BoolDelegateSO optionalFlashDelegate = null;
 
+    [SerializeField]
+    private bool unscaledDeltaTime = false;
+
+    private bool cachedGamePaused = false;
+
+    private float deltaTime => unscaledDeltaTime ? UnscaledTimeIfNotPaused(cachedGamePaused) : Time.deltaTime;
+
     private Coroutine flashCR = null;
     private Color startClearColor;
 
@@ -25,6 +32,13 @@ public abstract class ASpriteFlasher : MonoBehaviour
         SetFlashColor(startClearColor);
 
         optionalFlashDelegate?.RegisterForDelegateInvoked(OnFlashDelegate);
+    }
+
+    //TODO: share this with the code that uses the HelperUtil's UnscaledTimeIfNotPaused
+    // (Make a different universal pause? Or this good?)
+    private void OnCurrGameModeChange(GameModeEnum _, GameModeEnum newMode)
+    {
+        cachedGamePaused = newMode == GameModeEnum.PAUSE;
     }
 
     protected abstract void CacheSpriteComponentRef();
@@ -100,7 +114,7 @@ public abstract class ASpriteFlasher : MonoBehaviour
         float perc = 0;
         while (perc < 1)
         {
-            perc += Time.deltaTime / (settings.FlashLoopTime / 2);
+            perc += deltaTime / (settings.FlashLoopTime / 2);
 
             SetFlashColor(Color.Lerp(
                 currStartClr, endVal, EasedPercent(perc)));
