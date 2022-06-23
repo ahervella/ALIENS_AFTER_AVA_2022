@@ -254,7 +254,7 @@ public class Projectile : MovingNode
     public void OnEnteredBoss(AAlienBossBase boss)
     {
         //Null check on the sourceHitBox for bullets instanced from player
-        if (boss.HitBox().RootParent == sourceHitBox?.RootParent) { return; }
+        if (isAlienProjectile || boss.HitBox().RootParent == sourceHitBox?.RootParent) { return; }
 
         boss.TakeDamage(damageSettings.GetWeaponDamage(weaponType, damage2PlayerOrAlien: false));
         MadeImpact(boss.HitBox().Box().center + boss.HitBox().Box().transform.position);

@@ -62,13 +62,9 @@ public class Boss3CannonDrone : MonoBehaviour
     [SerializeField]
     private float restoreColorTransTime = 1f;
 
-    //only need the ref so that we don't accidentally hurt the boss
-    [SerializeField]
-    private BoxColliderSP bossHB = null;
-
     private Coroutine restoreCR = null;
 
-    private bool cannonDisabled = false;
+    private bool cannonDisabled => hb.BoxDisabled;
 
     private Shooter shooterInstance = null;
 
@@ -150,7 +146,7 @@ public class Boss3CannonDrone : MonoBehaviour
 
     public void InstanceShooter(bool rage, int shotCount = 1)
     {
-        if (hb.BoxDisabled) { return; }
+        if (cannonDisabled) { return; }
 
         ShooterWrapper sw = settings.BeamShooterWrapper(rage);
         Vector3 projectilePos() => shootSpawnRef.position;
@@ -159,7 +155,7 @@ public class Boss3CannonDrone : MonoBehaviour
             shootSpawnRef,
             shootSpawnRef,
             projectilePos,
-            bossHB,
+            hb,
             sw,
             shotCount);
         shooterInstance.transform.localPosition = Vector3.zero;

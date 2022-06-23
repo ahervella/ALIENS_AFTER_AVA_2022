@@ -16,16 +16,28 @@ public class LaneChange
     /// <param name="time">time for evnironment to move</param>
     public LaneChange(bool movingRight, float time)
     {
+        InitLaneChange(movingRight ? 1 : -1, time);
+    }
 
+    public LaneChange(int dirMag, float time)
+    {
+        InitLaneChange(dirMag, time);
+    }
+
+    private void InitLaneChange(int dirMag, float time)
+    {
         //Only let lane changes with a min of 0 time
         float modTime = Mathf.Max(time, 0f);
 
-        this.dir = movingRight ? 1 : -1;
+        this.dirMag = dirMag;
         this.time = modTime;
     }
 
-    private int dir = default;
-    public int Dir => dir;
+    private int dirMag = default;
+
+    public int Dir => Mathf.Clamp(dirMag, -1, 1); //max is exclusive
+
+    public int DirMag => dirMag;
 
     private float time = default;
     public float Time => time;
