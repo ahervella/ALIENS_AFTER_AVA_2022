@@ -34,10 +34,17 @@ public class PSO_CurrentPlayerAction : PropertySO<PlayerActionEnum>
         //TODO: just make it so we only need the permission here?
         switch (action)
         {
-            case PlayerActionEnum.DODGE_L:
-            case PlayerActionEnum.DODGE_R:
             case PlayerActionEnum.ROLL:
             case PlayerActionEnum.JUMP:
+            if (Value == PlayerActionEnum.RUN || Value == PlayerActionEnum.LAND
+                || Value == PlayerActionEnum.DODGE_R || Value == PlayerActionEnum.DODGE_L)
+                {
+                    ModifyValue(action);
+                    return true;
+                }
+                break;
+            case PlayerActionEnum.DODGE_L:
+            case PlayerActionEnum.DODGE_R:
             case PlayerActionEnum.SPRINT:
                 if (Value == PlayerActionEnum.RUN || Value == PlayerActionEnum.LAND)
                 {
