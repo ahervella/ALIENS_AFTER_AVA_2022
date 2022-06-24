@@ -128,9 +128,13 @@ public class TussleManager : MonoBehaviour
     {
         VideoPlayer player = QueueTussleVideo(vidWrapper);
         currVideoPlayer = player;
-        player.Play();
 
         yield return WaitForVideoToLoad(player);
+
+        //TODO: putting this after wait for video to load solved a bug
+        //of not playing the video at all. Can we not set the clips
+        //same frame without doing .Prepare() ?
+        player.Play();
 
         vidWrapper.AudioWrapper?.PlayAudioWrapper(audioSource);
 
@@ -226,6 +230,9 @@ public class TussleManager : MonoBehaviour
         yield return WaitForVideoToLoad(currVideoPlayer);
         yield return WaitForCurrVideoToFinish();
 
+        //TODO: why do we flicker if after wait here?
+        //In play video we need the play afterwards or else video no loads,
+        //so why the flicker?
         queuedPlayer.Play();
 
         yield return WaitForVideoToLoad(queuedPlayer);
