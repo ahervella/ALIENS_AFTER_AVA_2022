@@ -34,10 +34,22 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
     private PSO_CurrentZonePhase currZonePhase = null;
 
     [SerializeField]
+    private IntPropertySO currZone = null;
+
+    [SerializeField]
     private SO_DeveloperToolsSettings devToolsS = null;
 
     [SerializeField]
     private BoolPropertySO firstTimePlayingPSO = null;
+
+    [SerializeField]
+    private BoolPropertySO lvlSelectLockedPSO = null;
+
+    [SerializeField]
+    private GameObject mainSubButtonGroup = null;
+
+    [SerializeField]
+    private GameObject levelSelectSubButtonGroup = null;
 
     private Coroutine loopVideoFadeCR = null;
     private Coroutine titleFadeCR = null;
@@ -52,6 +64,11 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
         loopVideoScreenShotRef.enabled = false;
 
         AssignButtonMethods();
+        
+        levelSelectSubButtonGroup.SetActive(false);
+        mainSubButtonGroup.SetActive(true);
+
+        buttonGroup.GetButton(MainMenuButtonEnum.SELECT_LVL).ButtonEnabled = !lvlSelectLockedPSO.Value;
 
         ResetSequence();
         StartMainMenuSequence();
@@ -67,6 +84,11 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
         AssignOnButtonPressedMethod(MainMenuButtonEnum.RUN, PlayGame);
         AssignOnButtonPressedMethod(MainMenuButtonEnum.QUIT, QuitGameApplication);
         AssignOnButtonPressedMethod(MainMenuButtonEnum.BACKPACK, OpenBackpack);
+        AssignOnButtonPressedMethod(MainMenuButtonEnum.SELECT_LVL, SelectLevelMenu);
+        AssignOnButtonPressedMethod(MainMenuButtonEnum.BACK_TO_MAIN, Return2MainSubMenu);
+        AssignOnButtonPressedMethod(MainMenuButtonEnum.LVL_1, RunLvl1);
+        AssignOnButtonPressedMethod(MainMenuButtonEnum.LVL_2, RunLvl2);
+        AssignOnButtonPressedMethod(MainMenuButtonEnum.LVL_3, RunLvl3);
     }
 
     private void PlayGame()
@@ -77,6 +99,30 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
             currGameMode.ModifyValue(GameModeEnum.TUTORIAL);
             return;
         }
+        currGameMode.ModifyValue(GameModeEnum.PLAY);
+    }
+
+    private void SelectLevelMenu()
+    {
+        levelSelectSubButtonGroup.SetActive(true);
+        mainSubButtonGroup.SetActive(false);
+        SelectButton(buttonGroup.GetButton(MainMenuButtonEnum.BACK_TO_MAIN));
+    }
+
+    private void Return2MainSubMenu()
+    {
+        levelSelectSubButtonGroup.SetActive(false);
+        mainSubButtonGroup.SetActive(true);
+        SelectButton(buttonGroup.GetButton(MainMenuButtonEnum.SELECT_LVL));
+    }
+
+    private void RunLvl1() => RunSelectedLevel(1);
+    private void RunLvl2() => RunSelectedLevel(2);
+    private void RunLvl3() => RunSelectedLevel(3);
+
+    private void RunSelectedLevel(int lvl)
+    {
+        currZone.DirectlySetValue(lvl);
         currGameMode.ModifyValue(GameModeEnum.PLAY);
     }
 
@@ -165,6 +211,13 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
 
 public enum MainMenuButtonEnum
 {
-    RUN = 0, BACKPACK = 1, QUIT = 2
+    RUN = 0,
+    BACKPACK = 1,
+    QUIT = 2,
+    SELECT_LVL = 3,
+    BACK_TO_MAIN = 7,
+    LVL_1 = 4,
+    LVL_2 = 5,
+    LVL_3 = 6 
 }
 

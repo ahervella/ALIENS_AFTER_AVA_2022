@@ -71,7 +71,7 @@ public abstract class A_MenuManager<T> : MonoBehaviour
 
     }
 
-    private void SelectButton(MenuButton button)
+    protected void SelectButton(MenuButton button)
     {
         if (!MenuEnabled) { return; }
 
