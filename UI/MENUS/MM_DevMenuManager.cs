@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
 using Tayx.Graphy;
+using static UnityEngine.InputSystem.InputAction;
 
 public class MM_DevMenuManager : A_MenuManager<DevMenuButtonEnum>
 {
@@ -28,6 +29,9 @@ public class MM_DevMenuManager : A_MenuManager<DevMenuButtonEnum>
 
     [SerializeField]
     private BoolPropertySO devMenuVisible = null;
+
+    [SerializeField]
+    private SO_GameSaveManager saveManager = null;
 
     protected override void OnMenuAwake()
     {
@@ -85,12 +89,28 @@ public class MM_DevMenuManager : A_MenuManager<DevMenuButtonEnum>
         {
             GraphyManager.Instance.Enable();
             devMenuVisible.ModifyValue(true);
+            inputManager.RegisterForInput(InputEnum.DEV_8, InputManager_SaveGameState);
+            inputManager.RegisterForInput(InputEnum.DEV_9, InputManager_LoadGameSave);
         }
         else
         {
             GraphyManager.Instance.Disable();
             devMenuVisible.ModifyValue(false);
+            inputManager.UnregisterFromInput(InputEnum.DEV_8, InputManager_SaveGameState);
+            inputManager.UnregisterFromInput(InputEnum.DEV_9, InputManager_LoadGameSave);
         }
+    }
+
+    private void InputManager_SaveGameState(CallbackContext ctx)
+    {
+        saveManager.SaveGameState();
+        Debug.Log("Saved to:" + Application.persistentDataPath);
+    }
+
+    private void InputManager_LoadGameSave(CallbackContext ctx)
+    {
+        bool successful = saveManager.TryLoadGameSave();
+        Debug.Log("Loading save file: " + (successful ? "success" : "failure"));
     }
 
     private void OnToggleFullPSOList()

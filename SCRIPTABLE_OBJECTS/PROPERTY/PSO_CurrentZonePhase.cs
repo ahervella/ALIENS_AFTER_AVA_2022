@@ -18,6 +18,9 @@ public class PSO_CurrentZonePhase : PropertySO<ZonePhaseEnum>
     private SO_TerrZoneWrapperSettings zoneWrapperSettings = null;
 
     [SerializeField]
+    private SO_GameSaveManager saveManager = null;
+
+    [SerializeField]
     private GameObject fade2BlackPrefab = null;
 
     [SerializeField]
@@ -31,6 +34,7 @@ public class PSO_CurrentZonePhase : PropertySO<ZonePhaseEnum>
             {
                 TryLoadTutorial();
                 currZone.ModifyValue(1);
+                saveManager.SaveGameState();
             }
             SetValue(mod);
         }

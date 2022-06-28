@@ -143,6 +143,11 @@ public abstract class PropertySO<T> : PropertySO
         TriggerDevMenuUpdate();
     }
 
+    public void LoadSaveState(T saveState)
+    {
+        currentValue = saveState;
+    }
+
     public abstract void ModifyValue(T mod);
 
     public void ModifyValueNoInvoke(T mod)
