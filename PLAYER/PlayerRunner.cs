@@ -133,6 +133,8 @@ public class PlayerRunner : MonoBehaviour
             OnTussleHazardCleanUpInvoked);
 
         laneChangeDelegate.RegisterForDelegateInvoked(OnLaneChangeDelegate);
+
+        inputManager.EnsureIsEnabled();
     }
 
     private void Start()
@@ -371,6 +373,8 @@ public class PlayerRunner : MonoBehaviour
 
     private void OnActionChange(PlayerActionEnum oldAction, PlayerActionEnum newAction)
     {
+        tempDodgeInvincibility = false;
+        
         if (newAction != PlayerActionEnum.JUMP && newAction != PlayerActionEnum.ROLL)
         {
             rollCanceled = false;
