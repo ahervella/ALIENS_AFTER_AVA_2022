@@ -34,6 +34,9 @@ public class TussleManager : MonoBehaviour
     private VideoPlayer currVideoPlayer;
 
     [SerializeField]
+    private Image blackBackground = null;
+
+    [SerializeField]
     private Image deathBlackBackground = null;
 
     [SerializeField]
@@ -84,11 +87,14 @@ public class TussleManager : MonoBehaviour
         //make the duplicate que videoplayer one at runtime to have the same settings
         videoPlayer2 = Instantiate(videoPlayer, transform);
 
+        blackBackground.color = new Color(0, 0, 0, 0);
         deathBlackBackground.color = new Color(0, 0, 0, 0);
     }
 
     private void InitiateTussle(TussleWrapper _, TussleWrapper __)
     {
+        blackBackground.color = new Color(0, 0, 0, 1);
+
         currGameMode.RegisterForPropertyChanged(OnGameModeChange);
 
         videoPlayer.enabled = true;
@@ -300,6 +306,8 @@ public class TussleManager : MonoBehaviour
         currVideoPlayer = null;
         videoPlayer.clip = null;
         videoPlayer2.clip = null;
+
+        blackBackground.color = new Color(0, 0, 0, 0);
 
         treadmillSpeedDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(1, 0));
         energyBarDisplayDelegate.InvokeDelegateMethod(true);
