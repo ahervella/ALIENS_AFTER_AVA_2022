@@ -115,6 +115,7 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
     {
         if (TotalSlides == 1)
         {
+            backButton.ButtonEnabled = false;
             backButton.gameObject.SetActive(false);
             return;
         }

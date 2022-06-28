@@ -88,6 +88,7 @@ public class BossOscillationManager : MonoBehaviour
 
     private void TickOscillation(OscillationConfig oc)
     {
+        if (oc == null) { return; }
         if (oc.delayOffset > 0)
         {
             oc.delayOffset -= Time.deltaTime;
