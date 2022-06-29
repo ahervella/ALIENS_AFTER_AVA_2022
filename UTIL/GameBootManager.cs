@@ -10,11 +10,18 @@ public class GameBootManager : MonoBehaviour
     [SerializeField]
     private BoolPropertySO firstTimePlayingPSO = null;
 
+    [SerializeField]
+    private SO_GameSaveManager saveManager = null;
+
     private void Start()
     {
-        if (devTools.DemoMode)
-        {
-            firstTimePlayingPSO.ModifyValue(true);
-        }
+        // if (devTools.DemoMode)
+        // {
+        //     firstTimePlayingPSO.ModifyValue(true);
+        // }
+
+
+        bool successful = saveManager.TryLoadGameSave();
+        Debug.Log("Loaded save file successful: " + successful);
     }
 }
