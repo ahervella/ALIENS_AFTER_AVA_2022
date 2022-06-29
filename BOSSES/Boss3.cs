@@ -56,6 +56,7 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
         SafeStopCoroutine(ref moveBossLocalLaneCR, this);
         SafeStopCoroutine(ref idlePhaseCR, this);
         SafeStopCoroutine(ref shootPhaseCR, this);
+        currState.DeRegisterForPropertyChanged(OnStateChange);
 
        foreach(Boss3CannonDrone drone in cannonDrones)
        {

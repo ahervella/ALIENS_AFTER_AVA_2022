@@ -24,4 +24,8 @@ public class SO_TutorialMenuSettings : ScriptableObject
     [SerializeField]
     private float lastWordsAfterDelay = 1f;
     public float LastWordsAfterDelay => lastWordsAfterDelay;
+
+    [SerializeField]
+    private float postTutorialTransDelay = 1f;
+    public float PostTutorialTransDelay => postTutorialTransDelay;
 }

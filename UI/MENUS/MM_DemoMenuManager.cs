@@ -14,19 +14,7 @@ public class MM_DemoMenuManager : A_MenuManager<DemoMenuEnum>
     private PSO_CurrentGameMode currGameMode = null;
 
     [SerializeField]
-    private IntPropertySO currZone = null;
-
-    [SerializeField]
     private SO_DeveloperToolsSettings devToolsSettings = null;
-
-    [SerializeField]
-    private BoolPropertySO currEndOfDemo = null;
-
-    [SerializeField]
-    private RectTransform endOfDemoContainer = null;
-
-    [SerializeField]
-    private Image fade2BlackImg = null;
 
     [SerializeField]
     private List<TextMeshProUGUI> texts = new List<TextMeshProUGUI>();
@@ -34,11 +22,11 @@ public class MM_DemoMenuManager : A_MenuManager<DemoMenuEnum>
 
     protected override void OnMenuAwake()
     {
-        endOfDemoContainer.gameObject.SetActive(false);
-
-        if (!devToolsSettings.DemoMode) { return; }
-
-        fade2BlackImg.color = new Color(0, 0, 0, 0);
+        if (!devToolsSettings.DemoMode)
+        {
+            currGameMode.ModifyValue(GameModeEnum.MAINMENU);
+            return;
+        }
 
         foreach (TextMeshProUGUI t in texts)
         {
@@ -46,41 +34,15 @@ public class MM_DemoMenuManager : A_MenuManager<DemoMenuEnum>
             t.color = new Color(clr.r, clr.g, clr.b, 0);
         }
 
-        currZone.RegisterForPropertyChanged(OnZoneChange);
-
         AssignButtonMethods();
 
         MenuEnabled = false;
-    }
 
-    protected override void OnMenuStart()
-    {
-        currEndOfDemo.ModifyValue(false);
-    }
-
-    private void OnZoneChange(int oldZone, int newZone)
-    {
-        if (newZone == settings.EndDemoZone)
-        {
-            currEndOfDemo.ModifyValue(true);
-            endOfDemoContainer.gameObject.SetActive(true);
-            StartCoroutine(InitEndOfDemoCR());
-        }
+         StartCoroutine(InitEndOfDemoCR());
     }
 
     private IEnumerator InitEndOfDemoCR()
     {
-        //TODO: make this a sharedUtil thing
-        float perc = 0;
-        while (perc <= 1)
-        {
-            perc += Time.deltaTime / settings.Fade2BlackTime;
-            fade2BlackImg.color = new Color(0, 0, 0, EasedPercent(perc));
-            yield return null;
-        }
-
-        yield return new WaitForSeconds(settings.TextDelay);
-
         yield return SetTextColorCR(dir: 1);
     }
 
@@ -142,10 +104,11 @@ public class MM_DemoMenuManager : A_MenuManager<DemoMenuEnum>
 
         yield return new WaitForSeconds(settings.Transition2MainMenuDelay);
 
-        //return to zone 1 for next run
-        currZone.ModifyValue(-1);
-
         currGameMode.ModifyValue(GameModeEnum.MAINMENU);
+    }
+
+    protected override void OnMenuStart()
+    {
     }
 }
 

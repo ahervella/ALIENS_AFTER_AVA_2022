@@ -126,7 +126,7 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
             SelectButton(nextButton);
         }
 
-        else if (currSlideIndex == TotalSlides - 2)
+        if (currSlideIndex == TotalSlides - 2)
         {
             nextButton.SetText(ogNextButtonText);
         }
@@ -214,15 +214,23 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
             lastWords.gameObject.SetActive(true);
             yield return new WaitForSeconds(settings.LastWordsTime);
             lastWords.gameObject.SetActive(false);
+            yield return new WaitForSeconds(settings.LastWordsAfterDelay);
         }
-
-        yield return new WaitForSeconds(settings.LastWordsAfterDelay);
+        else
+        {
+            yield return new WaitForSeconds(settings.PostTutorialTransDelay);
+        }
 
         currGameMode.ModifyValue(cachedTutWrapper.LastSlideButtonGameMode);
     }
 }
 
-public enum TutorialMenuEnum { BACK = 0, NEXT = 1 }
+public enum TutorialMenuEnum
+{
+    BACK = 0,
+    NEXT = 1,
+    DEMO_FEEDBACK_LINK = 2
+}
 
 public enum TutorialModeEnum
 {

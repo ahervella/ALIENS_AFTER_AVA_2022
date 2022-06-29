@@ -18,6 +18,9 @@ public class MenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     private bool disableButton = false;
 
     [SerializeField]
+    private bool useGameObjectEnableForButton = false;
+
+    [SerializeField]
     private TextMeshProUGUI text = null;
 
     [SerializeField]
@@ -32,7 +35,9 @@ public class MenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     private bool buttonEnabled = true;
     public bool ButtonEnabled
     {
-        get => buttonEnabled;
+        get => useGameObjectEnableForButton ?
+            buttonEnabled && gameObject.activeInHierarchy : buttonEnabled;
+            
         set
         {
             Color clr = text.color;
@@ -53,10 +58,22 @@ public class MenuButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     private void Awake()
     {
-        if (disableButton)
+        if (disableButton || (useGameObjectEnableForButton && !gameObject.activeInHierarchy))
         {
             ButtonEnabled = false;
         }
+    }
+
+    private void OnDisable()
+    {
+        if (!useGameObjectEnableForButton) { return; }
+        ButtonEnabled = false;
+    }
+
+    private void OnEnable()
+    {
+       if (!useGameObjectEnableForButton) { return; }
+        ButtonEnabled = true; 
     }
 
     //The action paramaters are this button (MenuButton)

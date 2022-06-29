@@ -11,5 +11,6 @@ public enum GameModeEnum
     QUIT = 4,
     BOOT = 5,
     TUTORIAL = 6,
-    NONE = 7
+    NONE = 7,
+    END_OF_DEMO = 8
 }
