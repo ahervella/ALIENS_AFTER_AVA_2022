@@ -142,12 +142,13 @@ public class PlayerRunner : MonoBehaviour
         RegisterForInputs();
         currAction.ModifyValue(PlayerActionEnum.RUN);
 
-        terrNodes.Value.AttachTransform(hitBox.transform, horizOrVert: true);
+        //terrNodes.Value.AttachTransform(hitBox.transform, horizOrVert: true);
+        ApplyHitBoxSizeErrorFix(hitBox, towardsOrAwayFromPlayer: true);
     }
 
     private int OnLaneChangeDelegate(LaneChange lc)
     {
-        SafeStartCoroutine(ref laneChangeCR, LaneChangeCR(lc.Time, lc.Dir), this);
+        //SafeStartCoroutine(ref laneChangeCR, LaneChangeCR(lc.Time, lc.Dir), this);
         return 0;
     }
 
