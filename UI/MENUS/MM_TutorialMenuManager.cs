@@ -123,6 +123,7 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
         if (currSlideIndex == 0)
         {
             backButton.ButtonEnabled = false;
+            SelectButton(nextButton);
         }
 
         else if (currSlideIndex == TotalSlides - 2)

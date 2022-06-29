@@ -13,7 +13,7 @@ public class S_InputTypeDetector : Singleton<S_InputTypeDetector>
 
     protected override void OnAwake()
     {
-        inputManager.RegisterForAnyInput(InputManager_OnInput);
+        inputManager.RegisterForAnyInput(InputManager_OnInput, persistent = true);
     }
 
     private void InputManager_OnInput(CallbackContext ctx)
