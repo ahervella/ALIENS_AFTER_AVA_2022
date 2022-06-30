@@ -97,6 +97,10 @@ public class SO_TerrZoneWrapper : ScriptableObject
         public ZonePhaseEnum NextPhase => nextPhase;
 
         [SerializeField]
+        private SteamAchievementsEnum achievementOnFinish = SteamAchievementsEnum.NONE;
+        public SteamAchievementsEnum AchievementOnFinish => achievementOnFinish;
+
+        [SerializeField]
         private float addonSpawnLikelihood = 0f;
         public float AddonSpawnLikelihood => addonSpawnLikelihood;
 
@@ -136,6 +140,10 @@ public class SO_TerrZoneWrapper : ScriptableObject
         return GetZonePhaseWrapper(currPhase).NextPhase;
     }
 
+    public SteamAchievementsEnum GetSteamAchForZonePhase(ZonePhaseEnum phase)
+    {
+        return GetZonePhaseWrapper(phase).AchievementOnFinish;
+    }
 
     public float? TryGetZonePhaseTileDist(ZonePhaseEnum phase )
     {

@@ -26,6 +26,9 @@ public class PSO_CurrentZonePhase : PropertySO<ZonePhaseEnum>
     [SerializeField]
     private float fade2TutorialTime = 1f;
 
+    [SerializeField]
+    private SO_SteamManager steamManager = null;
+
     public override void ModifyValue(ZonePhaseEnum mod)
     {
         if (Value != mod)
@@ -33,6 +36,7 @@ public class PSO_CurrentZonePhase : PropertySO<ZonePhaseEnum>
             if (Value == ZonePhaseEnum.END_OF_ZONE)
             {
                 TryLoadTutorial();
+                TryCompleteAchievement();
                 currZone.ModifyValue(1);
                 saveManager.SaveGameState();
             }
@@ -49,6 +53,16 @@ public class PSO_CurrentZonePhase : PropertySO<ZonePhaseEnum>
             FadeToBlack ftb = inst.GetComponent<FadeToBlack>();
             ftb.InitFade(fadeInOrOut: false, fade2TutorialTime, 0, () => GoToTutorialScene(zw));
         }
+    }
+
+    private void TryCompleteAchievement()
+    {
+        SO_TerrZoneWrapper zw = zoneWrapperSettings.GetZoneWrapper(currZone.Value);
+        SteamAchievementsEnum ach = zw.GetSteamAchForZonePhase(Value);
+
+        if (ach == SteamAchievementsEnum.NONE) { return; }
+
+        steamManager.TryCompleteAchievement(ach);
     }
 
     private void GoToTutorialScene(SO_TerrZoneWrapper zw)
