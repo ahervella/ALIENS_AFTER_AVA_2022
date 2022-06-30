@@ -36,12 +36,18 @@ public class ArmamentAvailableManager : MonoBehaviour
     private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
 
     private float deltaTime => UnscaledTimeIfNotPaused(gamePaused); 
+
+    private Vector2 ogScale;
+    private float ogRot;
     
     private void Awake()
     {
         if (currTimer == null){return;}
         currEnergy.RegisterForPropertyChanged(OnValuesChange);
         currTimer.RegisterForPropertyChanged(OnValuesChange);
+
+        ogScale = distortIconTrans.localScale;
+        ogRot = distortIconTrans.localRotation.eulerAngles.z;
     }
 
     private void OnValuesChange(FillBarQuant _, FillBarQuant __)
@@ -67,8 +73,8 @@ public class ArmamentAvailableManager : MonoBehaviour
 
     private IEnumerator TriggerAvailableEffect()
     {
-        Vector2 startScale = distortIconTrans.localScale;
-        float startRot = distortIconTrans.localRotation.eulerAngles.z;
+        Vector2 startScale = ogScale;
+        float startRot = ogRot;
 
         float perc = 0;
         while (perc < 1)
