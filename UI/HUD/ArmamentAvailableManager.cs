@@ -29,6 +29,13 @@ public class ArmamentAvailableManager : MonoBehaviour
     private bool triggeredAlert = false;
 
     private Coroutine alertCR = null;
+
+    private PSO_CurrentGameMode currGameMode = null;
+
+    //TODO: make an unscaled deltaTime SO that can share all this across where we do use it
+    private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
+
+    private float deltaTime => UnscaledTimeIfNotPaused(gamePaused); 
     
     private void Awake()
     {
@@ -66,7 +73,7 @@ public class ArmamentAvailableManager : MonoBehaviour
         float perc = 0;
         while (perc < 1)
         {
-            perc += Time.deltaTime / triggerTime;
+            perc += deltaTime / triggerTime;
             float loopedPerc = perc < 0.5 ? perc * 2 : 2 - perc * 2;
             Vector2 scale = Vector2.Lerp(startScale, triggerScale, loopedPerc);
             float rot = Mathf.Lerp(startRot, triggerRot, loopedPerc);
