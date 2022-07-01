@@ -35,18 +35,21 @@ public class PSO_CurrentZonePhase : PropertySO<ZonePhaseEnum>
         {
             if (Value == ZonePhaseEnum.END_OF_ZONE)
             {
-                TryLoadTutorial();
+                SO_TerrZoneWrapper zw = zoneWrapperSettings.GetZoneWrapper(currZone.Value);
+
+                TryLoadTutorial(zw);
                 TryCompleteAchievement();
                 currZone.ModifyValue(1);
+                zw.TutorialOneShotPSO.ModifyValue(false);
                 saveManager.SaveGameState();
             }
             SetValue(mod);
         }
     }
 
-    private void TryLoadTutorial()
+    private void TryLoadTutorial(SO_TerrZoneWrapper zw)
     {
-        SO_TerrZoneWrapper zw = zoneWrapperSettings.GetZoneWrapper(currZone.Value);
+        
         if (zw.TutorialOnFinish != TutorialModeEnum.NONE && zw.TutorialOneShotPSO.Value)
         {
             GameObject inst = Instantiate(fade2BlackPrefab);
@@ -67,7 +70,6 @@ public class PSO_CurrentZonePhase : PropertySO<ZonePhaseEnum>
 
     private void GoToTutorialScene(SO_TerrZoneWrapper zw)
     {
-            zw.TutorialOneShotPSO.ModifyValue(false);
             currTutMode.ModifyValue(zw.TutorialOnFinish);
             currGameMode.ModifyValue(GameModeEnum.TUTORIAL);
     }
