@@ -26,6 +26,9 @@ public class ElectronShield : MonoBehaviour
     [SerializeField]
     private float timeBeforeEndAnim = 1f;
 
+    [SerializeField]
+    private  BoolPropertySO shieldActivePSO = null;
+
     private Coroutine timerCR = null;
 
     private void Awake()
@@ -60,5 +63,7 @@ public class ElectronShield : MonoBehaviour
             StopCoroutine(timerCR);
         }
         destructionSpritePrefab?.InstantiateDestruction(transform.position, transform.rotation);
+
+        shieldActivePSO.ModifyValue(false);
     }
 }

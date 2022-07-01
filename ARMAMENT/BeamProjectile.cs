@@ -51,6 +51,9 @@ public class BeamProjectile : Projectile
     [SerializeField]
     private AAudioWrapperV2 beamDoneAudio = null;
 
+    [SerializeField]
+    private BoolPropertySO optionalBeamActivePSO = null;
+
     private BeamMuzzleFlash mzRef;
 
     private Coroutine beamEndCR = null;
@@ -203,6 +206,7 @@ public class BeamProjectile : Projectile
         //it would not play here....
         StopAllAudioSourceSounds(audioSource);
         beamDoneAudio.PlayAudioWrapper(audioSource);
+
         beamEndCR = null;
     }
 
@@ -213,6 +217,7 @@ public class BeamProjectile : Projectile
 
     private void OnDestroy()
     {
+        optionalBeamActivePSO?.ModifyValue(false);
         currPlayerAction.DeRegisterForPropertyChanged(OnPlayerActionChange);
         SafeStopCoroutine(ref beamEndCR, this);
     }

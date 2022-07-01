@@ -18,9 +18,6 @@ public class ArmamentManager : MonoBehaviour
     private PSO_CurrentPlayerAction currAction = null;
 
     [SerializeField]
-    private BoolPropertySO grappleOnFlag = null;
-
-    [SerializeField]
     private DSO_UseArmament useArmamentDelegate = null;
 
     [SerializeField]
@@ -28,6 +25,9 @@ public class ArmamentManager : MonoBehaviour
 
     [SerializeField]
     private Transform playerCenterSpawnPoint = null;
+
+    [SerializeField]
+    private List<BoolPropertySO> weaponActivePSOs = new List<BoolPropertySO>();
 
     private void Awake()
     {
@@ -59,9 +59,10 @@ public class ArmamentManager : MonoBehaviour
         {
             if (armament == null) { return false; }
 
-            if (grappleOnFlag.Value)
+            if (!armament.CanSpawnAnotherInstance) { return false; }
+
+            if (armament is Weapon && weaponActivePSOs.FindAll(pso => pso.Value).Count > 0)
             {
-                Debug.Log("tried to use armament '" + armament.name + "' but grapple was activated!");
                 return false;
             }
 

@@ -35,8 +35,17 @@ public abstract class AArmament : ScriptableObject
     [SerializeField]
     private List<ArmamentRequirement> requirements = new List<ArmamentRequirement>();
 
+    [SerializeField]
+    private bool oneInstanceAtATime = true;
+
+    [SerializeField]
+    private BoolPropertySO optionalArmamentActivePSO = null;
+
     [NonSerialized]
     private ArmamentRequirement cachedReq = null;
+
+    public bool CanSpawnAnotherInstance =>
+    !oneInstanceAtATime || !(optionalArmamentActivePSO?.Value ?? false);
 
     public void CacheArmamentLevelRequirements()
     {
@@ -63,6 +72,7 @@ public abstract class AArmament : ScriptableObject
 
     public virtual void UseArmament(Transform spawnNode)
     {
+        optionalArmamentActivePSO?.ModifyValue(true);
         Instantiate(armamentFirePrefab, spawnNode);
     }
 }

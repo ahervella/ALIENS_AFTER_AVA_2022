@@ -29,11 +29,6 @@ public class GrappleHook : MonoBehaviour
     [SerializeField]
     private DSO_TreadmillSpeedChange speedChangeDelegate = null;
 
-    //Used in case we want to avoid other equipment use or weapons
-    //while shooting grapple (before it grabs anything)
-    [SerializeField]
-    private BoolPropertySO grappleOnFlag = null;
-
     [SerializeField]
     private PSO_CurrentPlayerAction currAction = null;
 
@@ -60,6 +55,10 @@ public class GrappleHook : MonoBehaviour
 
     [SerializeField]
     private PSO_CurrentGameMode currGameMode = null;
+
+    [SerializeField]
+    private BoolPropertySO grappleActivePSO = null;
+
     private bool paused => currGameMode.Value == GameModeEnum.PAUSE;
 
     private bool cachedTussleStarted = false;
@@ -76,8 +75,6 @@ public class GrappleHook : MonoBehaviour
     {
         audioSource = GetComponent<AudioWrapperSource>();
 
-        grappleOnFlag.ModifyValue(true);
-        grappleOnFlag.RegisterForPropertyChanged(OnGrappleFlagChange);
         tussleInitDelegate.RegisterForDelegateInvoked(OnTussleInitDelegate);
         currAction.RegisterForPropertyChanged(OnActionChange);
         grappleWindowCR = StartCoroutine(GrappleWindowCoroutine());
@@ -101,15 +98,6 @@ public class GrappleHook : MonoBehaviour
         }
     }
 
-    private void OnGrappleFlagChange(bool oldVal, bool newVal)
-    {
-        //In case we need something else to stop the grapple
-        if (!newVal)
-        {
-            SafeDestroy(gameObject);
-        }
-    }
-
     private void OnDestroy()
     {
         Debug.Log("destroying grapple");
@@ -130,10 +118,10 @@ public class GrappleHook : MonoBehaviour
             StopCoroutine(grappleReelInCR);
             grappleReelInCR = null;
         }
-
-        grappleOnFlag.ModifyValue(false);
-        grappleOnFlag.DeRegisterForPropertyChanged(OnGrappleFlagChange);
+        
         currAction.DeRegisterForPropertyChanged(OnActionChange);
+        
+        grappleActivePSO.ModifyValue(false);
     }
 
     private IEnumerator GrappleWindowCoroutine()
