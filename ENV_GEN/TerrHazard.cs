@@ -76,7 +76,7 @@ public class TerrHazard : TerrAddon
 
         foreach (HitBoxWrapper hbw in customHitBoxes)
         {
-            ApplyHitBoxSizeErrorFix(hbw.InstancedHB, towardsOrAwayFromPlayer: false);
+            ApplyHitBoxSizeErrorFix(hbw.InstancedHB, towardsOrAwayFromPlayer: true);
             hbw.InstancedHB.SetOnTriggerEnterMethod(
                 coll => OnTriggerEnterDamageHitBox(coll, hbw.InstancedHB));
         }
