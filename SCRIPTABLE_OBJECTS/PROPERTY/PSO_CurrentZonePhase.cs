@@ -26,6 +26,11 @@ public class PSO_CurrentZonePhase : PropertySO<ZonePhaseEnum>
     [SerializeField]
     private float fade2TutorialTime = 1f;
 
+    //TODO: Make a universal location to hold the
+    //black screen time when changing scenes with the game mode manager
+    [SerializeField]
+    private float fade2TutorialHoldBlackTime = 1.5f;
+
     [SerializeField]
     private SO_SteamManager steamManager = null;
 
@@ -54,7 +59,12 @@ public class PSO_CurrentZonePhase : PropertySO<ZonePhaseEnum>
         {
             GameObject inst = Instantiate(fade2BlackPrefab);
             FadeToBlack ftb = inst.GetComponent<FadeToBlack>();
-            ftb.InitFade(fadeInOrOut: false, fade2TutorialTime, 0, () => GoToTutorialScene(zw));
+            ftb.InitFade(
+                fadeInOrOut: false,
+                fade2TutorialTime,
+                delay: 0,
+                fade2TutorialHoldBlackTime,
+                () => GoToTutorialScene(zw));
         }
     }
 

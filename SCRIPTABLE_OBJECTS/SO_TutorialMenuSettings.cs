@@ -6,6 +6,10 @@ using UnityEngine;
 public class SO_TutorialMenuSettings : ScriptableObject
 {
     [SerializeField]
+    private float menuDisplayDelay = 1f;
+    public float MenuDisplayDelay => menuDisplayDelay;
+
+    [SerializeField]
     private float totalFadeTime = 1f;
     public float TotalFadeTime => totalFadeTime;
 

@@ -70,6 +70,8 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
 
     protected override void OnMenuAwake()
     {
+        MenuEnabled = false;
+
         cachedTutWrapper = GetWrapperFromFunc(
             tutorialWrappers,
             tw => tw.Mode,
@@ -95,14 +97,22 @@ public class MM_TutorialMenuManager : A_MenuManager<TutorialMenuEnum>
         slidesBlackFade.color = new Color(0, 0, 0, 0);
 
         menuBlackFade.color = Color.black;
-        StartCoroutine(BlackFade(menuBlackFade, true));
 
+        StartCoroutine(TutorialMenuInto());
     }
 
     protected override void OnMenuStart()
     {
         cachedTutWrapper.OneShotPSO.ModifyValue(false);
     }
+
+    private IEnumerator TutorialMenuInto()
+    {
+        yield return new WaitForSeconds(settings.MenuDisplayDelay);
+        MenuEnabled = true;
+        yield return BlackFade(menuBlackFade, true);
+    }
+
 
     private void OnBackButton()
     {

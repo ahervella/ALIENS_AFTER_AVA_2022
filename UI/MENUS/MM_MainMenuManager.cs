@@ -93,6 +93,8 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
 
     private void PlayGame()
     {
+        currZonePhase.ModifyValue(ZonePhaseEnum.ZONE_INTRO_TRANS);
+        
         if (firstTimePlayingPSO.Value)
         {
             currTutMode.ModifyValue(TutorialModeEnum.FIRST_RUN);
@@ -123,6 +125,7 @@ public class MM_MainMenuManager : A_MenuManager<MainMenuButtonEnum>
     private void RunSelectedLevel(int lvl)
     {
         currZone.DirectlySetValue(lvl);
+        currZonePhase.ModifyValue(ZonePhaseEnum.ZONE_INTRO_TRANS);
         currGameMode.ModifyValue(GameModeEnum.PLAY);
     }
 

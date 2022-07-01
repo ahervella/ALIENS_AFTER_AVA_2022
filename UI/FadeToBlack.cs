@@ -15,12 +15,12 @@ public class FadeToBlack : MonoBehaviour
 
     private bool firstFade = true;
 
-    public void InitFade(bool fadeInOrOut, float fadeTime, float delay, Action onFinish)
+    public void InitFade(bool fadeInOrOut, float fadeTime, float delay, float holdTime, Action onFinish)
     {
-        SafeStartCoroutine(ref fadeCR, FadeCR(fadeInOrOut, fadeTime, delay, onFinish), this);
+        SafeStartCoroutine(ref fadeCR, FadeCR(fadeInOrOut, fadeTime, delay, holdTime, onFinish), this);
     }
 
-    private IEnumerator FadeCR(bool fadeInOrOut, float fadeTime, float delay, Action onFinish)
+    private IEnumerator FadeCR(bool fadeInOrOut, float fadeTime, float delay, float holdTime, Action onFinish)
     {
         float startAlpha = firstFade ? (fadeInOrOut ? 1 : 0) : fadeImg.color.a;
         float endAlpha = fadeInOrOut ? 0 : 1;
@@ -45,6 +45,8 @@ public class FadeToBlack : MonoBehaviour
         {
             fadeImg.gameObject.SetActive(false);
         }
+
+        yield return new WaitForSeconds(holdTime);
 
         onFinish?.Invoke();
     }
