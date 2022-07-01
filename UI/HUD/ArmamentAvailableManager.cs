@@ -26,11 +26,12 @@ public class ArmamentAvailableManager : MonoBehaviour
     [SerializeField]
     private float triggerTime = 1f;
 
+    [SerializeField]
+    private PSO_CurrentGameMode currGameMode = null;
+
     private bool triggeredAlert = false;
 
     private Coroutine alertCR = null;
-
-    private PSO_CurrentGameMode currGameMode = null;
 
     //TODO: make an unscaled deltaTime SO that can share all this across where we do use it
     private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
