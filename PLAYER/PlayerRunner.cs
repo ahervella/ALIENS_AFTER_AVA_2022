@@ -43,9 +43,6 @@ public class PlayerRunner : MonoBehaviour
     private SO_TussleSettings tussleSettings = null;
 
     [SerializeField]
-    private PSO_CurrentGameMode currGameMode = null;
-
-    [SerializeField]
     private PSO_CurrentLoadout currLoadout = null;
 
     [SerializeField]
@@ -68,9 +65,6 @@ public class PlayerRunner : MonoBehaviour
 
     [SerializeField]
     private PSO_CurrentTussle currTussle = null;
-
-    [SerializeField]
-    private BoolPropertySO currEndOfDemo = null;
 
     [SerializeField]
     private SO_DeveloperToolsSettings developerSettings = null;
@@ -125,16 +119,12 @@ public class PlayerRunner : MonoBehaviour
         SetPlayerStartPosition();
         currAction.RegisterForPropertyChanged(OnActionChange);
         shieldOnFlag.RegisterForPropertyChanged(OnShieldChange);
-        currGameMode.RegisterForPropertyChanged(OnGameModeChange);
-        currEndOfDemo.RegisterForPropertyChanged(OnDemoEnd);
         currZonePhase.RegisterForPropertyChanged(OnZonePhaseChange);
 
         tussleSettings.TussleHazardCleanUpDelegate.RegisterForDelegateInvoked(
             OnTussleHazardCleanUpInvoked);
 
         laneChangeDelegate.RegisterForDelegateInvoked(OnLaneChangeDelegate);
-
-        inputManager.EnsureIsEnabled();
     }
 
     private void Start()
@@ -216,12 +206,6 @@ public class PlayerRunner : MonoBehaviour
         inputManager.UnregisterFromInput(InputEnum.DEV_6, InputManager_Dev6);
         inputManager.UnregisterFromInput(InputEnum.DEV_7, InputManager_Dev7);
         inputManager.UnregisterFromInput(InputEnum.DEV_8, InputManager_Dev8);
-    }
-
-    private void OnDemoEnd(bool prevVal, bool newVal)
-    {
-        if (!newVal) { return; }
-        UnregisterFromInputs();
     }
 
     private bool TryPerformAction(PlayerActionEnum action, bool overrideFlag = false)
@@ -406,20 +390,7 @@ public class PlayerRunner : MonoBehaviour
         damageWhiteFlasher.StopInfFlashing();
         damageInvincibility = false;
     }
-
-    private void OnGameModeChange(GameModeEnum oldMode, GameModeEnum newMode)
-    {
-        //return;
-        if (newMode == GameModeEnum.PAUSE)
-        {
-            UnregisterFromInputs();
-        }
-        if (oldMode == GameModeEnum.PAUSE && newMode == GameModeEnum.PLAY)
-        {
-            RegisterForInputs();
-        }
-    }
-
+    
     private void StopSprintCR()
     {
         if (sprintCR != null)
@@ -469,8 +440,6 @@ public class PlayerRunner : MonoBehaviour
     {
         dodged = true;
         destroyHazard = false;
-
-        if (currEndOfDemo.Value) { return; }
 
         if (currAction.IsPlayingHurtAnim())
         {

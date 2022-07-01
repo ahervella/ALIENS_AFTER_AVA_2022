@@ -12,6 +12,15 @@ public class SO_InputManager : ScriptableObject
     private InputActionAsset inputMapper;
 
     [SerializeField]
+    private string devInputMapName = string.Empty;
+
+    [SerializeField]
+    private string gameInputActionMapName = string.Empty;
+
+    [SerializeField]
+    private PSO_CurrentGameMode currGameMode = null;
+
+    [SerializeField]
     private List<InputWrapper> inputWrappers = new List<InputWrapper>();
 
     [Serializable]
@@ -38,6 +47,31 @@ public class SO_InputManager : ScriptableObject
         unregisterOnGameModeSceneReplaceDict
         = new Dictionary<InputWrapper, Dictionary<object, Action<CallbackContext>>>();
 
+    private void OnEnable()
+    {
+        inputMapper.Enable();
+
+        if (Application.isEditor)
+        {
+            inputMapper.FindActionMap(devInputMapName).Disable();
+        }
+
+        currGameMode.RegisterForPropertyChanged(OnGameModeChange);
+    }
+
+    private void OnGameModeChange(GameModeEnum oldMode, GameModeEnum newMode)
+    {
+        if (newMode == GameModeEnum.PAUSE)
+        {
+            inputMapper.FindActionMap(gameInputActionMapName).Disable();
+        }
+
+        else if (oldMode == GameModeEnum.PAUSE && newMode == GameModeEnum.PLAY)
+        {
+            inputMapper.FindActionMap(gameInputActionMapName).Enable();
+        }
+    }
+    
     public void RegisterForAnyInput(Action<CallbackContext> method, bool persistant = false)
     {
         AnyInputRegistrationChanged(method, true, persistant);
@@ -50,11 +84,6 @@ public class SO_InputManager : ScriptableObject
 
     private void AnyInputRegistrationChanged(Action<CallbackContext> method, bool registering, bool persistant)
     {
-        if (registering)
-        {
-            EnsureIsEnabled();
-        }
-
         foreach (InputWrapper iw in inputWrappers)
         {
             iw.InputAction.action.performed -= method;
@@ -66,18 +95,6 @@ public class SO_InputManager : ScriptableObject
             RegisterForGameModeSceneUnloaded(iw, method, registering, persistant);
         }
     }
-
-    public void EnsureIsEnabled()
-    {
-        //idealy we find somewhere to do this on awake but
-        //this is the only way to make sure that anything that
-        //subscribes has the controls enabled.
-        if (!inputMapper.enabled)
-        {
-            inputMapper.Enable();
-        }
-    }
-
 
     public void RegisterForInput(InputEnum input, Action<CallbackContext> method, bool persistant = false)
     {
@@ -91,11 +108,6 @@ public class SO_InputManager : ScriptableObject
 
     private void InputRegistrationChanged(InputEnum input, Action<CallbackContext> method, bool registering, bool persistant)
     {
-        if (registering)
-        {
-            EnsureIsEnabled();
-        }
-
         foreach (InputWrapper iw in inputWrappers)
         {
             if (iw.InputType == input)
