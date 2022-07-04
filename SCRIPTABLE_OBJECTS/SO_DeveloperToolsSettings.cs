@@ -55,6 +55,10 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     }
 
     [SerializeField]
+    private bool skipTutorials = false;
+    public bool SkipTutorials => skipTutorials;
+
+    [SerializeField]
     private bool demoMode = false;
     public bool DemoMode => demoMode;
 

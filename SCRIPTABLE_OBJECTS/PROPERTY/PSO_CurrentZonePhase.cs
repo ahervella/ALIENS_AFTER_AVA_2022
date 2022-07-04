@@ -26,6 +26,9 @@ public class PSO_CurrentZonePhase : PropertySO<ZonePhaseEnum>
     [SerializeField]
     private float fade2TutorialTime = 1f;
 
+    [SerializeField]
+    private SO_DeveloperToolsSettings devTools = null;
+
     //TODO: Make a universal location to hold the
     //black screen time when changing scenes with the game mode manager
     [SerializeField]
@@ -54,6 +57,7 @@ public class PSO_CurrentZonePhase : PropertySO<ZonePhaseEnum>
 
     private void TryLoadTutorial(SO_TerrZoneWrapper zw)
     {
+        if (devTools.SkipTutorials) { return; }
         
         if (zw.TutorialOnFinish != TutorialModeEnum.NONE && zw.TutorialOneShotPSO.Value)
         {

@@ -24,14 +24,9 @@ public class SplashSpawner : MonoBehaviour
 
     public void AE_SpawnSplash(int spawnLocRefIndex)
     {
-        if (currZone.Value < zoneForSplash || currZone.Value > zoneForSplash + 1) { return; }
+        if (currZone.Value != zoneForSplash) { return; }
 
-        if (currZone.Value == zoneForSplash + 1
-            && currZonePhase.Value != ZonePhaseEnum.ZONE_INTRO_TRANS) { return; }
-
-        if (currZone.Value == zoneForSplash
-            && currZonePhase.Value == ZonePhaseEnum.ZONE_INTRO_TRANS) { return; }
-
+        //TODO: sync up with terrain change delegate to get to change to splashing soon as we get there
 
         GameObject instance = Instantiate(splashPrefab);
         terrNodes.Value.AttachTransform(instance.transform, horizOrVert: false);

@@ -21,10 +21,7 @@ public class Boss3Animation : BaseAnimation<Boss3State, SO_Boss3AnimationSetting
     protected override void OnStart()
     {
         oscillationManager = GetComponent<BossOscillationManager>();
-    }
-
-    private void Start()
-    {
+        
         StartOscillation(oscillationManager);
 
         foreach(BossOscillationManager bom in cannonDroneOscillators)

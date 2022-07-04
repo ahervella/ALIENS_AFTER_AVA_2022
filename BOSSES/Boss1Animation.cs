@@ -32,10 +32,6 @@ public class Boss1Animation : BaseAnimation<Boss1State, SO_Boss1AnimationSetting
     protected override void OnStart()
     {
         oscillationManager = GetComponent<BossOscillationManager>();
-    }
-
-    private void Start()
-    {
         oscillationManager.InitOscillation(
             settings.XOscillationTime,
             settings.XOscillationTileAmnt * terrSettings.TileDims.x,

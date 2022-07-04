@@ -114,6 +114,8 @@ public class Boss3CannonDrone : MonoBehaviour
         sprite.color = disabledColor;
         hb.BoxDisabled = true;
 
+        CleanUpShooter();
+
         SafeStartCoroutine(ref restoreCR, RestoreCannonCR(), this);
     }
 
