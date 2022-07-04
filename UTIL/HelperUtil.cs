@@ -117,9 +117,11 @@ public static class HelperUtil
         Vector2 objTileDims,
         int height,
         SO_TerrSettings terrSettings,
-        Vector3PropertySO hitBoxDimEdgePercents)
+        Vector3PropertySO hitBoxDimEdgePercents,
+        bool trimRight = true,
+        bool trimLeft = true)
     {
-        SetHitBoxDimensionsAndPos(hitBox, objTileDims, height, terrSettings, hitBoxDimEdgePercents, !hitBox.UseLocalPos);
+        SetHitBoxDimensionsAndPos(hitBox, objTileDims, height, terrSettings, hitBoxDimEdgePercents, !hitBox.UseLocalPos, trimRight, trimLeft);
     }
 
     /// <summary>
@@ -131,20 +133,39 @@ public static class HelperUtil
         int height,
         SO_TerrSettings terrSettings,
         Vector3PropertySO hitBoxDimEdgePercents,
-        bool setHitBoxDefaultLocalPos)
+        bool setHitBoxDefaultLocalPos,
+        bool trimRight = true,
+        bool trimLeft = true)
     {
         Vector3 hitBoxDimensions = new Vector3(
             objTileDims.x * terrSettings.TileDims.x,
             height * terrSettings.FloorHeight,
             objTileDims.y * terrSettings.TileDims.y);
 
-        hitBoxDimensions -= new Vector3(
+        
+        Vector3 hbEdgeMods = new Vector3(
             terrSettings.TileDims.x * (1 - hitBoxDimEdgePercents.Value.x),
             terrSettings.FloorHeight * (1 - hitBoxDimEdgePercents.Value.y),
             terrSettings.TileDims.y * (1 - hitBoxDimEdgePercents.Value.z));
 
+
+        hitBoxDimensions -= hbEdgeMods;
+
+        float hbCenterOffset = 0;
+        if (!trimLeft)
+        {
+            hitBoxDimensions += new Vector3(hbEdgeMods.x / 2f, 0, 0);
+            hbCenterOffset -= hbEdgeMods.x / 4f;
+        }
+        
+        if (!trimRight)
+        {
+            hitBoxDimensions += new Vector3(hbEdgeMods.x / 2f, 0, 0);
+            hbCenterOffset += hbEdgeMods.x / 4f;
+        }
+
         hitBox.Box().size = hitBoxDimensions;
-        hitBox.Box().center = new Vector3(0, hitBoxDimensions.y / 2f, 0);
+        hitBox.Box().center = new Vector3(hbCenterOffset, hitBoxDimensions.y / 2f, 0);
         if (setHitBoxDefaultLocalPos)
         {
             hitBox.transform.localPosition = Vector3.zero;
@@ -170,8 +191,9 @@ public static class HelperUtil
         Vector3PropertySO hitBoxDimEdgePercents
         )
     {
+        //TODO: also customize the reward boxes as with hit boxes in terms of which side is trimmed
         SetHitBoxDimensionsAndPos(
-            hitBoxSP, objTileDims, height, terrSettings, hitBoxDimEdgePercents, true);
+            hitBoxSP, objTileDims, height, terrSettings, hitBoxDimEdgePercents, true, true, true);
 
         SetRewardBoxDimensionsFromHB(hitBoxSP.Box(), energyRewardBox, terrSettings);
     }
@@ -270,11 +292,15 @@ public static class HelperUtil
             int width = hbw.MaxXRange - hbw.MinXRange;
             Vector2Int dims = new Vector2Int(width, hazardDims.y);
 
-            SetHitBoxDimensionsAndPos(instance, dims, hbw.FloorHeight, terrSettings, hitBoxDimEdgePercents);
+            bool trimLeft = hbw.MinXRange == 0;
+            bool trimRight = hbw.MaxXRange == hazardDims.x;
 
+            SetHitBoxDimensionsAndPos(instance, dims, hbw.FloorHeight, terrSettings, hitBoxDimEdgePercents, trimRight, trimLeft);
+
+            float trimXOffset = instance.Box().center.x;
             float centerOffset = (width - hazardDims.x) / 2f + hbw.MinXRange;
             centerOffset *= terrSettings.TileDims.x;
-            instance.Box().center = new Vector3(centerOffset, instance.Box().center.y, instance.Box().center.z);
+            instance.Box().center = new Vector3(centerOffset + trimXOffset, instance.Box().center.y, instance.Box().center.z);
 
             hbw.CacheInstancedHB(instance);
             instance.SetReqAvoidAction(hbw.CustomAvoidAction);
