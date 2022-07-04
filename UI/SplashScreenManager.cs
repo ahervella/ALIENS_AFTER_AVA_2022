@@ -21,6 +21,8 @@ public class SplashScreenManager : MonoBehaviour
 
     private IEnumerator SplashScreenSequenceCR()
     {
+        splashImg.preserveAspect = true;
+        
         foreach(SplashScreenWrapper ssw in settings.GetOrderedSplashScreenWrappers())
         {
             if (ssw.SplashImage == null)
