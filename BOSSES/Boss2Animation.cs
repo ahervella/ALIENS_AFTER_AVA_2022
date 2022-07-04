@@ -53,7 +53,7 @@ public class Boss2Animation : BaseAnimation<Boss2State, SO_Boss2AnimationSetting
         }
     }
 
-    protected override void OnAwake()
+    protected override void OnStart()
     {
         startScale = transform.localScale;
         startLocalPos = transform.localPosition;

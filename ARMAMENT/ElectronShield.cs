@@ -31,7 +31,7 @@ public class ElectronShield : MonoBehaviour
 
     private Coroutine timerCR = null;
 
-    private void Awake()
+    private void Start()
     {
         shieldOnFlag.ModifyValue(true);
         shieldOnFlag.RegisterForPropertyChanged(OnShieldFlagChange);

@@ -26,7 +26,7 @@ public class S_CursorManager : Singleton<S_CursorManager>
 
     private bool visibilityOverride = false;
 
-    protected override void OnAwake()
+    private void Start()
     {
         currGameMode.RegisterForPropertyChanged(OnGameModeChange);
         devMenuVisible.RegisterForPropertyChanged(OnDevMenuVisibleChange);
@@ -71,7 +71,7 @@ public class S_CursorManager : Singleton<S_CursorManager>
         if (visibilityOverride) { return; }
 
         Vector2 newPos = mouseMoveInput.action.ReadValue<Vector2>();
-        Debug.Log(newPos);
+        //Debug.Log(newPos);
         if (newPos != lastPos)
         {
             Cursor.visible = true;

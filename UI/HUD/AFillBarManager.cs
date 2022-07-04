@@ -96,8 +96,6 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
     private void Awake()
     {
-        optionalCurrGameMode?.RegisterForPropertyChanged(OnCurrGameModeChange);
-        currQuant.RegisterForPropertyChanged(OnCurrQuantChanged);
         blockFractionPerc = 0;
         startingFrameColor = frameImg.color;
         startingMaskFillColor = maskFillImg.color;
@@ -185,6 +183,8 @@ public abstract class AFillBarManager<PSO_CURR_QUANT, FILL_BAR_SETTINGS> : AFill
 
     private void Start()
     {
+        optionalCurrGameMode?.RegisterForPropertyChanged(OnCurrGameModeChange);
+        currQuant.RegisterForPropertyChanged(OnCurrQuantChanged);
         MakeSureMaxQuantityCached();
         SetStartingQuant();
         StartSpawnAnimations();

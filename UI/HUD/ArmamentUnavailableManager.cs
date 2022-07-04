@@ -16,7 +16,7 @@ public class ArmamentUnavailableManager : MonoBehaviour
     [SerializeField]
     private GameObject availableMask = null;
 
-    private void Awake()
+    private void Start()
     {
         currEnergy.RegisterForPropertyChanged(OnValuesChange);
         currTimer.RegisterForPropertyChanged(OnValuesChange);

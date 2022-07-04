@@ -12,8 +12,8 @@ public class SetPanelButton : MonoBehaviour, IDisposable
     private PanelsEnumPropertySO panelsSO = null;
 
     Button button;
-
-    private void Awake()
+    
+    private void Start()
     {
         button = GetComponent<Button>();
         button.onClick.AddListener(SetPanel);

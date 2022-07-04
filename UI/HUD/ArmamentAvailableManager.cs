@@ -41,7 +41,7 @@ public class ArmamentAvailableManager : MonoBehaviour
     private Vector2 ogScale;
     private float ogRot;
     
-    private void Awake()
+    private void Start()
     {
         if (currTimer == null){return;}
         currEnergy.RegisterForPropertyChanged(OnValuesChange);

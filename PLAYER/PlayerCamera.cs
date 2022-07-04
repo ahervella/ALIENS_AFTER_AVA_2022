@@ -18,15 +18,12 @@ public class PlayerCamera : MonoBehaviour
     private float tweenPerc;
     private Camera cam;
 
-    private void Awake()
+    private void Start()
     {
         tweenPerc = 1;
         cam = GetComponent<Camera>();
         targetCameraAngle.RegisterForPropertyChanged(OnCameraAngleChange);
-    }
 
-    private void Start()
-    {
         //just go to the current angle on load
         OnCameraAngleChange(null, targetCameraAngle.Value);
     }

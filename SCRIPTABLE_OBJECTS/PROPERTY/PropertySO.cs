@@ -46,6 +46,8 @@ public abstract class PropertySO<T> : PropertySO
     //reverting to setStartingValOnFirstGet
     private void OnEnable()
     {
+        //TODO: consider adding: if (!Application.isPlaying) { return; } ? experiment later...
+
         //currentValue = startingValue;
         //inpsectorCurrValue = startingValue;
         if (triggerChangeWithStartVal)
@@ -70,6 +72,11 @@ public abstract class PropertySO<T> : PropertySO
         return currentValue;
     }
 
+    /// <summary>
+    /// CAN NOT BE CALLED DURING AWAKE DUE TO SINGLETON REF
+    /// </summary>
+    /// <param name="method"></param>
+    /// <param name="persistent"></param>
     public T RegisterForPropertyChanged(PropertyChanged method, bool persistent = false)
     {
         if (!registeredWithGameModeManager && !persistent)

@@ -32,7 +32,7 @@ public class OrbOscillation : MonoBehaviour
     private Vector3 oscillationPosDelta = new Vector3(0, 0, 0);
     //private Vector3 cachedOGOscillationLocalPosition = default;
 
-    private void Awake()
+    private void Start()
     {
         cachedOGLocalPosition = transform.localPosition;
         //cachedOGOscillationLocalPosition = oscillationChild.transform.localPosition;

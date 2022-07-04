@@ -121,7 +121,7 @@ public class Projectile : MovingNode
 
     //In Start so we don't have these positions overwritten if we
     //had use HelperUtil.InstantiateAndSetPosition
-    private void Start()
+    protected virtual void Start()
     {
         //this order is important for beam projectiles
         //due to how the hitbox reattaches itself to the proper

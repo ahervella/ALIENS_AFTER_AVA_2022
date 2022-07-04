@@ -87,7 +87,7 @@ public class PlayerAnimation : BaseAnimation<PlayerActionEnum, SO_PlayerAnimatio
         treadmillToggleDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(0, transitionTime));
     }
 
-    protected override void OnAwake()
+    protected override void OnStart()
     {
     }
 }

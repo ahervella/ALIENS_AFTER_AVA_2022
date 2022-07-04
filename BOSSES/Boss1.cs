@@ -57,7 +57,7 @@ public class Boss1 : AAlienBoss<Boss1State, SO_Boss1Settings>
         transform.position = new Vector3(x, transform.position.y, z);
     }
 
-    protected override void OnBossAwake()
+    protected override void OnBossStart()
     {
         laneChangeManager = GetComponent<BossLaneChangeManager>();
         

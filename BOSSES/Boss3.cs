@@ -96,7 +96,7 @@ public class Boss3 : AAlienBoss<Boss3State, SO_Boss3Settings>
         MoveBossToLocalLane(currBossRightOrLeftLocalLane);
     }
 
-    protected override void OnBossAwake()
+    protected override void OnBossStart()
     {
         boss3LaneChangePSO.RegisterForPropertyChanged(OnBoss3LaneChange);
         StartCoroutine(SpawnSequenceCR());

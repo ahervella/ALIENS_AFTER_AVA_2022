@@ -18,7 +18,7 @@ public class HeartbeatManager : MonoBehaviour
     private Coroutine heartbeatCR = null;
     private float currDelay;
 
-    private void Awake()
+    private void Start()
     {
         //All will trigger once play scene loaded
         currLives.RegisterForPropertyChanged(OnLivesChanged);

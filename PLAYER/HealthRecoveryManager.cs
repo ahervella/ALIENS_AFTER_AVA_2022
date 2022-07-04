@@ -18,14 +18,11 @@ public class HealthRecoveryManager : MonoBehaviour
 
     //TODO reset when tussle is done, and pause when it happens?
 
-    private void Awake()
+    private void Start()
     {
         currLives.ResetToStart();
         currLives.RegisterForPropertyChanged(OnCurrLivesChange);
-    }
-
-    private void Start()
-    {
+    
         if (devToolsSettings.StartWith1Life)
         {
             currLives.ModifyValue(-currLives.Value + 1);

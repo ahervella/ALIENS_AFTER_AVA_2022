@@ -22,7 +22,7 @@ public class DamageImpactManager : MonoBehaviour
 
     private Coroutine impactCR = null;
 
-    private void Awake()
+    private void Start()
     {
         impactImg = GetComponent<Image>();
         impactImg.color = new Color(1, 1, 1, 0);

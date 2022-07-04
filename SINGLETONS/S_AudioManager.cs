@@ -58,7 +58,7 @@ public class S_AudioManager : Singleton<S_AudioManager>
 
     private LoopAudioWrapper currLoopAudioWrapper = null;
 
-    protected override void OnAwake()
+    private void Start()
     {
         currLives.RegisterForPropertyChanged(OnCurrLivesChange, persistent);
         currGameMode.RegisterForPropertyChanged(OnGameModeChanged, persistent);

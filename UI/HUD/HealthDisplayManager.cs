@@ -10,7 +10,7 @@ public class HealthDisplayManager : MonoBehaviour
     [SerializeField]
     List<GameObject> gameObjects = null;
 
-    private void Awake()
+    private void Start()
     {
         livesSO.RegisterForPropertyChanged(OnLivesChanged);
         OnLivesChanged(livesSO.Value, livesSO.Value);

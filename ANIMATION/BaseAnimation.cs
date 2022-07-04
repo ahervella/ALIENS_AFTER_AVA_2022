@@ -22,16 +22,16 @@ public abstract class BaseAnimation<STATE, ANIM_SETTINGS> : MonoBehaviour where 
     protected SpriteAnim spriteAnimator;
     protected Animator animator;
 
-    private void Awake()
+    private void Start()
     {
         currAction.RegisterForPropertyChanged(OnActionChange);
         spriteAnimator = GetComponent<SpriteAnim>();
         //included component if SpriteAnim is also included
         animator = GetComponent<Animator>();
-        OnAwake();
+        OnStart();
     }
 
-    protected abstract void OnAwake();
+    protected abstract void OnStart();
 
     protected abstract void OnActionChange(STATE prevAction, STATE newAction);
 

@@ -67,11 +67,17 @@ public class BeamProjectile : Projectile
         beamTipSprite.enabled = false;
         aee.AssignAnimationEvent(AE_DestroyBeam, 0);
         aee.AssignAnimationEvent(AE_ActivateBeamHitBox, 1);
+        chargeAudio.PlayAudioWrapper(audioSource);
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+
         if (!isAlienProjectile)
         {
             currPlayerAction.RegisterForPropertyChanged(OnPlayerActionChange);
         }
-        chargeAudio.PlayAudioWrapper(audioSource);
     }
 
     private void OnPlayerActionChange(PlayerActionEnum oldAction, PlayerActionEnum newAction)

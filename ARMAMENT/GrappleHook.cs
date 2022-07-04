@@ -71,7 +71,7 @@ public class GrappleHook : MonoBehaviour
 
     private float currDist = 0;
 
-    private void Awake()
+    private void Start()
     {
         audioSource = GetComponent<AudioWrapperSource>();
 

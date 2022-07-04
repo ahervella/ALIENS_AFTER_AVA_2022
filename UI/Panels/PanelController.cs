@@ -11,7 +11,7 @@ public class PanelController : MonoBehaviour
 
     GameObject child;
 
-    private void Awake()
+    private void Start()
     {
         child = transform.GetChild(0).gameObject;
         panelsSO.RegisterForPropertyChanged( OnPanelsEnumChanged );

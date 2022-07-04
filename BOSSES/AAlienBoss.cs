@@ -90,7 +90,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
         return instance;
     }
 
-    private void Awake()
+    private void Start()
     {
         inputManager.RegisterForInput(InputEnum.DEV_9, InputManager_Dev9);
 
@@ -115,7 +115,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
         StartCoroutine(PlaySpawnAudioCR());
 
-        OnBossAwake();
+        OnBossStart();
     }
 
     //Need this so that second boss (or any future boss) can take advantage
@@ -249,7 +249,7 @@ public abstract class AAlienBoss<BOSS_STATE, BOSS_SETTINGS> : AAlienBossBase whe
 
     protected abstract void SetStartingPosition();
 
-    protected abstract void OnBossAwake();
+    protected abstract void OnBossStart();
 
     public override void TakeDamage(int damage)
     {

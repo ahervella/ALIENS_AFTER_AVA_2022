@@ -31,14 +31,11 @@ public class EnvNodeGenerator : MonoBehaviour
     private TerrainChangeWrapper queuedTerrainChangeWrapper = null;
     private float terrainChangeDistTraveled;
 
-    private void Awake()
+    private void Start()
     {
         currZone.RegisterForPropertyChanged(OnZoneChange);
         currZonePhase.RegisterForPropertyChanged(OnZonePhaseChange);
-    }
-
-    private void Start()
-    {
+        
         if (devTools.SpawnBossOnStart)
         {
             currZonePhase.ModifyValueNoInvoke(ZonePhaseEnum.BOSS_SPAWN);

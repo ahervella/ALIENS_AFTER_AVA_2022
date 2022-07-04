@@ -114,7 +114,7 @@ public class PlayerRunner : MonoBehaviour
 
     private bool jumpCanceled = false;
 
-    private void Awake()
+    private void Start()
     {
         SetPlayerStartPosition();
         currAction.RegisterForPropertyChanged(OnActionChange);
@@ -125,10 +125,7 @@ public class PlayerRunner : MonoBehaviour
             OnTussleHazardCleanUpInvoked);
 
         laneChangeDelegate.RegisterForDelegateInvoked(OnLaneChangeDelegate);
-    }
 
-    private void Start()
-    {
         RegisterForInputs();
         currAction.ModifyValue(PlayerActionEnum.RUN);
 

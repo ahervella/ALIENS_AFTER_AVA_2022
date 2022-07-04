@@ -11,15 +11,14 @@ public class EnergyBarManager : AFillBarManager<PSO_CurrentEnergy, SO_EnergySett
     [SerializeField]
     private PSO_CurrentPlayerAction currAction = null;
 
-
     protected override void AfterAwake()
     {
-        energyBarDisplayDelegate.RegisterForDelegateInvoked(SetVisibility);
-        currAction.RegisterForPropertyChanged(OnActionChanged);
     }
 
     protected override void AfterStart()
     {
+        energyBarDisplayDelegate.RegisterForDelegateInvoked(SetVisibility);
+        currAction.RegisterForPropertyChanged(OnActionChanged);
         OnActionChanged(currAction.Value, currAction.Value);
     }
 

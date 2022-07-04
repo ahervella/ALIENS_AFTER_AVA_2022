@@ -49,14 +49,16 @@ public class SO_InputManager : ScriptableObject
 
     private void OnEnable()
     {
+        //Even though OnEnable executes at run, Application.isPlaying
+        //still seems to be false... should report to Unity? 
+        //if (!Application.isPlaying) { return; }
+        
         inputMapper.Enable();
 
         if (Application.isEditor)
         {
             inputMapper.FindActionMap(devInputMapName).Disable();
         }
-
-        currGameMode.RegisterForPropertyChanged(OnGameModeChange);
     }
 
     private void OnGameModeChange(GameModeEnum oldMode, GameModeEnum newMode)
@@ -129,8 +131,11 @@ public class SO_InputManager : ScriptableObject
 
     private void RegisterForGameModeSceneUnloaded(InputWrapper iw, Action<CallbackContext> method, bool registering, bool persistant)
     {
+        //Can't do this in OnEnable because its too soon before singletons can be retrieved properly (same reason why we
+        //cannot call them in Awake...)
         if (!registeredWithGameModeManager)
         {
+            currGameMode.RegisterForPropertyChanged(OnGameModeChange);
             S_GameModeManager.Current.RegisterForGameModeSceneUnloaded(S_GameModeManager_OnGameModeSceneUnloaded);
             registeredWithGameModeManager = true;
         }

@@ -18,15 +18,10 @@ public class TutorialInputTextManager : MonoBehaviour
     [SerializeField]
     private List<GameObject> controllerInputObjects = new List<GameObject>();
 
-    private void Awake()
-    {
-        if (disableManager) { return; }
-        inputIsKeyboardPSO.RegisterForPropertyChanged(InputManager_OnInput);
-    }
-
     private void Start()
     {
         if (disableManager) { return; }
+        inputIsKeyboardPSO.RegisterForPropertyChanged(InputManager_OnInput);
         InputManager_OnInput(inputIsKeyboardPSO.Value, inputIsKeyboardPSO.Value);
     }
 

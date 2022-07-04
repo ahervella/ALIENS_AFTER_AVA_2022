@@ -39,24 +39,20 @@ public class DamageHealthDisplayManager : MonoBehaviour
 
     private Image damageImg;
 
-    private void Awake()
+    private void Start()
     {
         damageImg = GetComponent<Image>();
         SetHurtTintVisiblePerc(0);
         damageImg.color = new Color(1, 1, 1, 0);
         currLivesSO.RegisterForPropertyChanged(OnLivesChanged);
         currGameMode.RegisterForPropertyChanged(OnGameModeChanged);
+        damageImg.color = new Color(1, 1, 1, 0);
     }
 
     //TODO: Move this to helper utilities with a ref to the cached gamemode
     private void OnGameModeChanged(GameModeEnum _, GameModeEnum newMode)
     {
         cachedGamePaused = newMode == GameModeEnum.PAUSE;
-    }
-
-    private void Start()
-    {
-        damageImg.color = new Color(1, 1, 1, 0);
     }
 
     private void OnLivesChanged(int prevLife, int newLife)

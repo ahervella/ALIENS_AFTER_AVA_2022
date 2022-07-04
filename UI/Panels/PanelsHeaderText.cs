@@ -11,7 +11,7 @@ public class PanelsHeaderText : MonoBehaviour, IDisposable
 
     private Text text;
 
-    private void Awake()
+    private void Start()
     {
         text = GetComponent<Text>();
         panelsSO.RegisterForPropertyChanged(OnPanelsSOChanged);

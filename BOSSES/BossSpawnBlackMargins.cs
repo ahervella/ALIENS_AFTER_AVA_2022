@@ -22,7 +22,7 @@ public class BossSpawnBlackMargins : MonoBehaviour
 
     private Coroutine moveCR = null;
 
-    private void Awake()
+    private void Start()
     {
         currZonePhase.RegisterForPropertyChanged(OnPhaseChange);
 

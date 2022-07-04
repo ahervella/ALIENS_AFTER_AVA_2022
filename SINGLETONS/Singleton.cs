@@ -98,10 +98,13 @@ public abstract class Singleton<T> : MonoBehaviour where T : MonoBehaviour
             //delete others that shouldn't be there
             for (int i = 0; i < count; i++)
             {
+                Debug.Log("Found instance: " + typeof(T).Name + ", name: " + instances[i].name);
+
                 if (instances[i] == _current)
                 {
                     continue;
                 }
+
                 DeleteSingletonDuplicate(instances[i]);
             }
             return true;

@@ -76,7 +76,7 @@ public class TussleManager : MonoBehaviour
 
     private bool gamePaused => currGameMode.Value == GameModeEnum.PAUSE;
 
-    private void Awake()
+    private void Start()
     {
         audioSource = GetComponent<AudioWrapperSource>();
         currTussle.RegisterForPropertyChanged(InitiateTussle);

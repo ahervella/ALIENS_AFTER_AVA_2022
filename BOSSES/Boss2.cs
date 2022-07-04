@@ -146,7 +146,7 @@ public class Boss2 : AAlienBoss<Boss2State, SO_Boss2Settings>
     {
     }
 
-    protected override void OnBossAwake()
+    protected override void OnBossStart()
     {
         SpawnSequence();
         currState.RegisterForPropertyChanged(OnBossStateChange);

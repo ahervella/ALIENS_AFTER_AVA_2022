@@ -29,7 +29,7 @@ public class Boss1Animation : BaseAnimation<Boss1State, SO_Boss1AnimationSetting
         }
     }
 
-    protected override void OnAwake()
+    protected override void OnStart()
     {
         oscillationManager = GetComponent<BossOscillationManager>();
     }

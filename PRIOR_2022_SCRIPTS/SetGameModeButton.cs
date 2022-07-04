@@ -13,7 +13,7 @@ public class SetGameModeButton : MonoBehaviour, IDisposable
 
     Button button;
 
-    private void Awake()
+    private void Start()
     {
         button = GetComponent<Button>();
         button.onClick.AddListener(SetPanel);

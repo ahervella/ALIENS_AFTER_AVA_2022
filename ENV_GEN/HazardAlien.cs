@@ -28,10 +28,8 @@ public class HazardAlien : TerrHazard
 
     public bool StunnedFlag { get; protected set; } = false;
 
-    protected override void Awake()
+    private void Start()
     {
-        base.Awake();
-
         hazardTakeDownReqAction = takeDownReqAction;
 
         currTreadmillSpeed.RegisterForPropertyChanged(OnTreadmillSpeedChange);
