@@ -25,6 +25,9 @@ public class PlayerAnimation : BaseAnimation<PlayerActionEnum, SO_PlayerAnimatio
     [SerializeField]
     private SO_PlayerRunnerSettings playerSettings = null;
 
+    [SerializeField]
+    private PlayerRunner playerRunner = null;
+
     public bool PrematureActionChangeAllowed { get; private set; }
 
     protected override void OnActionChange(PlayerActionEnum prevAction, PlayerActionEnum newAction)
@@ -85,6 +88,12 @@ public class PlayerAnimation : BaseAnimation<PlayerActionEnum, SO_PlayerAnimatio
     public void AE_PauseTreadmill(float transitionTime)
     {
         treadmillToggleDelegate.InvokeDelegateMethod(new TreadmillSpeedChange(0, transitionTime));
+    }
+
+    public void AE_DodgeInvincibilityOff()
+    {
+        //TODO: use animation event extender to not have to do this and ref the player
+        playerRunner.AE_DodgeInvincibilityOff();
     }
 
     protected override void OnStart()
