@@ -58,6 +58,11 @@ public class SO_DeveloperToolsSettings : ScriptableObject
     private bool skipTutorials = false;
     public bool SkipTutorials => skipTutorials;
 
+    //TODO: make into a dev menu button and dynamic PSO listener
+    [SerializeField]
+    private bool muteMusic = false;
+    public bool MuteMusic => muteMusic;
+
     [SerializeField]
     private bool demoMode = false;
     public bool DemoMode => demoMode;

@@ -11,6 +11,9 @@ public class S_AudioManager : Singleton<S_AudioManager>
     private SO_MixerEffectSettings mixerSettings = null;
 
     [SerializeField]
+    private SO_DeveloperToolsSettings devTools = null;
+
+    [SerializeField]
     private AudioMixerGroup masterAudio = null;
 
     [SerializeField]
@@ -166,6 +169,8 @@ public class S_AudioManager : Singleton<S_AudioManager>
 
     private void UpdateAndPlayAudioLoop()
     {
+        if (devTools.MuteMusic) { return; }
+        
         GameModeEnum mode = currGameMode.Value;
         ZonePhaseEnum phase = currZonePhase.Value;
         int zone = currZone.Value;
