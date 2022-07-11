@@ -11,6 +11,9 @@ public class SO_SteamManager : ScriptableObject
         if (sae == SteamAchievementsEnum.NONE) { return false; }
         if (!SteamManager.Initialized) { return false; }
 
+        bool achieved;
+        SteamUserStats.GetAchievement(sae.ToString(), out achieved);
+        Debug.Log("Status of achievement: "+ sae.ToString() + " = " + achieved);
         SteamUserStats.SetAchievement(sae.ToString());
         SteamUserStats.StoreStats();
         return true;

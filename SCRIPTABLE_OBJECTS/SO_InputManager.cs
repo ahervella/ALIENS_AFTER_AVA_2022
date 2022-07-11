@@ -55,7 +55,7 @@ public class SO_InputManager : ScriptableObject
         
         inputMapper.Enable();
 
-        if (Application.isEditor)
+        if (!Application.isEditor)
         {
             inputMapper.FindActionMap(devInputMapName).Disable();
         }
