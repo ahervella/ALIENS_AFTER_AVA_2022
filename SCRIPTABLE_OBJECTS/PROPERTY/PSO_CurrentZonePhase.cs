@@ -41,12 +41,13 @@ public class PSO_CurrentZonePhase : PropertySO<ZonePhaseEnum>
     {
         if (Value != mod)
         {
+            TryCompleteAchievement();
+            
             if (Value == ZonePhaseEnum.END_OF_ZONE)
             {
                 SO_TerrZoneWrapper zw = zoneWrapperSettings.GetZoneWrapper(currZone.Value);
 
                 TryLoadTutorial(zw);
-                TryCompleteAchievement();
                 currZone.ModifyValue(1);
                 zw.TutorialOneShotPSO.ModifyValue(false);
                 saveManager.SaveGameState();
