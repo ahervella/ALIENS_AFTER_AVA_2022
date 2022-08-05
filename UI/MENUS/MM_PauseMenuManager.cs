@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.InputSystem.InputAction;
+using UnityEngine.InputSystem;
 
 public class MM_PauseMenuManager : A_MenuManager<PauseMenuButtonEnum>
 {
@@ -11,15 +12,27 @@ public class MM_PauseMenuManager : A_MenuManager<PauseMenuButtonEnum>
     [SerializeField]
     private GameObject pauseMenuContainer = null;
 
+    [SerializeField]
+    private SO_SteamManager steamManager = null;
+
     protected override void OnMenuAwake()
     {
         inputManager.RegisterForInput(InputEnum.GAME_PAUSE, InputManager_OnGamePause);
 
         AssignOnButtonPressedMethod(PauseMenuButtonEnum.RESUME, OnResume);
         AssignOnButtonPressedMethod(PauseMenuButtonEnum.QUIT, OnQuit);
+        steamManager.RegisterForOnSteamOveraly(OnSteamOverlayChange, false);
 
         pauseMenuContainer.SetActive(false);
         MenuEnabled = false;
+    }
+
+    private void OnSteamOverlayChange(bool activated)
+    {
+        if (currGameMode.Value != GameModeEnum.PAUSE && activated)
+        {
+            OnPause();
+        }
     }
 
     private void InputManager_OnGamePause(CallbackContext context)
