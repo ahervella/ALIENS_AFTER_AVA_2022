@@ -32,7 +32,7 @@ public class HealthRecoveryManager : MonoBehaviour
     private void OnCurrLivesChange(int oldLives, int newLives)
     {
         Debug.Log($"New Health val: {newLives}");
-        if (newLives > currLives.MinValue())
+        if (newLives < oldLives)
         {
             StartHealCoroutine(); ;
         }
@@ -50,7 +50,7 @@ public class HealthRecoveryManager : MonoBehaviour
 
     private IEnumerator HealDamageCoroutine()
     {
-        while (currLives.Value < currLives.MaxValue())
+        while (currLives.Value < currLives.MaxValue() && currLives.Value > 0)
         {
             yield return new WaitForSeconds(playerSettings.LifeRecoveryTime);
             currLives.ModifyValue(1);
