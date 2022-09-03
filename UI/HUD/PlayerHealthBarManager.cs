@@ -24,6 +24,7 @@ public class PlayerHealthBarManager : MonoBehaviour
         InstanceHealthBarChunks();
         currLives.RegisterForPropertyChanged(OnCurrLivesChange);
         playerHealthBarAlphaPerc.RegisterForPropertyChanged(OnHealthBarAlphaPercChange);
+        OnHealthBarAlphaPercChange(-1, playerHealthBarAlphaPerc.Value);
     }
 
     private void InstanceHealthBarChunks()
