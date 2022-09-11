@@ -41,6 +41,8 @@ public class SO_SteamManager : ScriptableObject
 
     public void RegisterForOnSteamOveraly(Action<bool> subscriber, bool persistent)
     {
+        if (!SteamManager.Initialized) { return; }
+
         if (!registeredWithGameModeManager)
         {
             gameOverlayActivated = Callback<GameOverlayActivated_t>.Create(OnGameOverlayActivated);
