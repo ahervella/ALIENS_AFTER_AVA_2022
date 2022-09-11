@@ -22,6 +22,9 @@ public class DamageHealthDisplayManager : MonoBehaviour
     [SerializeField]
     private PSO_CurrentGameMode currGameMode = null;
 
+    [SerializeField]
+    private FloatPropertySO playerHealthBarAlphaPerc = null;
+
     private bool cachedGamePaused = false;
 
     private DamageWrapper cachedDW = null;
@@ -86,6 +89,9 @@ public class DamageHealthDisplayManager : MonoBehaviour
         damageAlphaCR = null;
     }
 
+
+    //TODO: make this smooth flash transitioner part of tween utilities and apply to player health bar to
+    //be able to remove dependancy with PSO
     private IEnumerator DamageSpriteFlashCoroutine()
     {
         while (cachedDamageAlphaMin != cachedDamageAlphaMax
@@ -95,7 +101,9 @@ public class DamageHealthDisplayManager : MonoBehaviour
 
             currDamageTweenPerc += Time.unscaledDeltaTime / (cachedDW.DamageAlphaPulseTime / 2) * flashTweenDirection;
 
-            float alpha = Mathf.Lerp(cachedDamageAlphaMin, cachedDamageAlphaMax, EasedPercent(currDamageTweenPerc));
+            float easedPerc = EasedPercent(currDamageTweenPerc);
+            playerHealthBarAlphaPerc.DirectlySetValue(easedPerc);
+            float alpha = Mathf.Lerp(cachedDamageAlphaMin, cachedDamageAlphaMax, easedPerc);
 
             damageImg.color = new Color(1, 1, 1, alpha);
 
